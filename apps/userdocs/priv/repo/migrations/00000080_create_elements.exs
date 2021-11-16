@@ -4,7 +4,9 @@ defmodule Userdocs.Repo.Migrations.CreateElements do
   def change do
     create table(:elements) do
       add :name, :string
-      add :selector, :string
+      add :selector, :text
+      add :automatic_selector, :text
+      add :direct_xpath_selector, :text
       add :page_id, references(:pages, on_delete: :nothing)
       add :strategy_id, references(:strategies, on_delete: :nothing)
 
