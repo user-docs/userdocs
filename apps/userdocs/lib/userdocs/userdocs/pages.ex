@@ -13,7 +13,6 @@ defmodule Userdocs.Pages do
   alias Userdocs.Teams
   alias Userdocs.RepoHandler
 
-
   @doc "Returns the list of pages."
   def list_pages(%{access_token: access_token, context: %{repo: Client}} = opts) do
     params = opts |> Map.take([:filters]) |> Plug.Conn.Query.encode()
@@ -54,22 +53,18 @@ defmodule Userdocs.Pages do
 
   @doc "Creates a page."
   def create_page(attrs \\ %{}, opts)
-  def create_page(attrs, %{context: %{repo: Client}}) do
-    %{
-      module: "Userdocs.Pages",
-      function: "create_page",
-      attrs: attrs
-    }
-    |> Client.create()
+  def create_page(attrs, %{access_token: access_token, context: %{repo: Client}}) do
+    params = %{page: attrs} |> Plug.Conn.Query.encode()
+    HTTPoison.post("http://localhost:4000/api/pages?#{params}", "", [{"authorization", access_token}])
   end
   def create_page(attrs, opts) do
-    {:ok, page} =
-      %Page{}
-      |> Page.changeset(attrs)
-      |> RepoHandler.insert(opts)
-
-    {:ok, page}
-    |> maybe_broadcast_page("create", channel(page), opts[:broadcast])
+    %Page{}
+    |> Page.changeset(attrs)
+    |> RepoHandler.insert(opts)
+    |> case do
+      {:ok, page} = result -> maybe_broadcast_page(result, "create", channel(page, opts[:broadcast]), opts[:broadcast])
+      result -> result
+    end
   end
 
   def create_page_struct(attrs \\ %{}) do
@@ -79,46 +74,31 @@ defmodule Userdocs.Pages do
   end
 
   @doc "Updates a page."
-  def update_page(%Page{} = page, attrs, %{context: %{repo: Client}}) do
-    {:ok, payload} = %{
-      module: "Userdocs.Pages",
-      function: "update_page",
-      struct_function: "create_page_struct",
-      type: "Schemas.Pages.Page",
-      fields: page,
-      attrs: attrs
-    } |> Jason.encode()
-
-    Client.update(payload)
+  def update_page(%Page{} = page, attrs, %{access_token: access_token, context: %{repo: Client}}) do
+    params = %{page: attrs} |> Plug.Conn.Query.encode()
+    HTTPoison.patch("http://localhost:4000/api/pages/#{page.id}?#{params}", "", [{"authorization", access_token}])
   end
   def update_page(%Page{} = page, attrs, opts) do
     page
     |> Page.changeset(attrs)
     |> RepoHandler.update(opts)
-    |> maybe_broadcast_page("update", channel(page), opts[:broadcast])
+    |> maybe_broadcast_page("update", channel(page, opts[:broadcast]), opts[:broadcast])
   end
 
   @doc "Deletes a page."
-  def delete_page(id, %{context: %{repo: Client}}) do
-    %{
-      module: "Userdocs.Pages",
-      get_function: "get_page!",
-      delete_function: "delete_page",
-      id: id
-    }
-    |> Client.delete()
+  def delete_page(id, %{access_token: access_token, context: %{repo: Client}}) do
+    HTTPoison.delete("http://localhost:4000/api/pages/#{id}", [{"authorization", access_token}])
   end
   def delete_page(%Page{} = page, opts) do
-    #channel = channel(page)
+    channel = channel(page, opts[:broadcast])
     RepoHandler.delete(page, opts)
-    |> maybe_broadcast_page("delete", channel(page), opts[:broadcast])
+    |> maybe_broadcast_page("delete", channel, opts[:broadcast])
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking page changes."
   def change_page(%Page{} = page, attrs \\ %{}) do
     Page.changeset(page, attrs)
   end
-
 
   @doc "Broadcasts a page to the team it belongs to"
   def maybe_broadcast_page({:error, _} = state, _, _, _), do: state
@@ -130,10 +110,11 @@ defmodule Userdocs.Pages do
   end
   def maybe_broadcast_page(state, _, _, _), do: state
 
-  def channel(%Page{} = page) do
+  def channel(%Page{} = page, true) do
     team = Teams.get_page_team(page.id)
     "team:#{team.id}"
   end
+  def channel(_, _), do: ""
 
   def effective_url(
     %Page{url: "/" <> _ = path},
