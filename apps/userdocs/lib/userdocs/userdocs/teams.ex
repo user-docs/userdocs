@@ -46,6 +46,15 @@ defmodule Userdocs.Teams do
     from(team in Team, where: team.id == ^id)
   end
 
+  def get_element_team!(id) do
+    from(t in Team, as: :teams)
+    |> join(:left, [teams: t], pr in assoc(t, :projects), as: :projects)
+    |> join(:left, [projects: pr], pa in assoc(pr, :pages), as: :pages)
+    |> join(:left, [pages: pa], e in assoc(pa, :elements), as: :elements)
+    |> where([elements: e], e.id == ^id)
+    |> Repo.one!()
+  end
+
   def get_screenshot_team!(id) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], p in assoc(t, :projects), as: :projects)
@@ -66,10 +75,19 @@ defmodule Userdocs.Teams do
   end
 
   def get_page_team(id) do
-    Team
-    |> join(:left, [t, pr], pr in assoc(t, :projects), on: pr.team_id == t.id)
-    |> join(:left, [t, pr, pa], p in assoc(pr, :pages), on: pa.project_id == pr.id)
-    |> where([t, pr, pa], pa.id == ^id)
+    from(t in Team, as: :teams)
+    |> join(:left, [teams: t], pr in assoc(t, :projects), as: :projects)
+    |> join(:left, [projects: pr], pa in assoc(pr, :pages), as: :pages)
+    |> where([pages: pa], pa.id == ^id)
+    |> Repo.one!()
+  end
+
+  def get_annotation_team(id) do
+    from(t in Team, as: :teams)
+    |> join(:left, [teams: t], pr in assoc(t, :projects), as: :projects)
+    |> join(:left, [projects: pr], pa in assoc(pr, :pages), as: :pages)
+    |> join(:left, [pages: pa], a in assoc(pa, :annotations), as: :annotations)
+    |> where([annotations: a], a.id == ^id)
     |> Repo.one!()
   end
 

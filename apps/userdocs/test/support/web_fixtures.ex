@@ -8,7 +8,7 @@ defmodule Userdocs.WebFixtures do
   alias Schemas.Annotations.Annotation
   alias Schemas.Elements.Element
   alias Schemas.Pages.Page
-  alias Schemas.Web.Strategy
+  alias Schemas.Strategies.Strategy
 
   alias Userdocs.Projects
   alias Userdocs.Annotations
@@ -25,10 +25,10 @@ defmodule Userdocs.WebFixtures do
     object
   end
 
-  def element(page_id, strategy_id) when is_integer(page_id) and is_integer(strategy_id) do
+  def element(page_id, strategy_id, opts) when is_integer(page_id) and is_integer(strategy_id) do
     {:ok, object } =
       element_attrs(:valid, page_id, strategy_id)
-      |> Elements.create_element()
+      |> Elements.create_element(opts)
     object
   end
 
@@ -36,18 +36,18 @@ defmodule Userdocs.WebFixtures do
     element(page.id, strategy.id)
   end
 
-  def strategy() do
+  def strategy(opts) do
     {:ok, strategy } =
       strategy_attrs(:valid)
-      |> Strategies.create_strategy()
+      |> Strategies.create_strategy(opts)
       strategy
   end
 
-  def annotation(page_id) when is_integer(page_id) do
+  def annotation(page_id, opts) when is_integer(page_id) do
     {:ok, annotation } =
       annotation_attrs(:valid)
       |> Map.put(:page_id, page_id)
-      |> Annotations.create_annotation()
+      |> Annotations.create_annotation(opts)
     annotation
   end
 
@@ -82,7 +82,7 @@ defmodule Userdocs.WebFixtures do
 
   def page_attrs(:invalid, project_id) do
     %{
-      url: "http://www.user-docs.com",
+      url: nil,
       name: UUID.uuid4(),
       project_id: nil
     }
@@ -132,7 +132,9 @@ defmodule Userdocs.WebFixtures do
 
   def annotation_attrs(:valid, page_id) do
     %{
-      page_id: page_id
+      page_id: page_id,
+      label: UUID.uuid4(),
+      name: UUID.uuid4()
     }
   end
   def annotation_type_attrs(:valid, :outline) do

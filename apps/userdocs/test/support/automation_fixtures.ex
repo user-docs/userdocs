@@ -7,6 +7,7 @@ defmodule Userdocs.AutomationFixtures do
   alias Userdocs.Processes
   alias Userdocs.WebFixtures
   alias Userdocs.StepTypes
+  @opts %{context: %{repo: Userdocs.Repo}}
 
   def process(project_id \\ nil) do
     {:ok, process} =
@@ -37,7 +38,7 @@ defmodule Userdocs.AutomationFixtures do
       step_attrs(:valid)
       |> Steps.create_step()
 
-    strategy = WebFixtures.strategy()
+    strategy = WebFixtures.strategy(@opts)
     page = WebFixtures.page()
     annotation_type = WebFixtures.annotation_type(:badge)
     element_attrs = WebFixtures.element_attrs(:valid, page.id, strategy.id)

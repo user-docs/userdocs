@@ -1,7 +1,7 @@
 defmodule Userdocs.UsersTest do
   use Userdocs.DataCase
-
   alias Userdocs.Users
+  @opts %{context: %{repo: Userdocs.Repo}}
 
   #@opts [data_type: :list, strategy: :by_type, loader: &Phoenix.LiveView.assign/3]
   describe "users" do
@@ -72,7 +72,7 @@ defmodule Userdocs.UsersTest do
       user = UsersFixtures.user()
       team = TeamsFixtures.team()
       team_user = TeamsFixtures.team_user(user.id, team.id)
-      strategy = WebFixtures.strategy()
+      strategy = WebFixtures.strategy(@opts)
       project = ProjectsFixtures.project(team.id, strategy.id)
       opts = %{context: %{repo: Userdocs.Repo}}
       {:ok, user} = Users.update_user_selections(user, %{selected_team_id: team.id, selected_project_id: project.id}, opts)
@@ -109,7 +109,7 @@ defmodule Userdocs.UsersTest do
       user = UsersFixtures.user()
       team = UsersFixtures.team()
       team_user = UsersFixtures.team_user(user.id, team.id)
-      strategy = WebFixtures.strategy()
+      strategy = WebFixtures.strategy(@opts)
       project = ProjectsFixtures.project(team.id, strategy.id)
       preloads = [teams: [:teams, [teams: :projects]]]
       state = %{teams: [team], users: [user], team_users: [team_user], projects: [project]}
@@ -121,7 +121,7 @@ defmodule Userdocs.UsersTest do
       user = UsersFixtures.user()
       team = UsersFixtures.team()
       team_user = UsersFixtures.team_user(user.id, team.id)
-      strategy = WebFixtures.strategy()
+      strategy = WebFixtures.strategy(@opts)
       project = ProjectsFixtures.project(team.id, strategy.id)
       preloads = [teams: [:teams, [teams: :projects], [teams: :projects]]]
       state = %{teams: [team], users: [user], team_users: [team_user], projects: [project]}
@@ -134,7 +134,7 @@ defmodule Userdocs.UsersTest do
       user = UsersFixtures.user(password)
       team = UsersFixtures.team()
       _team_user = UsersFixtures.team_user(user.id, team.id)
-      strategy = WebFixtures.strategy()
+      strategy = WebFixtures.strategy(@opts)
       project = ProjectsFixtures.project(team.id, strategy.id)
       overrides = [%{project_id: project.id, url: "https://www.google.com/"}]
       attrs = UsersFixtures.user_attrs(:valid)
