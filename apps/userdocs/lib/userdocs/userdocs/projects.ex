@@ -64,15 +64,15 @@ defmodule Userdocs.Projects do
   end
 
   @doc "Updates a project."
-  def update_project(%Project{} = project, attrs) do
+  def update_project(%Project{} = project, attrs, opts) do
     project
     |> Project.changeset(attrs)
-    |> Repo.update()
+    |> RepoHandler.update(opts)
   end
 
   @doc "Deletes a project."
-  def delete_project(%Project{} = project) do
-    Repo.delete(project)
+  def delete_project(%Project{} = project, opts) do
+    RepoHandler.delete(project, opts)
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking project changes."
