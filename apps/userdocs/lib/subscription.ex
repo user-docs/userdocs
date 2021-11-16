@@ -64,8 +64,6 @@ defmodule Userdocs.Subscription do
   end
 
   def traverse_changes(object, actions) do
-    IO.inspect(object)
-    IO.inspect(actions)
     Enum.reduce(actions, [],
       fn({key, change_summary}, acc) ->
         traverse_change({key, change_summary}, acc, object)
