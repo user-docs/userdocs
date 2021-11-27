@@ -5,7 +5,7 @@
     alias Schemas.Projects.Project
     def encode(%{} = user, opts) do
       user
-      |> Map.take([:id, :email, :selected_team_id, :selected_project_id])
+      |> Map.take([:id, :email, :selected_team_id, :selected_project_id, :overrides])
       |> maybe_take_team_users(user)
       |> maybe_take_project(user)
       |> maybe_take_team(user)

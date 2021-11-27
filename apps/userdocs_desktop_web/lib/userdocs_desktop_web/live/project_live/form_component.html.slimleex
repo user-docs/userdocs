@@ -1,0 +1,32 @@
+h2.title
+  = @title
+= f = form_for @changeset, "#",
+  id: "project-form",
+  phx_target: @myself.cid,
+  phx_change: "validate",
+  phx_submit: "save"
+
+  .form-control
+    = label f, :team_id, class: "label"
+    = select f, :team_id, @select_lists.teams, class: "select select-bordered", selected: f.data.team_id || @parent_id || ""
+    = error_tag f, :team_id 
+
+  .form-control
+    = label f, :strategy_id, class: "label"
+    = select f, :strategy_id, @select_lists.strategies, class: "select select-bordered", selected: f.data.strategy_id || ""
+    = error_tag f, :strategy_id 
+
+  .form-control
+    = label f, :name, class: "label"
+    = text_input f, :name, type: "text", class: "input input-bordered"
+    = error_tag f, :name 
+
+  .form-control
+    = label f, :base_url, class: "label"
+    = text_input f, :base_url, type: "text", class: "input input-bordered"
+    = error_tag f, :base_url 
+
+  .mt-4
+    = submit "Save", phx_disable_with: "Saving...", class: "btn btn-primary mr-2"
+
+</form>

@@ -22,17 +22,17 @@ defmodule Userdocs.TeamsFixtures do
     }
   end
 
-  def team() do
+  def team(opts) do
     {:ok, team} =
       team_attrs(:valid)
-      |> Teams.create_team()
+      |> Teams.create_team(opts)
     team
   end
 
-  def team_user(user_id, team_id) do
+  def team_user(user_id, team_id, opts) do
     {:ok, team_user} =
       team_user_attrs(:valid, user_id, team_id)
-      |> TeamUsers.create_team_user()
+      |> TeamUsers.create_team_user(opts)
       team_user
   end
 

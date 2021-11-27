@@ -1,4 +1,5 @@
 defmodule Schemas.Teams.Team do
+  @moduledoc "mix phx.gen.json Teams Team teams name:string css:string aws_region:string aws_bucket:string"
   use Ecto.Schema
   import Ecto.Changeset
 

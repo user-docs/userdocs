@@ -47,6 +47,7 @@ defmodule Userdocs.MixProject do
       {:waffle_ecto, "~> 0.0.9"},
       {:pow, "~> 1.0.21"},
       {:bodyguard, "~> 2.4"},
+      {:bamboo, "~> 2.2.0"},
       {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.22", only: :dev, runtime: false},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},

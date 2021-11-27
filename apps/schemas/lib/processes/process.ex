@@ -3,7 +3,7 @@ defmodule Schemas.Processes.Process do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Schemas.Automation.Step
+  alias Schemas.Steps.Step
   alias Schemas.Projects.Project
   alias Schemas.ProcessInstances.ProcessInstance
 

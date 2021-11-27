@@ -1,12 +1,11 @@
 defmodule Userdocs.ProjectsFixtures do
 
   alias Userdocs.Projects
-  @opts %{context: %{repo: Userdocs.Repo}}
 
-  def project(team_id \\ nil, strategy_id \\ nil) do
+  def project(team_id \\ nil, strategy_id \\ nil, opts) do
     {:ok, project } =
       project_attrs(:valid, team_id, strategy_id)
-      |> Projects.create_project(@opts)
+      |> Projects.create_project(opts)
       project
   end
 

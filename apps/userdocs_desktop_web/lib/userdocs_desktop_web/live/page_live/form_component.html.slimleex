@@ -1,0 +1,35 @@
+= form = form_for @changeset, "#",
+  id: "page-form",
+  phx_target: @myself.cid,
+  phx_change: "validate",
+  phx_submit: "save"
+
+  h2.text-xl.font-bold = @title 
+
+  .grid.grid-cols-3.gap-2
+    .form-control
+      = label form, :project_id, class: "label" 
+      = select form, :project_id, @select_lists.projects,
+        class: "select select-sm select-bordered",
+        selected: @current_user.selected_project_id || "" 
+      = error_tag form, :project_id 
+    .form-control.col-span-2
+      = label form, :name, class: "label" 
+      = text_input form, :name, type: "text", class: "input input-sm input-bordered" 
+      = error_tag form, :name 
+  = if form_url_starts_with_slash(form) do 
+    .form-control
+      = label form, :url, class: "label" 
+      .flex
+        .rounded-r-none.rounded-l-lg.flex-shrink.bg-grey.bg-base-300.px-2.py-1
+          = url_prefix(form.data.project, @current_user) 
+        = text_input form, :url, type: "text", class: "input input-sm input-bordered rounded-l-none flex-grow" 
+      = error_tag form, :url 
+  else 
+    .form-control
+      = label form, :url, class: "label" 
+      = text_input form, :url, type: "text", class: "input input-sm input-bordered flex-grow" 
+      = error_tag form, :url 
+  end 
+
+  = submit "Save", phx_disable_with: "Saving...", class: "btn btn-primary mt-4" 

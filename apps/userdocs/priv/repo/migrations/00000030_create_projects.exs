@@ -5,12 +5,10 @@ defmodule Userdocs.Repo.Migrations.CreateProjects do
     create table(:projects) do
       add :name, :string
       add :base_url, :string
-      add :team_id, references(:teams, on_delete: :nothing)
-      add :strategy_id, references(:strategies, on_delete: :nothing)
+      add :team_id, references(:teams, on_delete: :nilify_all)
+      add :strategy_id, references(:strategies, on_delete: :nothing, type: :string)
 
       timestamps()
     end
-
-    create index(:projects, [:team_id])
   end
 end

@@ -14,7 +14,7 @@ defmodule Userdocs.Umbrella.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      applications: [:userdocs_web, :userdocs_desktop]
+      applications: [:userdocs_web, :userdocs_desktop_web]
     ]
   end
 

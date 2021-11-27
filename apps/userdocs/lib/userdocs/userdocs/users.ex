@@ -2,40 +2,59 @@ defmodule Userdocs.Users do
   @moduledoc """
   The Users context.
   """
-
-  require Logger
   import Ecto.Query, warn: false
-  alias Userdocs.Repo
-
+  require Logger
   alias Schemas.Users.User
+  alias Userdocs.Repo
+  alias Userdocs.RepoHandler
+  alias Userdocs.Requests
+  alias Userdocs.Email
+  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/users"
 
   @behaviour Bodyguard.Policy
   def authorize(:get_user!, %{id: user_id} = _current_user, %{id: user_id} = _user), do: :ok
   def authorize(:get_user!, _current_user, _user), do: :error
 
   @doc "Returns the list of users."
-  def list_users(opts \\ %{}) when is_map(opts) do
+  def list_users(%{access_token: access_token, context: %{repo: Client}} = opts) do
+    params = opts |> Map.take([:filters])
+    request_fun = Requests.build_get(@url)
+    {:ok, %{"data" => user_attrs}} = Requests.send(request_fun, access_token, params)
+    create_user_structs(user_attrs)
+  end
+  def list_users(opts) do
     filters = Map.get(opts, :filters, [])
     base_users_query()
     |> maybe_filter_by_team(filters[:team_id])
-    |> Repo.all()
+    |> maybe_filter_by_user(filters[:user_id])
+    |> RepoHandler.all(opts)
   end
 
   defp maybe_filter_by_team(query, nil), do: query
   defp maybe_filter_by_team(query, team_id) do
-    from(user in query,
-    left_join: team_user in TeamUser, on: user.id == team_user.user_id,
-    left_join: team in Team, on: team.id == team_user.team_id,
-    where: team_user.team_id == ^team_id
-  )
+    from(u in User, as: :user)
+    |> join(:left, [user: u], tu in assoc(u, :team_users), as: :team_users)
+    |> join(:left, [team_users: tu], t in assoc(tu, :team), as: :team)
+    |> where([team: t], t.id == ^team_id)
   end
+
+  defp maybe_filter_by_user(query, nil), do: query
+    defp maybe_filter_by_user(query, id) do
+    from(u in User, as: :user_1)
+    |> join(:left, [user_1: u], tu in assoc(u, :team_users), as: :team_users_1)
+    |> join(:left, [team_users_1: tu], t in assoc(tu, :team), as: :team)
+    |> join(:left, [team: t], tu in assoc(t, :team_users), as: :team_users_2)
+    |> join(:left, [team_users_2: tu], u in assoc(tu, :user), as: :user_2)
+    |> where([user_2: u], u.id == ^id)
+  end
+
 
   defp base_users_query(), do: from(users in User)
 
   @doc "Gets a single user."
-  def get_user!(id, _opts \\ %{}) do
+  def get_user!(id, opts) do
     base_user_query(id)
-    |> Repo.one!()
+    |> RepoHandler.get!(id, opts)
   end
 
   def get_user_by_email!(email) do
@@ -46,10 +65,6 @@ defmodule Userdocs.Users do
   defp base_user_query(id) do
     from(user in User, where: user.id == ^id)
   end
-
-  alias Schemas.Teams.Team
-  alias Schemas.Teams.TeamUser
-  alias Schemas.Projects.Project
 
   def prepare_user(user_id) do
     get_user_and_configs!(user_id)
@@ -85,10 +100,43 @@ defmodule Userdocs.Users do
   end
 
   @doc "Creates a user."
-  def create_user(attrs \\ %{}) do
+  def create_user(attrs \\ %{}, opts)
+  def create_user(attrs, %{access_token: access_token, context: %{repo: Client}}) do
+    params = %{user: attrs}
+    request_fun = Requests.build_create(@url)
+    {:ok, %{"data" => user_attrs}} = Requests.send(request_fun, access_token, params)
+    {:ok, create_user_struct(user_attrs)}
+  end
+  def create_user(attrs, opts) do
     %User{}
     |> User.changeset(attrs)
     |> Repo.insert()
+  end
+
+  def invite_user(%User{} = invited_by, attrs \\ %{}) do
+    %User{}
+    |> User.invite_changeset(invited_by, attrs)
+    |> Repo.insert()
+  end
+
+  def send_email_invitation(attrs) do
+    attrs
+    |> Email.cast_onboarding()
+    |> Email.onboarding()
+    |> Email.send()
+  end
+
+  def create_user_structs(attrs_list) do
+    Enum.map(attrs_list, fn(attrs) ->
+      {:ok, user} = create_user_struct(attrs)
+      user
+    end)
+  end
+
+  def create_user_struct(attrs \\ %{}) do
+    %User{}
+    |> User.prepare_changeset(attrs)
+    |> Ecto.Changeset.apply_action(:insert)
   end
 
   def validate_signup(attrs) do
@@ -114,17 +162,23 @@ defmodule Userdocs.Users do
     |> Repo.update()
   end
 
-  def update_user_options(%User{} = user, attrs) do
+  def update_user_options(%User{} = user, attrs, %{access_token: access_token, context: %{repo: Client}}) do
+    request_fun = Requests.build_update(@url, user.id)
+    {:ok, %{"data" => user_attrs}} = Requests.send(request_fun, access_token, %{user: attrs})
+    create_user_struct(user_attrs)
+  end
+  def update_user_options(%User{} = user, attrs, opts) do
     user
     |> User.change_options(attrs)
-    |> Repo.update()
+    |> RepoHandler.update(opts)
+    |> maybe_broadcast_user("update", "user:#{user.id}", opts[:broadcast])
   end
 
   def update_user_selections(%User{} = user, attrs, %{context: %{repo: repo}} = opts)
   when repo in [Userdocs.LocalRepo, Userdocs.Repo] do
     {:ok, updated_user} =
       user
-      |> User.change_selections(attrs)
+      |> User.change_options(attrs)
       |> Repo.update()
 
     {:ok, get_user_and_configs!(updated_user.id)}
@@ -165,9 +219,8 @@ defmodule Userdocs.Users do
     User.login_changeset(user, attrs)
   end
 
-  def invite_user(%User{} = user, attrs \\ %{}) do
-    User.invite_changeset(user, attrs)
-    |> Repo.insert()
+  def change_user_invite(%User{} = user, %User{} = invited_by, attrs \\ %{}) do
+    User.invite_changeset(user, invited_by, attrs)
   end
   """
   def send_email_invitation(attrs) do
@@ -177,6 +230,7 @@ defmodule Userdocs.Users do
     |> Email.send()
   end
   """
+  @doc "Broadcasts a element to the team it belongs to"
   def maybe_broadcast_user({:error, _} = state, _, _, _), do: state
   def maybe_broadcast_user({:ok, %User{} = user}, action, channel, true) do
     Logger.debug("#{__MODULE__} broadcasting a User struct")
@@ -189,16 +243,5 @@ defmodule Userdocs.Users do
   alias Schemas.Users.Override
   def change_override(%Override{} = override, attrs \\ %{}) do
     Override.changeset(override, attrs)
-  end
-
-  alias Schemas.Users.LocalOptions
-  def change_local_options(%LocalOptions{} = local_options, attrs \\ %{}) do
-    LocalOptions.changeset(local_options, attrs)
-  end
-
-  def update_local_options(%LocalOptions{} = local_options, attrs \\ %{}) do
-    local_options
-    |> LocalOptions.changeset(attrs)
-    |> Ecto.Changeset.apply_action(:update)
   end
 end

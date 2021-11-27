@@ -1,4 +1,4 @@
-defmodule Schemas.Automation.Step do
+defmodule Schemas.Steps.Step do
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -6,7 +6,7 @@ defmodule Schemas.Automation.Step do
 
   alias Schemas.Elements.Element
   alias Schemas.Pages.Page
-  alias Schemas.Automation.StepType
+  alias Schemas.Steps.StepType
   alias Schemas.Annotations.Annotation
   alias Schemas.Processes.Process
   alias Schemas.Screenshots.Screenshot
@@ -32,7 +32,7 @@ defmodule Schemas.Automation.Step do
     belongs_to :process, Process
     belongs_to :element, Element, on_replace: :update
     belongs_to :annotation, Annotation, on_replace: :update
-    belongs_to :step_type, StepType
+    belongs_to :step_type, StepType, type: :string
     belongs_to :screenshot, Screenshot
 
     has_one :last_step_instance, StepInstance, on_replace: :nilify

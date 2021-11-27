@@ -6,15 +6,15 @@ defmodule State.AnnotationTypes do
   alias Schemas.Annotations.AnnotationType
   alias Userdocs.AnnotationTypes
 
-  def load_annotation_types(state, opts \\ %{}) do
+  def load_annotation_types(state, opts) do
     StateHandlers.load(state, AnnotationTypes.list_annotation_types(opts), AnnotationType, opts)
   end
 
-  def list_annotation_types(state, opts \\ %{}) do
+  def list_annotation_types(state, opts) do
     StateHandlers.list(state, AnnotationType, opts)
   end
 
-  def get_annotation_type!(id, state, opts \\ %{}) do
+  def get_annotation_type!(id, state, opts) do
     StateHandlers.get(state, id, AnnotationType, opts)
   end
 

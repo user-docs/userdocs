@@ -4,8 +4,8 @@ defmodule Userdocs.Repo.Migrations.CreateTeamUsers do
   def change do
     create table(:team_users) do
       add :role, :string
-      add :team_id, references(:teams, on_delete: :nothing), null: false
-      add :user_id, references(:users, on_delete: :nothing), null: false
+      add :team_id, references(:teams, on_delete: :delete_all), null: false
+      add :user_id, references(:users, on_delete: :delete_all), null: false
 
       timestamps()
     end

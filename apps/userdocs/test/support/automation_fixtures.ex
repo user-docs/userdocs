@@ -107,6 +107,7 @@ defmodule Userdocs.AutomationFixtures do
 
   def step_type_attrs(:valid) do
     %{
+      id: "step_type_id",
       args: [],
       name: UUID.uuid4()
     }

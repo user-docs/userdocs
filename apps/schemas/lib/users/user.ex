@@ -1,6 +1,7 @@
 defmodule Schemas.Users.User do
   @moduledoc """
   The User Module
+  mix phx.gen.json Users User users email:string password:string current_password:string selected_team_id:references:teams selected_project_id:references:projects
   """
   use Ecto.Schema
   import Ecto.Changeset
@@ -55,6 +56,7 @@ defmodule Schemas.Users.User do
     |> cast_assoc(:team_users, with: &TeamUser.api_changeset/2)
     |> cast_assoc(:selected_team, with: &Team.api_changeset/2)
     |> cast_assoc(:selected_project, with: &Project.api_changeset/2)
+    |> cast_embed(:overrides)
   end
 
   def email_changeset(user, attrs) do
@@ -62,13 +64,7 @@ defmodule Schemas.Users.User do
     |> cast(attrs, [:email, :invited_by_id])
   end
 
-  def invite_changeset(user_or_changeset, attrs) do
-    invited_by =
-      case attrs do
-        %{"invited_by_id" => invited_by_id} -> Userdocs.Users.get_user!(invited_by_id)
-        %{invited_by_id: invited_by_id} -> Userdocs.Users.get_user!(invited_by_id)
-        _ -> raise("invited_by not set, invitation fails")
-      end
+  def invite_changeset(user_or_changeset, invited_by, attrs) do
     user_or_changeset
     |> cast(attrs, [:email, :invited_by_id])
     |> pow_invite_changeset(invited_by, attrs)
@@ -99,10 +95,5 @@ defmodule Schemas.Users.User do
     |> cast(attrs, [:selected_team_id, :selected_project_id])
     |> cast_assoc(:team_users)
     |> cast_embed(:overrides)
-  end
-
-  def change_selections(user, attrs) do
-    user
-    |> cast(attrs, [:selected_team_id, :selected_project_id])
   end
 end

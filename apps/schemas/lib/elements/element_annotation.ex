@@ -1,7 +1,7 @@
 defmodule Schemas.Elements.ElementAnnotation do
+  @moduledoc "mix phx.gen.json ElementAnnotations ElementAnnotation element_annotations id:integer element_id:references:elements annotation_id:references:annotations"
   use Ecto.Schema
   import Ecto.Changeset
-
   alias Schemas.Elements.Element
   alias Schemas.Annotations.Annotation
 

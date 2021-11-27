@@ -19,7 +19,7 @@ config :userdocs, Userdocs.LocalRepo,
 config :userdocs_desktop,
   ecto_repos: [Userdocs.LocalRepo]
 
-config :userdocs, UserDocs.LocalRepo, database: "./"
+config :userdocs, Userdocs.LocalRepo, database: "./"
 
 config :userdocs_web,
   ecto_repos: [Userdocs.Repo],
@@ -72,7 +72,6 @@ config :phoenix, :template_engines,
   slime: PhoenixSlime.Engine,
   slimleex: PhoenixSlime.LiveViewEngine
 
-
 config :esbuild,
   version: "0.13.10",
   default: [
@@ -94,7 +93,6 @@ config :esbuild,
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
 
-
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
@@ -103,6 +101,10 @@ config :logger, :console,
 config :userdocs_desktop,
   host_url: if(Mix.env() in [:dev, :test], do: "http://dev.user-docs.com:4000", else: "https://app.user-docs.com"),
   channels_url: if Mix.env() in [:dev, :test], do: "ws://dev.user-docs.com:4000/socket/websocket", else: "wss://app.user-docs.com/socket/websocket"
+
+config :userdocs, Userdocs.Mailer,
+  adapter: Bamboo.SendGridAdapter,
+  api_key: "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"
 
 if Mix.env() in [:dev, :prod] do
   config :ua_inspector,

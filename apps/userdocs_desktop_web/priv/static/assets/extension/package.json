@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "build": "node esbuild.js",
+    "watch": "node eswatch.js"
+  },
+  "dependencies": {
+    "@medv/finder": "^1.1.2",
+    "phoenix": "^1.5.10",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.145",
+    "esbuild": "^0.13.15",
+    "esbuild-node-externals": "^1.4.0"
+  }
+}

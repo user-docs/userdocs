@@ -11,10 +11,10 @@ defmodule Userdocs.ProcessesTest do
   @opts %{context: %{repo: Userdocs.Repo}}
 
   defp fixture(:user), do: UsersFixtures.user()
-  defp fixture(:team), do: TeamsFixtures.team()
+  defp fixture(:team), do: TeamsFixtures.team(@opts)
   defp fixture(:strategy), do: WebFixtures.strategy(@opts)
-  defp fixture(:team_user, user_id, team_id), do: TeamsFixtures.team_user(user_id, team_id)
-  defp fixture(:project, team_id, strategy_id), do: ProjectsFixtures.project(team_id, strategy_id)
+  defp fixture(:team_user, user_id, team_id), do: TeamsFixtures.team_user(user_id, team_id, @opts)
+  defp fixture(:project, team_id, strategy_id), do: ProjectsFixtures.project(team_id, strategy_id, @opts)
 
   defp create_user(_), do: %{user: fixture(:user)}
   defp create_team(_), do: %{team: fixture(:team)}

@@ -2,26 +2,23 @@ defmodule Userdocs.Pages do
   @moduledoc """
   The Pages context.
   """
-
   import Ecto.Query, warn: false
   require Logger
-
   alias Schemas.Pages.Page
   alias Schemas.Projects.Project
   alias Schemas.Users.User
   alias Schemas.Teams.Team
   alias Userdocs.Teams
   alias Userdocs.RepoHandler
+  alias Userdocs.Requests
+  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/pages"
 
   @doc "Returns the list of pages."
   def list_pages(%{access_token: access_token, context: %{repo: Client}} = opts) do
-    params = opts |> Map.take([:filters]) |> Plug.Conn.Query.encode()
-    {:ok, %{body: body}} = HTTPoison.get("http://localhost:4000/api/pages?#{params}", [{"authorization", access_token}])
-    {:ok, %{"data" => pages_attrs}} = Jason.decode(body)
-    Enum.map(pages_attrs, fn(attrs) ->
-      {:ok, page} = create_page_struct(attrs)
-      page
-    end)
+    params =  Map.take(opts, [:filters])
+    request_fun = Requests.build_get(@url)
+    {:ok, %{"data" => pages_attrs}} = Requests.send(request_fun, access_token, params)
+    create_page_structs(pages_attrs)
   end
   def list_pages(opts) do
     filters = Map.get(opts, :filters, [])
@@ -54,8 +51,10 @@ defmodule Userdocs.Pages do
   @doc "Creates a page."
   def create_page(attrs \\ %{}, opts)
   def create_page(attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    params = %{page: attrs} |> Plug.Conn.Query.encode()
-    HTTPoison.post("http://localhost:4000/api/pages?#{params}", "", [{"authorization", access_token}])
+    params = %{page: attrs}
+    request_fun = Requests.build_create(@url)
+    {:ok, %{"data" => page_attrs}} = Requests.send(request_fun, access_token, params)
+    create_page_struct(page_attrs)
   end
   def create_page(attrs, opts) do
     %Page{}
@@ -67,6 +66,13 @@ defmodule Userdocs.Pages do
     end
   end
 
+  def create_page_structs(attrs_list) do
+    Enum.map(attrs_list, fn(attrs) ->
+      {:ok, page} = create_page_struct(attrs)
+      page
+    end)
+  end
+
   def create_page_struct(attrs \\ %{}) do
     %Page{}
     |> Page.api_changeset(attrs)
@@ -75,8 +81,9 @@ defmodule Userdocs.Pages do
 
   @doc "Updates a page."
   def update_page(%Page{} = page, attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    params = %{page: attrs} |> Plug.Conn.Query.encode()
-    HTTPoison.patch("http://localhost:4000/api/pages/#{page.id}?#{params}", "", [{"authorization", access_token}])
+    request_fun = Requests.build_update(@url, page.id)
+    {:ok, %{"data" => page_attrs}} = Requests.send(request_fun, access_token, %{page: attrs})
+    create_page_struct(page_attrs)
   end
   def update_page(%Page{} = page, attrs, opts) do
     page
@@ -87,7 +94,8 @@ defmodule Userdocs.Pages do
 
   @doc "Deletes a page."
   def delete_page(id, %{access_token: access_token, context: %{repo: Client}}) do
-    HTTPoison.delete("http://localhost:4000/api/pages/#{id}", [{"authorization", access_token}])
+    request = Requests.build_delete(@url, id)
+    Requests.send(request, access_token, nil)
   end
   def delete_page(%Page{} = page, opts) do
     channel = channel(page, opts[:broadcast])

@@ -12,6 +12,7 @@ defmodule Userdocs.WebFixtures do
 
   alias Userdocs.Projects
   alias Userdocs.Annotations
+  alias Userdocs.AnnotationTypes
   alias Userdocs.Elements
   alias Userdocs.Pages
   alias Userdocs.Strategies
@@ -25,7 +26,7 @@ defmodule Userdocs.WebFixtures do
     object
   end
 
-  def element(page_id, strategy_id, opts) when is_integer(page_id) and is_integer(strategy_id) do
+  def element(page_id, strategy_id, opts) when is_integer(page_id) and is_binary(strategy_id) do
     {:ok, object } =
       element_attrs(:valid, page_id, strategy_id)
       |> Elements.create_element(opts)
@@ -58,7 +59,7 @@ defmodule Userdocs.WebFixtures do
   def annotation_type(name \\ :badge) do
     {:ok, annotation } =
       annotation_type_attrs(:valid, name)
-      |> Annotations.create_annotation_type()
+      |> AnnotationTypes.create_annotation_type(@opts)
     annotation
   end
 
@@ -66,7 +67,7 @@ defmodule Userdocs.WebFixtures do
     Userdocs.WebFixtures.AnnotationTypes.data()
     |> Enum.map(
       fn(st) ->
-        { :ok, annotation_type } = Annotations.create_annotation_type(st)
+        { :ok, annotation_type } = AnnotationTypes.create_annotation_type(st, @opts)
         annotation_type
       end
     )
@@ -107,12 +108,14 @@ defmodule Userdocs.WebFixtures do
 
   def strategy_attrs(:valid) do
     %{
+      id: UUID.uuid4(),
       name: UUID.uuid4()
     }
   end
 
   def strategy_attrs(:css) do
     %{
+      id: "css",
       name: "css"
     }
   end
@@ -120,6 +123,27 @@ defmodule Userdocs.WebFixtures do
   def annotation_attrs(:invalid) do
     %{
       page_id: nil
+    }
+  end
+
+  def annotation_attrs(:invalid_badge, page_id) do
+    %{
+      page_id: page_id,
+      font_size: "big"
+    }
+  end
+
+  def annotation_attrs(:valid_badge, page_id) do
+    %{
+      page_id: page_id,
+      label: UUID.uuid4(),
+      color: "some color",
+      font_size: 42,
+      size: 42,
+      x_offset:  42,
+      x_orientation: "R",
+      y_offset: 42,
+      y_orientation: "M"
     }
   end
 
@@ -134,17 +158,35 @@ defmodule Userdocs.WebFixtures do
     %{
       page_id: page_id,
       label: UUID.uuid4(),
-      name: UUID.uuid4()
+      name: UUID.uuid4(),
+      color: "some color",
+      font_color: "some font_color",
+      font_size: 42,
+      size: 42,
+      thickness:  42,
+      x_offset:  42,
+      x_orientation: "some x_orientation",
+      y_offset: 42,
+      y_orientation: "some y_orientation"
     }
   end
+
+  def annotation_attrs(:valid_limited, page_id) do
+    %{
+      page_id: page_id
+    }
+  end
+
   def annotation_type_attrs(:valid, :outline) do
     %{
+      id: "outline",
       args: ["color", "thickness"],
       name: "Outline"
     }
   end
   def annotation_type_attrs(:valid, :badge) do
     %{
+      id: "badge",
       args: ["x_orientation", "y_orientation", "size", "label", "color", "x_offset", "y_offset", "font_size"],
       name: "Badge"
     }

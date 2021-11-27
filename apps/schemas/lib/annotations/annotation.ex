@@ -1,4 +1,6 @@
 defmodule Schemas.Annotations.Annotation do
+  @moduledoc "mix phx.gen.json Annotations Annotation annotations page_id:references:pages annotation_type_id:references:annotation_types thickness:integer x_offset:integer y_offset:integer font_size:integer font_color:string name:string label:string x_orientation:string y_orientation:string size:integer color:string"
+
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -32,7 +34,7 @@ defmodule Schemas.Annotations.Annotation do
     field :font_color, :string
 
     belongs_to :page, Page
-    belongs_to :annotation_type, AnnotationType
+    belongs_to :annotation_type, AnnotationType, type: :string
 
     has_many :element_annotations, ElementAnnotation
 
@@ -45,7 +47,7 @@ defmodule Schemas.Annotations.Annotation do
     |> cast(attrs, [
         :name, :label, :x_orientation, :y_orientation,
         :size, :color, :thickness, :x_offset, :y_offset,
-        :font_size, :page_id, :annotation_type_id])
+        :font_size, :page_id, :annotation_type_id, :font_color])
     |> cast_assoc(:element_annotations, with: &ElementAnnotation.changeset/2)
     |> foreign_key_constraint(:page_id)
     |> foreign_key_constraint(:annotation_type_id)

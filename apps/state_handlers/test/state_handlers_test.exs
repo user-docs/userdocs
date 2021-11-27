@@ -10,18 +10,19 @@ defmodule StateHandlers.StateFixtures do
   alias Schemas.Teams.Team
   alias Schemas.Projects.Project
   alias Userdocs.Projects.Version
-  alias Userdocs.Web.Strategy
+  alias Schemas.Strategies.Strategy
+  @opts %{context: %{repo: Userdocs.Repo}}
 
   def state(opts) do
     opts =
       opts
       |> Keyword.put(:types, [Strategy, User, TeamUser, Team, Project, Version, Document, DocumentVersion, DocubitType])
 
-    strategy = WebFixtures.strategy()
+    strategy = WebFixtures.strategy(@opts)
     user = UsersFixtures.user()
     team = UsersFixtures.team()
     team_user = UsersFixtures.team_user(user.id, team.id)
-    project = ProjectsFixtures.project(team.id, strategy.id)
+    project = ProjectsFixtures.project(team.id, strategy.id, @opts)
 
     %{}
     |> StateHandlers.initialize(opts)

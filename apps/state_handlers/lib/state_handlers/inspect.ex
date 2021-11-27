@@ -1,5 +1,5 @@
 defmodule StateHandlers.Inspect do
-
+  require Logger
   alias StateHandlers.Helpers
 
   def apply(state, opts) do
@@ -23,6 +23,6 @@ defmodule StateHandlers.Inspect do
           <> "\n"
         end
       )
-    IO.puts(log_string)
+   Logger.debug(log_string)
   end
 end

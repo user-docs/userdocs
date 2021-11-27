@@ -1,0 +1,6 @@
+.form-control
+  label.cursor-pointer.label
+    = if @browser_controls_hidden? do 
+      input.toggle.toggle-primary type="checkbox" phx-click="show-browser-controls" phx-target="<%= @myself.cid %>"
+    - else 
+      input.toggle.toggle-primary type="checkbox" checked="checked" phx-click="hide-browser-controls" phx-target="<%= @myself.cid %>"

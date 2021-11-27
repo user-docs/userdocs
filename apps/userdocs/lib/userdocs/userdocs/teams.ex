@@ -5,26 +5,34 @@ defmodule Userdocs.Teams do
 
   require Logger
   import Ecto.Query, warn: false
+  alias Userdocs.RepoHandler
   alias Userdocs.Repo
-
+  alias Userdocs.Requests
   alias Schemas.Teams.Team
+  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/teams"
 
   @doc "Returns the list of teams."
-  def list_teams(opts \\ %{}) do
+  def list_teams(%{access_token: access_token, context: %{repo: Client}} = opts) do
+    params = opts |> Map.take([:filters])
+    request_fun = Requests.build_get(@url)
+    {:ok, %{"data" => team_attrs}} = Requests.send(request_fun, access_token, params)
+    create_team_structs(team_attrs)
+  end
+  def list_teams(opts) do
     filters = Map.get(opts, :filters, [])
     base_teams_query()
     |> maybe_filter_team_by_user(filters[:user_id])
     |> maybe_filter_by_ids(filters[:ids])
-    |> Repo.all()
+    |> RepoHandler.all(opts)
   end
 
   defp maybe_filter_team_by_user(query, nil), do: query
   defp maybe_filter_team_by_user(query, user_id) do
     from(team in query,
-    left_join: team_user in TeamUser, on: team.id == team_user.team_id,
-    left_join: user in User, on: user.id == team_user.user_id,
-    where: team_user.user_id == ^user_id
-  )
+      left_join: team_user in assoc(team, :team_users),
+      left_join: user in assoc(team_user, :user),
+      where: team_user.user_id == ^user_id
+    )
   end
 
   defp maybe_filter_by_ids(query, nil), do: query
@@ -37,13 +45,8 @@ defmodule Userdocs.Teams do
   defp base_teams_query(), do: from(teams in Team)
 
   @doc "Gets a single team."
-  def get_team!(id, _opts \\ %{}) do
-    base_team_query(id)
-    |> Repo.one!()
-  end
-
-  defp base_team_query(id) do
-    from(team in Team, where: team.id == ^id)
+  def get_team!(id, opts) do
+    RepoHandler.get!(Team, id, opts)
   end
 
   def get_element_team!(id) do
@@ -100,10 +103,24 @@ defmodule Userdocs.Teams do
   end
 
   @doc "Creates a team."
-  def create_team(attrs \\ %{}) do
+  def create_team(attrs \\ %{}, opts)
+  def create_team(attrs, %{access_token: access_token, context: %{repo: Client}}) do
+    params = %{team: attrs}
+    request_fun = Requests.build_create(@url)
+    {:ok, %{"data" => team_attrs}} = Requests.send(request_fun, access_token, params)
+    create_team_struct(team_attrs)
+  end
+  def create_team(attrs, opts) do
     %Team{}
     |> Team.changeset(attrs)
     |> Repo.insert()
+  end
+
+  def create_team_structs(attrs_list) do
+    Enum.map(attrs_list, fn(attrs) ->
+      {:ok, team} = create_team_struct(attrs)
+      team
+    end)
   end
 
   def create_team_struct(attrs \\ %{}) do
@@ -113,8 +130,13 @@ defmodule Userdocs.Teams do
   end
 
   @doc "Updates a team."
+  def update_team(%Team{} = team, attrs, %{access_token: access_token, context: %{repo: Client}}) do
+    request_fun = Requests.build_update(@url, team.id)
+    {:ok, %{"data" => team_attrs}} = Requests.send(request_fun, access_token, %{team: attrs})
+    create_team_struct(team_attrs)
+  end
   #TODO this could be more elegant, probably
-  def update_team(%Team{} = team, %{"users" => _users} = attrs) do
+  def update_team(%Team{} = team, %{"users" => _users} = attrs, opts) do
     users =
       User
       |> where([user], user.id in ^attrs["users"])
@@ -124,17 +146,21 @@ defmodule Userdocs.Teams do
 
     team
     |> Team.changeset(attrs)
-    |> Repo.update()
+    |> RepoHandler.update(opts)
   end
-  def update_team(%Team{} = team, attrs) do
+  def update_team(%Team{} = team, attrs, opts) do
     team
     |> Team.changeset(attrs)
-    |> Repo.update()
+    |> RepoHandler.update(opts)
   end
 
   @doc "Deletes a team."
-  def delete_team(%Team{} = team) do
-    Repo.delete(team)
+  def delete_team(id, %{access_token: access_token, context: %{repo: Client}}) do
+    request = Requests.build_delete(@url, id)
+    Requests.send(request, access_token, nil)
+  end
+  def delete_team(%Team{} = team, opts) do
+    RepoHandler.delete(team, opts)
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking team changes."

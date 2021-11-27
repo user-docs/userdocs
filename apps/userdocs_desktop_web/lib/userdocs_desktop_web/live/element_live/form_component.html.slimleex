@@ -1,0 +1,45 @@
+h2.text-xl.font-bold = @title
+
+= f = form_for @changeset, "#",
+  id: "element-form",
+  phx_target: @myself,
+  phx_change: "validate",
+  phx_submit: "save"
+
+  .form-control
+    = label f, :page_id, class: "label"
+    = select f, :page_id, @select_lists.pages_select, class: "select select-bordered", selected: @page.id
+    = error_tag f, :page_id
+
+  .form-control
+    = label f, :name, class: "label"
+    = text_input f, :name, type: "text", class: "input input-bordered mb-0"
+    = error_tag f, :name
+
+
+  .flex 
+    .flex-none
+      .form-control
+        = label f, :strategy_id, class: "label mb-0"
+        = select f, :strategy_id, @select_lists.strategies,
+            class: "select select-bordered rounded-r-none rounded-l-lg"
+        = error_tag f, :strategy_id
+    .flex-1
+      .form-control
+        = label f, :selector, class: "label mb-0"
+        = text_input f, :selector, type: "text", class: "input input-bordered rounded-l-none rounded-r-lg"
+        = error_tag f, :selector
+
+  .form-control
+    = label f, :direct_selector, class: "label"
+    = text_input f, :direct_selector, type: "text", class: "input input-bordered mb-0 bg-gray-300", style: "pointer-events: none;"
+    = error_tag f, :direct_selector
+
+  .form-control
+    = label f, :generated_selector, class: "label"
+    = text_input f, :generated_selector, type: "text", class: "input input-bordered mb-0 bg-gray-300", style: "pointer-events: none;"
+    = error_tag f, :generated_selector
+
+  .mt-4
+    = submit "Save", phx_disable_with: "Saving...", class: "btn btn-success mr-2"
+

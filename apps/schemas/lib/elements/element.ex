@@ -1,15 +1,19 @@
 defmodule Schemas.Elements.Element do
+  @moduledoc "mix phx.gen.json Elements Element elements name:string selector:string page_id:references:pages strategy_id:references:strategies"
   use Ecto.Schema
   import Ecto.Changeset
   alias Schemas.Pages.Page
-  alias Schemas.Web.Strategy
+  alias Schemas.Strategies.Strategy
 
   @derive {Jason.Encoder, only: [:id, :name, :selector, :strategy_id, :page_id]}
   schema "elements" do
     field :name, :string
     field :selector, :string
+    field :direct_selector, :string
+    field :generated_selector, :string
+    field :outer_html, :string
 
-    belongs_to :strategy, Strategy
+    belongs_to :strategy, Strategy, type: :string
     belongs_to :page, Page
 
     timestamps()
@@ -18,7 +22,7 @@ defmodule Schemas.Elements.Element do
   @doc false
   def changeset(element, attrs) do
     element
-    |> cast(attrs, [:name, :strategy_id, :selector, :page_id])
+    |> cast(attrs, [:name, :strategy_id, :selector, :page_id, :direct_selector, :generated_selector])
     |> foreign_key_constraint(:strategy_id)
     |> foreign_key_constraint(:page_id)
     |> validate_required([:strategy_id, :selector, :page_id])

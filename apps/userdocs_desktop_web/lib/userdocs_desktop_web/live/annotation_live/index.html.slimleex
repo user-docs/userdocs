@@ -1,0 +1,36 @@
+h1.text-2xl.font-bold.m-4.flex
+  | Listing Annotations on 
+  = if @page do 
+    = link to: "#", phx_click: "navigate", phx_value_id: @page.id, class: "link link-primary pl-1" do 
+      = @page.name
+
+= if @live_action in [:new, :edit] do
+  = LiveHelpers.live_modal @socket, UserdocsDesktopWeb.AnnotationLive.FormComponent,
+    id: @annotation.id || :new,
+    title: @page_title,
+    page: @page,
+    action: @live_action,
+    annotation: @annotation,
+    select_lists: @select_lists,
+    state_opts: @state_opts,
+    access_token: @access_token,
+    data: %{annotation_types: @data.annotation_types, elements: @data.elements, annotations: @data.annotations},
+    return_to: Routes.annotation_index_path(@socket, :index, @page.id)
+
+ul.py-3.shadow-lg.bg-base-100.rounded-box.m-4
+  li.px-5.py-2
+    h2.text-xl.font-bold Annotations
+  = for annotation <- @annotations do 
+    li.flex
+      .text-current.px-5.py-2.hover_bg-base-content.hover_bg-opacity-10.flex-1 = annotation.name
+      .text-current.px-5.py-2.hover_bg-base-content.hover_bg-opacity-10.flex-none
+        = checkbox :annotate, :apply, phx_click: "apply_annotation", phx_value_id: annotation.id, class: "checkbox"
+      = live_patch to: Routes.annotation_index_path(@socket, :edit, @page.id, annotation.id), id: "edit-annotation-#{annotation.id}", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        = Icons.edit([])
+      = link to: "#", phx_click: "delete", phx_value_id: annotation.id, id: "delete-annotation-#{annotation.id}", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        = Icons.trash([])
+= live_redirect to: Routes.page_index_path(@socket, :index) do
+  button.btn.btn-primary.m-4 Back
+
+= live_patch to: Routes.annotation_index_path(@socket, :new, @page.id) do 
+  button.btn.btn-primary.m-4 New Annotation

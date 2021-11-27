@@ -1,4 +1,4 @@
-defmodule Schemas.Automation.StepForm do
+defmodule Schemas.Steps.StepForm do
   use Ecto.Schema
   import Ecto.Changeset
 

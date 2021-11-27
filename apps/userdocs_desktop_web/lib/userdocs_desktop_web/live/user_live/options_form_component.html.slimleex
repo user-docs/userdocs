@@ -1,0 +1,52 @@
+h2.title = @title
+= f = form_for @changeset, "#",
+  id: "user-form",
+  phx_target: @myself.cid,
+  phx_change: "validate",
+  phx_submit: "save" 
+  .form-control
+    = label f, :email, class: "label" 
+    = text_input f, :email, type: "text", class: "input input-sm input-bordered" 
+    = error_tag f, :email 
+  .flex.justify-between.items-center
+    = label f, :overrides, class: "label" 
+    svg.h-6.w-6 fill="none" stroke="currentColor" viewbox=("0 0 24 24") xmlns="http://www.w3.org/2000/svg" 
+      path d=("M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16") stroke-linecap="round" stroke-linejoin="round" stroke-width="2" /
+  = inputs_for f, :overrides, [append: @append_overrides], fn puof -> 
+    .flex.items-center.mb-2
+      .flex-1.mr-4
+          = select puof, :project_id, @project_select_options, class: "select select-sm select-bordered" 
+          = error_tag(puof, :project_id) 
+      .flex-auto.mr-2
+          = text_input puof, :url, class: "input input-sm input-bordered" 
+          = error_tag(puof, :url) 
+      = hidden_input puof, :temp_id 
+      = if is_nil(Ecto.Changeset.get_field(puof.source, :temp_id)) do 
+        = checkbox puof, :delete, class: "checkbox" 
+      - else 
+        = link(to: "#", phx_click: "remove-override", phx_value_temp_id: puof.data.temp_id, phx_target: @myself.cid) do 
+        svg.h-6.w-6 fill="none" stroke="currentColor" viewbox=("0 0 24 24") xmlns="http://www.w3.org/2000/svg" 
+          path d=("M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16") stroke-linecap="round" stroke-linejoin="round" stroke-width="2" /
+
+  = link to: "#", class: "btn btn-sm btn-success", phx_click: "add-override", phx_target: @myself.cid, id: "add-override" do 
+    p New Override 
+
+  .grid.grid-cols-6.gap-4
+    label.label Default
+    label.label.col-span-4 Team
+    label.label Delete
+    = inputs_for f, :team_users, fn tuf -> 
+      = hidden_input tuf, :user_id, value: f.data.id 
+      = checkbox tuf, :default, class: "checkbox mr-4" 
+      = select tuf, :team_id, @select_lists.teams, class: "select select-sm select-bordered col-span-4" 
+      = if is_nil tuf.data.temp_id do 
+        = checkbox tuf, :delete, class: "checkbox" 
+      - else 
+        = hidden_input tuf, :temp_id 
+        = link(to: "#", phx_click: "remove-team", phx_value_remove: tuf.data.temp_id, phx_target: @myself.cid) do 
+          span x
+
+  = error_tag f, :team_users 
+  
+  .mt-4
+      = submit "Save", phx_disable_with: "Saving...", class: "btn btn-primary mr-2" 

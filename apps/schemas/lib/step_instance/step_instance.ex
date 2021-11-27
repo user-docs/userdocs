@@ -5,7 +5,7 @@ defmodule Schemas.StepInstances.StepInstance do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Schemas.Automation.Step
+  alias Schemas.Steps.Step
   alias Schemas.ProcessInstances.ProcessInstance
 
   @derive {Jason.Encoder, only: [:id, :uuid, :order, :status, :name, :type]}

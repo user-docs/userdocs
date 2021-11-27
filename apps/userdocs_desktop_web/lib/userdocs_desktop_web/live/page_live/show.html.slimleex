@@ -1,0 +1,33 @@
+h1.text-2xl.font-bold.m-4 Show Page
+
+= if @live_action in [:edit] do
+  = LiveHelpers.live_modal @socket, UserdocsDesktopWeb.PageLive.FormComponent,
+    id: @page.id,
+    title: @page_title,
+    action: @live_action,
+    page: @page,
+    select_lists: @select_lists,
+    access_token: @access_token,
+    current_user: @current_user,
+    current_project: @current_user.selected_project,
+    return_to: Routes.page_show_path(@socket, :show, @page)
+
+= if @live_action in [:edit_element, :new_element] do
+  = LiveHelpers.live_modal @socket, UserdocsDesktopWeb.ElementLive.FormComponent,
+    id: @element.id || :new_element,
+    title: @page_title,
+    action: parse_element_live_action(@live_action),
+    element: @element,
+    access_token: @access_token,
+    current_user: @current_user,
+    select_lists: @select_lists,
+    return_to: Routes.page_show_path(@socket, :show, @page)
+    
+= live_redirect to: Routes.page_index_path(@socket, :index) do
+  button.btn.btn-primary.m-4 Back
+
+= live_patch to: Routes.page_show_path(@socket, :edit, @page) do 
+  button.btn.btn-primary.m-4 Edit Page
+
+= live_patch to: Routes.page_show_path(@socket, :new_element, @page) do 
+  button.btn.btn-primary.m-4 New Element

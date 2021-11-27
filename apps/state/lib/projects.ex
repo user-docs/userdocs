@@ -14,6 +14,8 @@ defmodule State.Projects do
     |> maybe_preload(opts[:preloads], state, opts)
   end
 
+  def get_project!(id, state, opts) when is_binary(id),
+    do: get_project!(String.to_integer(id), state, opts)
   def get_project!(id, state, opts) when is_list(opts) do
     StateHandlers.get(state, id, Project, opts)
     |> maybe_preload(opts[:preloads], state, opts)
@@ -23,5 +25,4 @@ defmodule State.Projects do
   defp maybe_preload(object, preloads, state, opts) do
     StateHandlers.preload(state, object, preloads, opts)
   end
-
 end

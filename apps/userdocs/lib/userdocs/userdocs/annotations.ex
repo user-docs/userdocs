@@ -7,10 +7,20 @@ defmodule Userdocs.Annotations do
   alias Userdocs.RepoHandler
   alias Schemas.Pages.Page
   alias Schemas.Annotations.Annotation
+  alias Schemas.Elements.ElementAnnotation
   alias Userdocs.Teams
+  alias Userdocs.Requests
+  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/annotations"
 
+  def list_annotations(%{access_token: access_token, context: %{repo: Client}} = opts) do
+    params =  Map.take(opts, [:filters])
+    request_fun = Requests.build_get(@url)
+    {:ok, %{"data" => pages_attrs}} = Requests.send(request_fun, access_token, params)
+    create_annotation_structs(pages_attrs)
+  end
   def list_annotations(opts)  do
     filters = Map.get(opts, :filters, [])
+    preloads = Map.get(opts, :preloads, [])
     base_annotation_query()
     |> maybe_filter_annotation_by_page(filters[:page_id])
     |> maybe_filter_annotation_by_team_id(filters[:team_id])
@@ -45,18 +55,41 @@ defmodule Userdocs.Annotations do
   end
 
   def get_annotation!(id, opts) do
-    RepoHandler.get!(Annotation, id, opts)
+    preloads = Map.get(opts, :preloads, [])
+    from(annotation in Annotation, where: annotation.id == ^id)
+    |> maybe_preload_element_annotations(preloads[:element_annotations])
+    |> RepoHandler.get!(id, opts)
   end
 
-  def create_annotation(attrs \\ %{}, opts) do
+  defp maybe_preload_element_annotations(query, nil), do: query
+  defp maybe_preload_element_annotations(query, _),
+    do: from(annotations in query, preload: [:element_annotations])
+
+  def create_annotation(attrs \\ %{}, opts)
+  def create_annotation(attrs, %{access_token: access_token, context: %{repo: Client}}) do
+    params = %{annotation: attrs}
+    request_fun = Requests.build_create(@url)
+    {:ok, %{"data" => annotation_attrs}} = Requests.send(request_fun, access_token, params)
+    create_annotation_struct(annotation_attrs)
+  end
+  def create_annotation(attrs, opts) do
     changeset = Annotation.changeset(%Annotation{}, attrs)
     case RepoHandler.insert(changeset, opts) do
       {:ok, annotation} ->
-        channel = annotation_channel(annotation, opts[:broadcast])
-        maybe_broadcast_children(annotation, changeset, opts[:broadcast])
+        opts_with_preloads = Map.put(opts, :preloads, [element_annotations: true])
+        preloaded_annotation = get_annotation!(annotation.id, opts_with_preloads)
+        channel = annotation_channel(preloaded_annotation, opts[:broadcast])
+        maybe_broadcast_children(preloaded_annotation, changeset, channel, opts[:broadcast])
         maybe_broadcast_annotation({:ok, annotation}, "create", channel, opts[:broadcast])
       {:error, %Ecto.Changeset{}} = result -> result
     end
+  end
+
+  def create_annotation_structs(attrs_list) do
+    Enum.map(attrs_list, fn(attrs) ->
+      {:ok, annotation} = create_annotation_struct(attrs)
+      annotation
+    end)
   end
 
   def create_annotation_struct(attrs \\ %{}) do
@@ -65,17 +98,26 @@ defmodule Userdocs.Annotations do
     |> Ecto.Changeset.apply_action(:insert)
   end
 
+  def update_annotation(%Annotation{} = annotation, attrs, %{access_token: access_token, context: %{repo: Client}}) do
+    request_fun = Requests.build_update(@url, annotation.id)
+    {:ok, %{"data" => annotation_attrs}} = Requests.send(request_fun, access_token, %{annotation: attrs})
+    create_annotation_struct(annotation_attrs)
+  end
   def update_annotation(%Annotation{} = annotation, attrs, opts) do
     changeset = Annotation.changeset(annotation, attrs)
     case RepoHandler.update(changeset, opts) do
       {:ok, annotation} ->
         channel = annotation_channel(annotation, opts[:broadcast])
-        maybe_broadcast_children(annotation, changeset, opts[:broadcast])
+        maybe_broadcast_children(annotation, changeset, channel, opts[:broadcast])
         maybe_broadcast_annotation({:ok, annotation}, "update", channel, opts[:broadcast])
       {:error, %Ecto.Changeset{}} = result -> result
     end
   end
 
+  def delete_annotation(id, %{access_token: access_token, context: %{repo: Client}}) do
+    request = Requests.build_delete(@url, id)
+    Requests.send(request, access_token, nil)
+  end
   def delete_annotation(%Annotation{} = annotation, opts) do
     channel = annotation_channel(annotation, opts[:broadcast])
     {:ok, annotation} = RepoHandler.delete(annotation, opts)
@@ -96,26 +138,40 @@ defmodule Userdocs.Annotations do
   end
   def maybe_broadcast_annotation(state, _, _, _), do: state
 
-  def maybe_broadcast_children(%Annotation{} = annotation, changeset, true) do
-    opts = annotation_channel(annotation, true) |> broadcast_opts()
-    Userdocs.Subscription.broadcast_children(annotation, changeset, opts)
+  def maybe_broadcast_children(
+    %Annotation{element_annotations: [%ElementAnnotation{} | _] = ea_data},
+    %{changes: %{element_annotations: [%Ecto.Changeset{} | _] = ea_changes}},
+    channel, true = broadcast?
+  ) do
+    Enum.each(ea_changes, fn(changeset) ->
+      element_annotation = Enum.find(ea_data, fn(ea) -> ea.temp_id == Ecto.Changeset.get_field(changeset, :temp_id) end)
+      action = case changeset.action do
+        :insert -> "create"
+        :update -> "update"
+        :delete -> "delete"
+      end
+      if broadcast? == true do
+        Logger.debug("#{__MODULE__} broadcasting an Element Annotation struct")
+        payload = %{type: "Schemas.Elements.ElementAnnotation", attrs: element_annotation}
+        UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+      end
+    end)
   end
-  def maybe_broadcast_children(_, _, _), do: ""
+  def maybe_broadcast_children(
+    %Annotation{element_annotations: []},
+    %{changes: %{element_annotations: []}},
+    _channel, true
+  ), do: ""
+  def maybe_broadcast_children(%Annotation{element_annotations: []}, _, _, true), do: ""
+  def maybe_broadcast_children(_, %{changes: %{element_annotations: []}}, _, true), do: ""
+  def maybe_broadcast_children(_, _, _, nil), do: ""
+  def maybe_broadcast_children(_, _, _, false), do: ""
+
+
 
   def annotation_channel(%Annotation{} = annotation, true) do
     team = Teams.get_annotation_team(annotation.id)
     "team:#{team.id}"
   end
   def annotation_channel(_, _), do: ""
-
-  def broadcast_opts(channel) do
-    [
-      broadcast: true,
-      data_type: :list,
-      strategy: :by_type,
-      location: :data,
-      channel: channel,
-      broadcast_function: &UserdocsWeb.Endpoint.broadcast/3
-    ]
-  end
 end

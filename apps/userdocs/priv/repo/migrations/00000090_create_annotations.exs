@@ -15,7 +15,7 @@ defmodule Userdocs.Repo.Migrations.CreateAnnotations do
       add :font_size, :integer
       add :font_color, :string
 
-      add :annotation_type_id, references(:annotation_types, on_delete: :nothing)
+      add :annotation_type_id, references(:annotation_types, type: :string, on_delete: :nothing)
       add :page_id, references(:pages, on_delete: :nothing)
 
       timestamps()

@@ -19,7 +19,7 @@ defmodule Userdocs.Repo.Migrations.CreateSteps do
       add :page_id, references(:pages, on_delete: :nilify_all)
       add :element_id, references(:elements, on_delete: :nilify_all)
       add :annotation_id, references(:annotations, on_delete: :nilify_all)
-      add :step_type_id, references(:step_types, on_delete: :nothing)
+      add :step_type_id, references(:step_types, type: :string, on_delete: :nothing)
       add :process_id, references(:processes, on_delete: :delete_all)
       add :screenshot_id, references(:screenshots, on_delete: :delete_all)
 

@@ -1,5 +1,5 @@
 defmodule StateHandlers.Load do
-
+  require Logger
   alias StateHandlers.Helpers
 
   def apply(state, data, opts) do
@@ -8,7 +8,7 @@ defmodule StateHandlers.Load do
   end
   def apply(state, data, schema, opts) do
     log_string = "Loading #{Helpers.type(schema)} data into #{opts[:location]}"
-    if opts[:debug], do: IO.puts(log_string)
+    if opts[:debug], do: Logger.debug(log_string)
     loader = opts[:loader] || &Map.put/3
     state
     |> Helpers.maybe_access_assigns()

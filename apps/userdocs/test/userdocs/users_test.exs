@@ -14,7 +14,7 @@ defmodule Userdocs.UsersTest do
     test "list_users/0 returns all users" do
       user = UsersFixtures.user()
       result =
-        Users.list_users()
+        Users.list_users(@opts)
         |> Enum.at(0)
         |> Map.delete(:password)
 
@@ -24,14 +24,14 @@ defmodule Userdocs.UsersTest do
     test "get_user!/1 returns the user with given id" do
       user = UsersFixtures.user()
       result =
-        Users.get_user!(user.id)
+        Users.get_user!(user.id, @opts)
         |> Map.delete(:password)
       assert result == Map.delete(user, :password)
     end
 
     test "create_user/1 with valid data creates a user" do
       attrs = UsersFixtures.user_attrs(:valid)
-      assert {:ok, %User{} = user} = Users.create_user(attrs)
+      assert {:ok, %User{} = user} = Users.create_user(attrs, @opts)
       assert user.email == attrs.email
     end
 
@@ -57,7 +57,7 @@ defmodule Userdocs.UsersTest do
       attrs = UsersFixtures.user_attrs(:invalid)
       assert {:error, %Ecto.Changeset{}} = Users.update_user(user, attrs)
       result =
-        Users.get_user!(user.id)
+        Users.get_user!(user.id, @opts)
         |> Map.delete(:password)
       assert result == Map.delete(user, :password)
     end
@@ -65,15 +65,15 @@ defmodule Userdocs.UsersTest do
     test "delete_user/1 deletes the user" do
       user = UsersFixtures.user()
       assert {:ok, %User{}} = Users.delete_user(user)
-      assert_raise Ecto.NoResultsError, fn -> Users.get_user!(user.id) end
+      assert_raise Ecto.NoResultsError, fn -> Users.get_user!(user.id, @opts) end
     end
 
     test "prepare_user/1 retreives everything preloaded" do
       user = UsersFixtures.user()
-      team = TeamsFixtures.team()
-      team_user = TeamsFixtures.team_user(user.id, team.id)
+      team = TeamsFixtures.team(@opts)
+      _team_user = TeamsFixtures.team_user(user.id, team.id, @opts)
       strategy = WebFixtures.strategy(@opts)
-      project = ProjectsFixtures.project(team.id, strategy.id)
+      project = ProjectsFixtures.project(team.id, strategy.id, @opts)
       opts = %{context: %{repo: Userdocs.Repo}}
       {:ok, user} = Users.update_user_selections(user, %{selected_team_id: team.id, selected_project_id: project.id}, opts)
       user = Users.prepare_user(user.id)
@@ -110,7 +110,7 @@ defmodule Userdocs.UsersTest do
       team = UsersFixtures.team()
       team_user = UsersFixtures.team_user(user.id, team.id)
       strategy = WebFixtures.strategy(@opts)
-      project = ProjectsFixtures.project(team.id, strategy.id)
+      project = ProjectsFixtures.project(team.id, strategy.id, @opts)
       preloads = [teams: [:teams, [teams: :projects]]]
       state = %{teams: [team], users: [user], team_users: [team_user], projects: [project]}
       result = State.Users.get_user!(user.id, preloads, [], state, @opts)
@@ -122,7 +122,7 @@ defmodule Userdocs.UsersTest do
       team = UsersFixtures.team()
       team_user = UsersFixtures.team_user(user.id, team.id)
       strategy = WebFixtures.strategy(@opts)
-      project = ProjectsFixtures.project(team.id, strategy.id)
+      project = ProjectsFixtures.project(team.id, strategy.id, @opts)
       preloads = [teams: [:teams, [teams: :projects], [teams: :projects]]]
       state = %{teams: [team], users: [user], team_users: [team_user], projects: [project]}
       result = State.Users.get_user!(user.id, preloads, [], state, @opts)
@@ -135,7 +135,7 @@ defmodule Userdocs.UsersTest do
       team = UsersFixtures.team()
       _team_user = UsersFixtures.team_user(user.id, team.id)
       strategy = WebFixtures.strategy(@opts)
-      project = ProjectsFixtures.project(team.id, strategy.id)
+      project = ProjectsFixtures.project(team.id, strategy.id, @opts)
       overrides = [%{project_id: project.id, url: "https://www.google.com/"}]
       attrs = UsersFixtures.user_attrs(:valid)
       attrs = attrs |> Map.put(:overrides, overrides)

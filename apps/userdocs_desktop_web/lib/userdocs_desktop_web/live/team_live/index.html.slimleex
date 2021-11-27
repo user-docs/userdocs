@@ -1,0 +1,44 @@
+h1.text-2xl.font-bold.m-4 Listing Teams 
+
+= if @live_action in [:edit, :new] do
+  = LiveHelpers.live_modal @socket, UserdocsDesktopWeb.TeamLive.FormComponent,
+    id: @team.id || :new,
+    current_user: @current_user,
+    title: @page_title,
+    action: @live_action,
+    team: @team,
+    access_token: @access_token,
+    state_opts: @state_opts,
+    projects_select_options: @projects_select_options,
+    data: %{ users: @data.users },
+    return_to: Routes.team_index_path(@socket, :index)
+
+= if @live_action in [:invite] do 
+  = LiveHelpers.live_modal @socket, UserdocsDesktopWeb.TeamLive.InvitationFormComponent,
+    id: @team.id || :new,
+    current_user: @current_user,
+    title: @page_title,
+    action: @live_action,
+    team: @team,
+    access_token: @access_token,
+    state_opts: @state_opts,
+    data: %{ users: @data.users },
+    return_to: Routes.team_index_path(@socket, :index)
+
+ul.py-3.shadow-lg.bg-base-100.rounded-box.m-4
+  li.px-5.py-2
+    h2.text-xl.font-bold Teams
+  = for team <- @teams do
+    li.flex
+      = live_patch team.name, to: "#", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-1"
+        /! Routes.project_index_path(@socket, :index, team.id)
+      = live_patch to: Routes.team_index_path(@socket, :invite, team), id: "invite-users-#{team.id}", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        = Icons.add_user([])
+      = live_patch to: Routes.team_index_path(@socket, :edit, team), id: "edit-team-#{team.id}", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        = Icons.edit([])
+      = link to: "#", phx_click: "delete", phx_value_id: team.id, id: "delete-team-#{team.id}", data: [confirm: "Are you sure?"], class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        = Icons.trash([])
+
+= if @current_user.email == "johns10davenport@gmail.com" or Mix.env() in [ :dev, :test ] do 
+  = live_patch to: Routes.team_index_path(@socket, :new) do
+      button.btn.btn-primary.m-4 New Team

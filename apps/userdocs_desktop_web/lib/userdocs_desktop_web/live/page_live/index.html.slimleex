@@ -1,0 +1,32 @@
+h1.text-2xl.font-bold.m-4 Listing Pages
+
+= if @live_action in [:new, :edit] do 
+  = LiveHelpers.live_modal @socket, UserdocsDesktopWeb.PageLive.FormComponent,
+    id: @page.id || :new,
+    title: @page_title,
+    action: @live_action,
+    page: @page,
+    select_lists: @select_lists,
+    current_project: @current_user.selected_project,
+    current_user: @current_user,
+    access_token: @access_token,
+    return_to: Routes.page_index_path(@socket, :index)
+
+ul.py-3.shadow-lg.bg-base-100.rounded-box.m-4
+  li.px-5.py-2
+    h2.text-xl.font-bold Pages
+  = for page <- @pages do 
+    li.flex
+      = live_patch page.name, to: Routes.page_show_path(@socket, :show, page.id), class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-1"
+      = link to: "#", phx_click: "navigate", phx_value_id: page.id, class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        = Icons.open([])
+      = live_patch to: Routes.annotation_index_path(@socket, :index, page.id), class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        = Icons.dialogue([])
+      = live_patch to: Routes.element_index_path(@socket, :index, page.id), class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        = Icons.layout([])
+      = live_patch to: Routes.page_index_path(@socket, :edit, page.id), id: "edit-page-#{page.id}", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        = Icons.edit([])
+      = link to: "#", phx_click: "delete", phx_value_id: page.id, id: "delete-page-#{page.id}", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        = Icons.trash([])
+= live_patch to: Routes.page_index_path(@socket, :new) do
+  button.btn.btn-primary.m-4 New Page

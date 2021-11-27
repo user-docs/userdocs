@@ -6,17 +6,15 @@ defmodule Userdocs.Elements do
   import Ecto.Query, warn: false
   alias Userdocs.RepoHandler
   alias Userdocs.Teams
+  alias Userdocs.Requests
   alias Schemas.Elements.Element
   @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/elements"
 
   def list_elements(%{access_token: access_token, context: %{repo: Client}} = opts) do
-    params = opts |> Map.take([:filters]) |> Plug.Conn.Query.encode()
-    {:ok, %{body: body}} = HTTPoison.get(@url <> "?#{params}", [{"authorization", access_token}])
-    {:ok, %{"data" => elements_attrs}} = Jason.decode(body)
-    Enum.map(elements_attrs, fn(attrs) ->
-      {:ok, element} = create_element_struct(attrs)
-      element
-    end)
+    params = opts |> Map.take([:filters])
+    request_fun = Requests.build_get(@url)
+    {:ok, %{"data" => element_attrs}} = Requests.send(request_fun, access_token, params)
+    create_element_structs(element_attrs)
   end
   def list_elements(opts) do
     filters = Map.get(opts, :filters, nil)
@@ -49,8 +47,10 @@ defmodule Userdocs.Elements do
 
   def create_element(attrs \\ %{}, opts)
   def create_element(attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    params = %{element: attrs} |> Plug.Conn.Query.encode()
-    HTTPoison.post(@url <> "?#{params}", "", [{"authorization", access_token}])
+    params = %{element: attrs}
+    request_fun = Requests.build_create(@url)
+    {:ok, %{"data" => element_attrs}} = Requests.send(request_fun, access_token, params)
+    create_element_struct(element_attrs)
   end
   def create_element(attrs, opts) do
     %Element{}
@@ -62,15 +62,24 @@ defmodule Userdocs.Elements do
     end
   end
 
+  def create_element_structs(attrs_list) do
+    Enum.map(attrs_list, fn(attrs) ->
+      {:ok, element} = create_element_struct(attrs)
+      element
+    end)
+  end
+
   def create_element_struct(attrs \\ %{}) do
     %Element{}
     |> Element.api_changeset(attrs)
     |> Ecto.Changeset.apply_action(:insert)
   end
 
+  @doc "Updates an Element"
   def update_element(%Element{} = element, attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    params = %{element: attrs} |> Plug.Conn.Query.encode()
-    HTTPoison.patch(@url <> "/#{element.id}?#{params}", "", [{"authorization", access_token}])
+    request_fun = Requests.build_update(@url, element.id)
+    {:ok, %{"data" => element_attrs}} = Requests.send(request_fun, access_token, %{element: attrs})
+    create_element_struct(element_attrs)
   end
   def update_element(%Element{} = element, attrs, opts) do
     element
@@ -79,6 +88,11 @@ defmodule Userdocs.Elements do
     |> maybe_broadcast_element("update", element_channel(element), opts[:broadcast])
   end
 
+  @doc "Deletes an element"
+  def delete_element(id, %{access_token: access_token, context: %{repo: Client}}) do
+    request = Requests.build_delete(@url, id)
+    Requests.send(request, access_token, nil)
+  end
   def delete_element(%Element{} = element, opts) do
     channel = element_channel(element)
     RepoHandler.delete(element, opts)

@@ -13,7 +13,7 @@ defmodule Userdocs.ProjectsTest do
 
     def project_fixture(attrs \\ %{}) do
       strategy = Userdocs.WebFixtures.strategy(@opts)
-      team = Userdocs.TeamsFixtures.team()
+      team = Userdocs.TeamsFixtures.team(@opts)
       {:ok, project} =
         attrs
         |> Enum.into(@valid_attrs)
@@ -36,7 +36,7 @@ defmodule Userdocs.ProjectsTest do
 
     test "create_project/1 with valid data creates a project" do
       strategy = Userdocs.WebFixtures.strategy(@opts)
-      team = Userdocs.TeamsFixtures.team()
+      team = Userdocs.TeamsFixtures.team(@opts)
       attrs = @valid_attrs |> Map.put(:strategy_id, strategy.id) |> Map.put(:team_id, team.id)
       assert {:ok, %Project{} = project} = Projects.create_project(attrs, @opts)
       assert project.base_url == "some base_url"

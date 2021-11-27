@@ -7,8 +7,8 @@ defmodule Userdocs.AnnotationTypesTest do
   describe "annotation_types" do
     alias Schemas.Annotations.AnnotationType
 
-    @valid_attrs %{name: "some name"}
-    @update_attrs %{name: "some updated name"}
+    @valid_attrs %{id: "annotation_type", name: "some name"}
+    @update_attrs %{id: "annotation_type", name: "some updated name"}
     @invalid_attrs %{name: nil}
 
     def annotation_type_fixture(attrs \\ %{}) do

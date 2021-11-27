@@ -3,7 +3,7 @@ defmodule Schemas.Screenshots.Screenshot do
   import Ecto.Changeset
   use Waffle.Ecto.Schema
 
-  alias Schemas.Automation.Step
+  alias Schemas.Steps.Step
   alias Userdocs.Screenshots
 
   schema "screenshots" do

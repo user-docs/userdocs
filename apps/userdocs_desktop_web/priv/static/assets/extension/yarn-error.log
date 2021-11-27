@@ -1,0 +1,62 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Users\johns10\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js run build
+
+PATH: 
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Tools\MSVC\14.29.30133\bin\HostX64\x64;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\VC\VCPackages;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\TestWindow;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\bin\Roslyn;C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\x64\;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\devinit;C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64;C:\Program Files (x86)\Windows Kits\10\bin\x64;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\\MSBuild\Current\Bin;C:\Windows\Microsoft.NET\Framework64\v4.0.30319;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\;C:\Program Files (x86)\Intel\iCLS Client\;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files\ImageMagick-7.0.10-Q16-HDRI;C:\Program Files (x86)\Common Files\Intel\Shared Files\cpp\bin\Intel64;C:\Program Files\Microsoft MPI\Bin\;C:\ProgramData\Oracle\Java\javapath;C:\Program Files\Intel\iCLS Client\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\140\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\140\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\140\Tools\Binn\ManagementStudio\;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files\PuTTY\;C:\Program Files\Git\cmd;C:\Program Files (x86)\sbt\bin;C:\Users\johns10\.cargo\bin;C:\Users\johns10\AppData\Local\Microsoft\WindowsApps;C:\Users\johns10\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\johns10\AppData\Local\GitHubDesktop\bin;C:\Users\johns10\AppData\Roaming\npm;D:\Program Files\erl10.3\bin;C:\Program Files\dotnet\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\ProgramData\chocolatey\bin;C:\HashiCorp\Vagrant\bin;C:\Program Files\erl-24.1\bin;C:\Users\johns10\.mix\escripts;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Users\johns10\AppData\Local\Programs\Python\Python39;C:\Program Files\PostgreSQL\12\bin;C:\ChromeDriver;C:\Users\johns10\.dotnet\tools;C:\Users\johns10\AppData\Roaming\Python\Python39\Scripts;D:\Program Files\Elixir\bin;C:\Program Files\nodejs\;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;C:\Users\johns10\AppData\Local\Programs\Python\Python310\Scripts\;C:\Users\johns10\AppData\Local\Programs\Python\Python310\;C:\Users\johns10\.cargo\bin;C:\Users\johns10\AppData\Local\Microsoft\WindowsApps;C:\Users\johns10\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\johns10\AppData\Local\GitHubDesktop\bin;C:\Program Files\PostgreSQL\12\bin;C:\Users\johns10\.dotnet\tools;C:\Users\johns10\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Tools\MSVC\14.29.30133\bin\Hostx64\x64;C:\Users\johns10\AppData\Local\Pandoc\;C:\Users\johns10\AppData\Roaming\npm;C:\Users\johns10\AppData\Roaming\Python\Python310\Scripts;;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja
+
+Yarn version: 
+  1.22.10
+
+Node version: 
+  16.13.0
+
+Platform: 
+  win32 x64
+
+Trace: 
+  SyntaxError: D:\Users\johns10\Documents\GitHub\userdocs_umbrella\apps\userdocs_desktop_web\priv\static\assets\extension\package.json: Unexpected token } in JSON at position 249
+      at JSON.parse (<anonymous>)
+      at C:\Users\johns10\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:1625:59
+      at Generator.next (<anonymous>)
+      at step (C:\Users\johns10\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:310:30)
+      at C:\Users\johns10\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:321:13
+
+npm manifest: 
+  {
+      "scripts": {
+          "build": "node esbuild.js"
+      },
+      "dependencies": {
+        "@medv/finder": "^1.1.2",
+        "phoenix": "^1.5.10"
+      },
+      "devDependencies": {
+        "esbuild": "^0.13.15",
+        "esbuild-node-externals": "^1.4.0",
+      }
+    }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  # THIS IS AN AUTOGENERATED FILE. DO NOT EDIT THIS FILE DIRECTLY.
+  # yarn lockfile v1
+  
+  
+  "@medv/finder@^1.1.2":
+    version "1.1.3"
+    resolved "https://registry.yarnpkg.com/@medv/finder/-/finder-1.1.3.tgz#01d90511b3cf1420276c5fa7a5cc4ac5fd7e1527"
+    integrity sha512-hq6O7/4YpnBdfOzTFRF/0cNIg3IuJcF55LSOWq67lG/JQVtTwEu5ydv6L3fleoiwEOpQxF/zZq+NupVqgDVy6Q==
+    dependencies:
+      cssesc "^2.0.0"
+  
+  cssesc@^2.0.0:
+    version "2.0.0"
+    resolved "https://registry.yarnpkg.com/cssesc/-/cssesc-2.0.0.tgz#3b13bd1bb1cb36e1bcb5a4dcd27f54c5dcb35703"
+    integrity sha512-MsCAG1z9lPdoO/IUMLSBWBSVxVtJ1395VGIQ+Fc2gNdkQ1hNDnQdw3YhA71WJCBW1vdwA0cAnk/DnW6bqoEUYg==
+  
+  phoenix@^1.5.10:
+    version "1.6.2"
+    resolved "https://registry.yarnpkg.com/phoenix/-/phoenix-1.6.2.tgz#8d1d9f06e51cb893d08059e80488cd0de328e01a"
+    integrity sha512-VjR27NETvrLSj8rI6DlpVAfo7pCYth/9+1OCoTof4LKEbq0141ze/tdxFHHZzVQSok3gqJUo2h/tqbxR3r8eyw==

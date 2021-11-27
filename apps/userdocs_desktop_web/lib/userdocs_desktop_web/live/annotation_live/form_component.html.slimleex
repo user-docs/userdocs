@@ -1,0 +1,104 @@
+h2.text-xl.font-bold = @title
+
+= form = form_for @changeset, "#",
+  id: "annotation-form",
+  phx_target: @myself.cid,
+  phx_change: "validate",
+  phx_submit: "save"
+
+  = hidden_input form, :page_id, value: @page.id
+
+  = label form, :name, class: "label"
+  = text_input form, :name, type: "text", class: "input input-bordered mb-0", value: @annotation_name, maxlength: 0
+  = error_tag form, :name
+
+  = label form, :annotation_type_id, "Ann. Type", class: "label"
+  = select form, :annotation_type_id, @select_lists.annotation_types,
+    class: "flex-1 select select-bordered"
+  = error_tag form, :annotation_type_id
+  
+  .flex.justify-between.items-center 
+    = label form, :element_annotations, "Elements", class: "label"
+    p Delete
+  = inputs_for form, :element_annotations, [append: @append_element_annotations], fn fe ->
+    = hidden_input fe, :annotation_id, value: @annotation.id
+    = hidden_input fe, :temp_id, value: Ecto.Changeset.get_field(fe.source, :temp_id)
+    .flex.items-center.mb-2
+      .flex.flex-1.mr-4
+        = select fe, :element_id, @select_lists.elements, id: "page-select", class: "flex-1 select select-bordered" 
+      .flex-0.mr-4
+        = if is_nil(Ecto.Changeset.get_field(fe.source, :temp_id)) do 
+          = checkbox fe, :delete
+        - else 
+          = link(to: "#", phx_click: "remove-element-annotation", phx_value_temp_id: fe.data.temp_id, phx_target: @myself.cid) do
+            svg.h-5.w-5 fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" 
+              path clip-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" fill-rule="evenodd"
+    
+  = if element_annotations_count(form.source, @append_element_annotations) < 1 do
+    = link to: "#", class: "btn btn-sm btn-success", phx_click: "add-element", phx_target: @myself.cid, id: "add-element" do
+      p Add Element
+
+
+  .grid.grid-cols-4.gap-2
+
+    = if field_enabled?(form.source, :label, assigns) do
+      .form-control
+        = label form, :label, class: "label mb-0"
+        = text_input form, :label, type: "text", class: "input input-sm input-bordered mb-0"
+        = error_tag form, :label
+
+    = if field_enabled?(form.source, :size, assigns) do
+      .form-control
+        = label form, :size, class: "label mb-0"
+        = number_input form, :size, type: "text", class: "input input-sm input-bordered mb-0"
+        = error_tag form, :size
+
+    = if field_enabled?(form.source, :x_offset, assigns) do
+      .form-control
+        = label form, :x_offset, class: "label mb-0"
+        = number_input form, :x_offset, type: "text", class: "input input-sm input-bordered mb-0"
+        = error_tag form, :x_offset
+
+    = if field_enabled?(form.source, :y_offset, assigns) do
+      .form-control
+        = label form, :y_offset, class: "label mb-0"
+        = number_input form, :y_offset, type: "text", class: "input input-sm input-bordered mb-0"
+        = error_tag form, :y_offset
+
+    = if field_enabled?(form.source, :font_size, assigns) do
+      .form-control
+        = label form, :font_size, class: "label mb-0"
+        = text_input form, :font_size, type: "text", class: "input input-sm input-bordered mb-0"
+        = error_tag form, :font_size
+
+    = if field_enabled?(form.source, :color, assigns) do
+      .form-control
+        = label form, :color, class: "label mb-0"
+        = text_input form, :color, type: "text", class: "input input-sm input-bordered mb-0"
+        = error_tag form, :color
+
+    = if field_enabled?(form.source, :x_orientation, assigns) do
+      .form-control
+        = label form, :x_orientation, "X Orient.", class: "label pr-0 mb-0"
+        = select form, :x_orientation,
+          [{"None", ""}, {"Right", "R"}, {"Middle", "M"}, {"Left", "L"}],
+          class: "flex-1 select select-sm select-bordered mb-0"
+        = error_tag form, :x_orientation
+
+    = if field_enabled?(form.source, :y_orientation, assigns) do
+      .form-control
+        = label form, :y_orientation, "Y Orient.", class: "label pr-0 mb-0"
+        = select form, :y_orientation,
+          [{"None", ""}, {"Top", "T"}, {"Middle", "M"}, {"Bottom", "B"}],
+          class: "flex-1 select select-sm select-bordered mb-0"
+        = error_tag form, :y_orientation
+
+    = if field_enabled?(form.source, :thickness, assigns) do
+      .form-control
+        = label form, :thickness, class: "label mb-0"
+        = text_input form, :thickness, type: "text", class: "input input-sm input-bordered mb-0"
+        = error_tag form, :thickness
+
+  = submit "Save", phx_disable_with: "Saving...", class: "mt-4 btn btn-success"
+
+</form>

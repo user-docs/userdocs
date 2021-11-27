@@ -17,8 +17,17 @@ defmodule State.Pages do
     StateHandlers.list(state, Page, opts)
   end
 
-  def get_page!(id, state, opts \\ []) do
+  def get_page!(id, state, opts \\ [])
+  def get_page!(id, state, opts) when is_binary(id),
+    do: get_page!(String.to_integer(id), state, opts)
+  def get_page!(id, state, opts) when is_integer(id) do
     StateHandlers.get(state, id, Page, opts)
+    |> maybe_preload(opts[:preloads], state, opts)
   end
 
+  defp maybe_preload(process, nil, _, _), do: process
+  defp maybe_preload(process, _preloads, state, opts) do
+    opts = Keyword.delete(opts, :filter)
+    StateHandlers.preload(state, process, opts)
+  end
 end

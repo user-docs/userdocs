@@ -1,10 +1,10 @@
 defmodule StateHandlers.List do
-
+  require Logger
   alias StateHandlers.Helpers
 
   def apply(state, schema, opts) do
     log_string = "StateHandlers.List in location #{opts[:location]} on #{Helpers.type(schema)} with opts #{inspect(opts)}"
-    if opts[:debug], do: IO.puts(log_string)
+    if opts[:debug], do: Logger.debug(log_string)
     {filter, opts} = Keyword.pop(opts, :filter, nil)
     state
     |> Helpers.maybe_access_assigns()

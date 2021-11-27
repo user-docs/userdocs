@@ -1,0 +1,21 @@
+= f = form_for @changeset, "#", class: "mt-8",
+  id: "signin-form",
+  phx_target: @myself.cid,
+  phx_change: "validate",
+  phx_submit: "save"
+  
+  div.form-control
+    = label f, :email, class: "sr-only"
+    = email_input f, :email, class: "input input-bordered", placeholder: "user@example.com", type: "email"
+    = error f, :email
+  div.form-control
+    = label f, :password, class: "sr-only"
+    = password_input f, :password, class: "input input-bordered", placeholder: "password", type: "password"
+    = error f, :password
+  .flex.items-center.justify-between
+    .text-sm
+      /!a.font-medium.text-green-600.hover_text-green-400 href="#" 
+        | Forgot your password?
+  div
+    = submit "Sign in", type: "submit", class: "btn btn-primary"
+</form>

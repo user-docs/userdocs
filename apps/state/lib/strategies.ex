@@ -9,7 +9,7 @@ defmodule State.Strategies do
     StateHandlers.load(state, Userdocs.Strategies.list_strategies(), Strategy, opts)
   end
 
-  def list_strategies(state, opts) when is_list(opts) do
+  def list_strategies(state, opts) do
     StateHandlers.list(state, Strategy, opts)
   end
 

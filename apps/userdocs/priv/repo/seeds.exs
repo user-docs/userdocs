@@ -31,10 +31,12 @@ alias Schemas.Pages.Page
 alias Schemas.Annotations.Annotation
 alias Schemas.Elements.Element
 alias Schemas.Strategies.Strategy
-alias Schemas.Automation.Step
+alias Schemas.Steps.Step
 alias Schemas.Steps.StepType
 alias Schemas.Processes.Process
 alias Schemas.Screenshots.Screenshot
+
+opts = %{broadcast: false, context: %{repo: Userdocs.Repo}}
 
 Repo.delete_all(Screenshot)
 Repo.delete_all(Step)
@@ -48,88 +50,16 @@ Repo.delete_all(Annotation)
 Repo.delete_all(AnnotationType)
 Repo.delete_all(Strategy)
 Repo.delete_all(TeamUser)
-Enum.each(Teams.list_teams, fn(t) -> Teams.delete_team(t) end)
-Enum.each(Users.list_users, fn(u) -> Users.delete_user(u) end)
-
-annotation_types = [
-  %{
-    args: ["color", "thickness"],
-    name: "Outline"
-  },
-  %{
-    args: ["color", "thickness"],
-    name: "Blur"
-  },
-  %{
-    args: ["x_orientation", "y_orientation", "size", "label", "color", "x_offset", "y_offset", "font_size"],
-    name: "Badge"
-  },
-  %{
-    args: ["x_orientation", "y_orientation", "size", "label", "color",
-      "x_offset", "y_offset", "font_size"],
-    name: "Badge Blur"
-  },
-  %{
-    args: ["x_orientation", "y_orientation", "size", "label", "color",
-      "thickness", "x_offset", "y_offset", "font_size"],
-    name: "Badge Outline"
-  }
-]
-
-Enum.each(annotation_types, fn(annotation_type) -> AnnotationTypes.create_annotation_type(annotation_type) end)
-
-step_types = [
-  %{
-    args: ["page_form"],
-    name: "Navigate"
-  },
-  %{
-    args: ["element_id", "element_form"],
-    name: "Wait for Element"
-  },
-  %{
-    args: ["element_id", "element_form"],
-    name: "Click"
-  },
-  %{
-    args: ["element_id", "element_form", "text"],
-    name: "Fill Field"
-  },
-  %{
-    args: ["annotation_id", "annotation_form", "element_id", "element_form"],
-    name: "Apply Annotation"
-  },
-  %{
-    args: ["width", "height"],
-    name: "Set Size Explicit"
-  },
-  %{
-    args: ["screenshot_form"],
-    name: "Full Screen Screenshot"
-  },
-  %{
-    args: [],
-    name: "Clear Annotations"
-  },
-  %{
-    args: ["element_id", "element_form", "screenshot_form"],
-    name: "Element Screenshot"
-  },
-  %{args: ["element_id", "element_form"], name: "Scroll to Element"},
-  %{args: ["element_id", "element_form"], name: "Send Enter Key"},
-  %{
-    args: ["element_id", "element_form"],
-    name: "Submit Form"
-  },
-]
-
-Enum.each(step_types, fn(step_type) -> StepTypes.create_step_type(step_type) end)
+Enum.each(Teams.list_teams(opts), fn(t) -> Teams.delete_team(t) end)
+Enum.each(Users.list_users(opts), fn(u) -> Users.delete_user(u) end)
 
 _strategies = [
 xpath_strategy = %{
+  id: "xpath",
   name: "xpath"
 },
 css_strategy = %{
+  id: "css",
   name: "css"
 }
 ]
@@ -148,28 +78,34 @@ css_strategy = %{
 
 _annotation_types = [
 outline = %{
+  id: "outline",
   args: ["color", "thickness"],
   name: "Outline"
 },
 blur = %{
+  id: "blur",
   args: ["color", "thickness"],
   name: "Blur"
 },
 badge = %{
+  id: "badge",
   args: ["x_orientation", "y_orientation", "size", "label", "color", "x_offset", "y_offset", "font_size"],
   name: "Badge"
 },
 badge_blur = %{
+  id: "badge_blur",
   args: ["x_orientation", "y_orientation", "size", "label", "color",
     "x_offset", "y_offset", "font_size"],
   name: "Badge Blur"
 },
 badge_outline = %{
+  id: "badge_outline",
   args: ["x_orientation", "y_orientation", "size", "label", "color",
     "thickness", "x_offset", "y_offset", "font_size"],
   name: "Badge Outline"
 },
 none = %{
+  id: "none",
   args: [],
   name: "None"
 }
@@ -207,52 +143,71 @@ none = %{
 
 # Step Types
 _step_types = [
-navigate = %{
-  args: ["page_form"],
-  name: "Navigate"
-},
-wait = %{
-  args: ["element_id", "element_form"],
-  name: "Wait for Element"
-},
-click = %{
-  args: ["element_id", "element_form"],
-  name: "Click"
-},
-fill_field = %{
-  args: ["element_id", "element_form", "text"],
-  name: "Fill Field"
-},
-apply_annotation = %{
-  args: ["annotation_id", "annotation_form", "element_id", "element_form"],
-  name: "Apply Annotation"
-},
-set_size_explicit = %{
-  args: ["width", "height"],
-  name: "Set Size Explicit"
-},
-full_screen_screenshot = %{
-  args: ["screenshot_form"],
-  name: "Full Screen Screenshot"
-},
-clear_annotations = %{
-  args: [],
-  name: "Clear Annotations"
-},
-element_screenshot = %{
-  args: ["element_id", "element_form", "screenshot_form", "margin_top", "margin_bottom", "margin_left", "margin_right", "margin_left"],
-  name: "Element Screenshot"
-},
-scroll_to_element = %{args: ["element_id", "element_form"], name: "Scroll to Element"},
-send_enter = %{args: ["element_id", "element_form"], name: "Send Enter Key"},
-submit_form = %{
-  args: ["element_id", "element_form"],
-  name: "Submit Form"
-},
-hover = %{
-  args: ["element_id", "element_form"],
-  name: "Hover"
-},
+  navigate = %{
+    id: "navigate",
+    args: ["page_form"],
+    name: "Navigate"
+  },
+  wait = %{
+    id: "wait_for_element",
+    args: ["element_id", "element_form"],
+    name: "Wait for Element"
+  },
+  click = %{
+    id: "click",
+    args: ["element_id", "element_form"],
+    name: "Click"
+  },
+  fill_field = %{
+    id: "fill_field",
+    args: ["element_id", "element_form", "text"],
+    name: "Fill Field"
+  },
+  apply_annotation = %{
+    id: "apply_annotation",
+    args: ["annotation_id", "annotation_form", "element_id", "element_form"],
+    name: "Apply Annotation"
+  },
+  set_size_explicit = %{
+    id: "set_size_explicit",
+    args: ["width", "height"],
+    name: "Set Size Explicit"
+  },
+  full_screen_screenshot = %{
+    id: "full_screen_screenshot",
+    args: ["screenshot_form"],
+    name: "Full Screen Screenshot"
+  },
+  clear_annotations = %{
+    id: "clear_annotations",
+    args: [],
+    name: "Clear Annotations"
+  },
+  element_screenshot = %{
+    id: "element_screenshot",
+    args: ["element_id", "element_form", "screenshot_form", "margin_top", "margin_bottom", "margin_left", "margin_right", "margin_left"],
+    name: "Element Screenshot"
+  },
+  scroll_to_element = %{
+    id: "scroll_to_element",
+    args: ["element_id", "element_form"],
+    name: "Scroll to Element"
+  },
+  send_enter = %{
+    id: "send_enter",
+    args: ["element_id", "element_form"],
+    name: "Send Enter Key"
+  },
+  submit_form = %{
+    id: "submit_form",
+    args: ["element_id", "element_form"],
+    name: "Submit Form"
+  },
+  hover = %{
+    id: "hover",
+    args: ["element_id", "element_form"],
+    name: "Hover"
+  },
 ]
 
 {:ok, %StepType{id: navigate_id}} =
@@ -474,7 +429,7 @@ john_davenport_rocks_project =
   |> Repo.insert()
 
 
-Teams.update_team(userdocs_team, %{default_project_id: userdocs_project_id})
+Teams.update_team(userdocs_team, %{default_project_id: userdocs_project_id}, opts)
 
 
 {:ok, _user_1} = Users.update_user(user_1, %{

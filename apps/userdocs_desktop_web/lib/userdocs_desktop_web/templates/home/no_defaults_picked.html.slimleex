@@ -1,0 +1,10 @@
+div.container.mx-auto
+  div.text-center.px-3.lg_px-0
+    h1.my-4.text-2xl.md_text-3xl.lg_text-5xl.font-black.leading-tight Select a project to work with
+
+  .flex.flex-col.items-center
+    div.w-auto.p-6
+      p.text-gray-600.mb-8
+        | The filter icon on your navigation menu should read DEFAULT, or the name you've entered for your project. If it says NONE, select a project as shown here.
+    div.w-auto.p-6
+      = img_tag Routes.static_path(@socket, "/images/project_filter_dropdown.png"), class: "w-auto object-none object-center"

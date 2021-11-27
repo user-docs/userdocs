@@ -1,9 +1,9 @@
 defmodule Schemas.Projects.Project do
-  @moduledoc "mix phx.gen.json Projects Project projects base_url:string name: string team_id:references:teams strategy:references:strategies"
+  @moduledoc "mix phx.gen.json Projects Project projects base_url:string name: string team_id:references:teams strategy_id:references:strategies"
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Schemas.Web.Strategy
+  alias Schemas.Strategies.Strategy
   alias Schemas.Pages.Page
   alias Schemas.Processes.Process
 
@@ -15,7 +15,7 @@ defmodule Schemas.Projects.Project do
     field :name, :string
 
     belongs_to :team, Team
-    belongs_to :strategy, Strategy
+    belongs_to :strategy, Strategy, type: :string
 
     has_many :pages, Page
     has_many :processes, Process

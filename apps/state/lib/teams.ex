@@ -5,21 +5,25 @@ defmodule State.Teams do
 
   alias Schemas.Teams.Team
 
-  def load_teams(state, opts \\ %{}) do
+  def load_teams(state, opts) do
     StateHandlers.load(state, list_teams(opts[:params], opts[:filters]), Team, opts)
   end
 
-  def list_teams(state, opts \\ %{}) do
+  def list_teams(state, opts) do
     StateHandlers.list(state, Team, opts)
+    |> maybe_preload(opts[:preloads], state, opts)
   end
 
-  def get_team!(id, state, opts) when is_list(opts) do
+  def get_team!(id, state, opts) when is_binary(id),
+    do: get_team!(String.to_integer(id), state, opts)
+  def get_team!(id, state, opts) when is_integer(id) do
     StateHandlers.get(state, id, Team, opts)
     |> maybe_preload(opts[:preloads], state, opts)
   end
 
   defp maybe_preload(object, nil, _, _), do: object
-  defp maybe_preload(object, preloads, state, opts) do
-    StateHandlers.preload(state, object, preloads, opts)
+  defp maybe_preload(object, _preloads, state, opts) do
+    opts = Keyword.delete(opts, :filter)
+    StateHandlers.preload(state, object, opts)
   end
 end

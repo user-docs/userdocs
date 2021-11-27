@@ -10,10 +10,10 @@ defmodule Userdocs.ElementsTest do
 
   defp create_password(_), do: %{password: UUID.uuid4()}
   defp create_user(%{password: password}), do: %{user: UsersFixtures.confirmed_user(password)}
-  defp create_team(_), do: %{team: TeamsFixtures.team()}
-  defp create_team_user(%{user: user, team: team}), do: %{team_user: TeamsFixtures.team_user(user.id, team.id)}
+  defp create_team(_), do: %{team: TeamsFixtures.team(@opts)}
+  defp create_team_user(%{user: user, team: team}), do: %{team_user: TeamsFixtures.team_user(user.id, team.id, @opts)}
   defp create_strategy(_), do: %{strategy: WebFixtures.strategy(@opts)}
-  defp create_project(%{team: team, strategy: strategy}), do: %{project: ProjectsFixtures.project(team.id, strategy.id)}
+  defp create_project(%{team: team, strategy: strategy}), do: %{project: ProjectsFixtures.project(team.id, strategy.id, @opts)}
   defp create_page(%{project: project}), do: %{page: WebFixtures.page(project.id)}
 
   describe "elements" do
