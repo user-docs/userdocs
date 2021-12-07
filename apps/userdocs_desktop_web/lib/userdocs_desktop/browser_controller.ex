@@ -5,6 +5,7 @@ defmodule UserdocsDesktop.BrowserController do
   alias UserdocsDesktop.BrowserController.Constants
   alias UserdocsDesktop.BrowserController.Annotations
   alias UserdocsDesktop.BrowserController.Utilities
+  alias ChromeRemoteInterface.Session
 
   def start_link(default), do: GenServer.start_link(__MODULE__, default, name: __MODULE__)
 
@@ -21,7 +22,6 @@ defmodule UserdocsDesktop.BrowserController do
 
   @impl true
   def init(_) do
-    alias ChromeRemoteInterface.Session
     server = Session.new()
     case Session.version(server) do
       {:error, :econnrefused} ->
@@ -35,10 +35,12 @@ defmodule UserdocsDesktop.BrowserController do
 
 
   @impl true
-  def handle_call({:browser_open?}, _from, %{page_pid: nil} = state),
-    do: {:reply, false, state}
-  def handle_call({:browser_open?}, _from, %{page_pid: _} = state),
-    do: {:reply, true, state}
+  def handle_call({:browser_open?}, _from, %{server: server} = state) do
+    case Session.version(server) do
+      {:error, :econnrefused} -> {:reply, false, state}
+      {:ok, _} -> {:reply, true, state}
+    end
+  end
   def handle_call({:get_document}, _from, %{page_pid: page_pid} = state) do
     {:reply, Utilities.get_document(page_pid), state}
   end
@@ -56,7 +58,7 @@ defmodule UserdocsDesktop.BrowserController do
   end
   def handle_cast({:close_browser}, %{server: server, os_pid: os_pid, page_pid: page_pid} = state) do
     close_chrome(server, page_pid)
-    if (Port.info(os_pid)), do: Port.close(os_pid)
+    if Port.info(os_pid), do: Port.close(os_pid)
     UserdocsDesktopWeb.Endpoint.broadcast!("browser", "browser_closed", %{timestamp: NaiveDateTime.utc_now()})
     {:noreply, state |> Map.put(:os_pid, nil) |> Map.put(:page_pid, nil)}
   end
@@ -76,7 +78,7 @@ defmodule UserdocsDesktop.BrowserController do
 
   @impl true
   def terminate(_reason, _state) do
-    IO.puts("Terminating")
+    Logger.warning("#{__MODULE__} Terminating")
   end
 
   ################# INTERNALS ##############################
@@ -88,6 +90,8 @@ defmodule UserdocsDesktop.BrowserController do
   alias ChromeRemoteInterface.PageSession
   alias ChromeRemoteInterface.Session
   alias ChromeRemoteInterface.RPC.Runtime
+
+  alias Userdocs.Screenshots
 
   def open_or_reconnect_chrome(server, :already_started), do: reconnect_chrome(server)
   def open_or_reconnect_chrome(_, nil), do: open_chrome()
@@ -180,6 +184,7 @@ defmodule UserdocsDesktop.BrowserController do
   def cast_command({:create_annotation, opts}), do: {:create_annotation, opts}
   def cast_command({:remove_annotation, opts}), do: {:remove_annotation, opts}
   def cast_command({:update_annotation, opts}), do: {:update_annotation, opts}
+  def cast_command({:full_screen_screenshot, opts}), do: {:full_screen_screenshot, opts}
 
   def execute_command({:navigate, %{url: url}}, page_pid) do
     Logger.info("#{__MODULE__} executing navigate command")
@@ -226,5 +231,13 @@ defmodule UserdocsDesktop.BrowserController do
     Logger.info("#{__MODULE__} executing update_annotation command")
     Annotations.remove(page_pid, annotation)
     Annotations.create(page_pid, annotation)
+  end
+
+  alias Schemas.Screenshots.Screenshot
+  def execute_command({:full_screen_screenshot, %{screenshot: %Screenshot{} = screenshot, opts: opts}}, page_pid) do
+    Logger.info("#{__MODULE__} executing full screen screenshot command")
+    case Page.captureScreenshot(page_pid, %{}) do
+      {:ok, %{"result" => %{"data" => base64}}} -> Screenshots.update_screenshot(screenshot, %{base64: base64}, opts)
+    end
   end
 end
