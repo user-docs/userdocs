@@ -1,6 +1,6 @@
 import * as Recordable from './recordable'
 import finder from '@medv/finder'
-import { parseMessage, assignUdId } from './parser'
+import { parseMessage } from './parser'
 
 declare global {
   interface Window { 
@@ -28,9 +28,7 @@ export function addAllListeners (events) {
 }
 
 export function recordEvent (e) {
-  var message = parseMessage(e)
-  console.log(e.target)
-  if (e.target) message = assignUdId(message, e.target as Element)
+  const message = parseMessage(e)
   try {
     chrome.runtime.sendMessage(message)
   } catch (e) {}

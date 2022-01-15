@@ -56,5 +56,18 @@ channel.join()
 chrome.contextMenus.onClicked.addListener(menuHandler(channel))
 
 chrome.runtime.onMessage.addListener(message => {
-  channel.push("browser_interaction", message)
+  if(message.action == actions.SUBSCRIBE) { 
+    subscribe() 
+  } else if (message.action == actions.UNSUBSCRIBE) { 
+    unsubscribe() 
+  } else {
+    chrome.storage.local.get(['subscribed'], (result) => {
+      if(result.subscribed == true) {
+        channel.push("browser_interaction", message)
+      }
+    })
+  }
 })
+
+function subscribe() { chrome.storage.local.set({ subscribed: true }) }
+function unsubscribe() { chrome.storage.local.set({ subscribed: false }) }

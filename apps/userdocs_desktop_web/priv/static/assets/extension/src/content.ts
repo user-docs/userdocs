@@ -1,4 +1,5 @@
 import { parseElementMessage, parseMessage, assignUdId } from './parser'
+import * as actions from './actions'
 import * as Recorder from './recorder'
 
 declare global {
@@ -14,6 +15,8 @@ declare global {
     addXClass: Function;
     highlightedElement: HTMLElement;
     clickedElement: any,
+    subscribe: Function,
+    unsubscribe: Function,
     message: object
   }
 }
@@ -22,10 +25,17 @@ window.eventRecorder = Recorder
 window.eventRecorder.initialize()
 window.generateSelector = Recorder.generateSelector
 window.parseElementMessage = parseElementMessage
+window.addEventListener('message', function (message: MessageEvent) {
+  if(message.data.action == 'subscribe') {
+    this.chrome.runtime.sendMessage({ action: 'subscribe' })
+  }
+  if(message.data.action == 'unsubscribe') {
+    this.chrome.runtime.sendMessage({ action: 'unsubscribe' })
+  }
+})
 
 document.addEventListener("contextmenu", (event) => {
   var message = parseMessage(event)
-  message = assignUdId(message, event.target as Element)
   window.message = message
 }, true)
 

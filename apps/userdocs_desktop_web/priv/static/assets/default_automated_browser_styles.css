@@ -1,0 +1,30 @@
+@font-face {
+  font-family: "sui"; 
+  src: url("chrome-extension://__MSG_@@extension_id__/dist/fonts/sui.woff") format('woff');
+  font-weight: normal;
+  font-style: italic;
+}
+@font-face {
+  font-family: "sui"; 
+  src: url("chrome-extension://__MSG_@@extension_id__/dist/fonts/sui.woff") format('woff');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: "sui"; 
+  src: url("chrome-extension://__MSG_@@extension_id__/dist/fonts/sui.woff") format('woff');
+  font-style: italic;
+}
+@font-face {
+  font-family: "sui"; 
+  src: url("chrome-extension://__MSG_@@extension_id__/dist/fonts/sui.woff") format('woff');
+  font-weight: bold;
+}
+@font-face {
+  font-family: "sui"; 
+  src: url("chrome-extension://__MSG_@@extension_id__/dist/fonts/sui.woff") format('woff');
+}
+.userdocs-highlight {
+  outline: 2px orange dashed !important;
+  outline-offset: -1px !important;
+}

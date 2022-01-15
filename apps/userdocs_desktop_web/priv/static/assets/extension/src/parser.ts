@@ -2,23 +2,58 @@ import finder from '@medv/finder'
 import { actions } from './actions'
 import { v4 as uuidv4 } from 'uuid';
 
+interface Message {
+  // Standard fields
+  action: string;
+  href: string;
+  pageTitle: string;
+  // Element fields
+  generatedSelector?: string;
+  directSelector?: string;
+  elementName?: string;
+  tagName?: string;
+  udId?: string;
+  outerHTML?: string;
+  coordinates?: object;
+  // Keyboard fields
+  value?: string;
+  keyCode?: string;
+}
+
+function elementEvents() {
+  return [
+    actions.click, actions.load, actions.keypress, actions.CREATE_ANNOTATION, 
+    actions.ELEMENT_SCREENSHOT, actions.BADGE, actions.OUTLINE, 
+    actions.BADGE_OUTLINE, actions.BLUR, actions.BADGE_BLUR
+  ]
+}
+
+function keyboardEvents() {
+  return [actions.keypress]
+}
 export function parseMessage(e) {
-  const keycode = e.keyCode ? e.keyCode : null
-  const udId = e.target.getAttribute("udId")
-  return {
-    generatedSelector: getSelector(e.target),
-    directSelector: getPathTo(e.target),
-    value: e.target.value + String.fromCharCode(keycode),
-    elementName: getName(e.target),
-    tagName: e.target.tagName,
+  var message: Message = { 
     action: actions[e.type],
-    keyCode: keycode,
     href: getElementLocation(e.target),
-    pageTitle: getPageTitle(),
-    coordinates: getCoordinates(e),
-    udId: udId,
-    outerHTML: e.target.outerHTML
+    pageTitle: getPageTitle()
   }
+  if (elementEvents().includes(e.type)) {
+    console.log(e.target)
+    message.generatedSelector = getSelector(e.target)
+    message.directSelector = getPathTo(e.target)
+    message.elementName = getName(e.target)
+    message.tagName = e.target.tagName
+    message.udId = e.target.getAttribute("udId")
+    message.outerHTML = e.target.outerHTML
+    message.coordinates = getCoordinates(e)
+    message = assignUdId(message, e.target as Element)
+  }
+  if (keyboardEvents().includes(e.type)) {
+    const keyCode = e.keyCode ? e.keyCode : null
+    message.keyCode = keyCode
+    message.value = e.target.value + String.fromCharCode(keyCode)
+  }
+  return message
 }
 
 export function parseElementMessage(element) {
