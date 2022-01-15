@@ -1,5 +1,6 @@
 function createAnnotation(type, annotationId, labelText) {
   if (type == 'badge') createBadgeAnnotation(annotationId, labelText)
+  if (type == 'outline') createBadgeAnnotation(annotationId)
 }
 
 function createBadgeAnnotation(annotationId, labelText) {
@@ -12,6 +13,26 @@ function createBadgeAnnotation(annotationId, labelText) {
   maskElement.append(badgeLocator); 
   badgeLocator.append(badgeElement); 
   return locatorElement
+}
+
+function createOutlineAnnotation(annotationId) {
+  var locatorElement = createLocator(annotationId)
+  var outlineElement = createOutline(annotationId)
+  insertAbsolute(locatorElement)
+  locatorElement.append(outlineElement)
+}
+
+function createBadgeOutlineAnnotation(annotationId, labelText) {
+  var locatorElement = createLocator(annotationId)
+  var maskElement = createMask(annotationId)
+  var badgeLocator = createBadgeLocator(annotationId)
+  var badgeElement = createBadge(annotationId, labelText)
+  var outlineElement = createOutline(annotationId)
+  insertAbsolute(locatorElement)
+  locatorElement.append(outlineElement)
+  locatorElement.append(maskElement)
+  maskElement.append(badgeLocator);
+  badgeLocator.append(badgeElement); 
 }
 
 function createLocator(annotationId) {
@@ -92,6 +113,41 @@ function createBadge(annotationId, labelText) {
   element.classList.add("userdocs-badge")
   return element
 }
+
+function setOutlineColor(selector, color) {
+  var element = document.querySelector(selector)
+  element.style.outlineColor = color;
+  return element;
+}
+
+function setOutlineWidth(selector, thickness) {
+  var element = document.querySelector(selector)
+  element.style.outlineWidth = `${thickness}px`;
+  return element;
+}
+
+function addBlurClass(element) {
+  element.classList.add('userdocs-blur')
+  return element
+}
+
+function addRootAnnotationClass(element) {
+  element.classList.add('userdocs-annotation')
+  return element
+}
+
+function getElement(strategy, selector) {
+  if (strategy == 'css') return getElementByCss(selector)
+  else if (strategy == 'xpath') return getElementByXpath(selector)
+}
+
+function getElementByCss(selector) {return document.querySelector(selector)}
+function getElementByXpath(selector) {
+  return document.evaluate(
+    selector, document, null,
+    XPathResult.FIRST_ORDERED_NODE_TYPE, null
+  ).singleNodeValue
+}
   
 function insertAbsolute(elementToInsert) {
   document.body.prepend(elementToInsert)
@@ -104,3 +160,5 @@ window.addYClass = addYClass
 window.addXClass = addXClass
 window.adjustPlacement = adjustPlacement
 window.setFontSize = setFontSize
+window.addBlurClass = addBlurClass
+window.getElement = getElement
