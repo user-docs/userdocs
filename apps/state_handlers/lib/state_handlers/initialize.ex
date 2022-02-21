@@ -1,5 +1,5 @@
 defmodule StateHandlers.Initialize do
-
+  @moduledoc "Functions for initializing data types inside of the state (typically socket -> assigns)"
   alias StateHandlers.Helpers
 
   def apply(state, opts) do
@@ -13,10 +13,10 @@ defmodule StateHandlers.Initialize do
   end
 
   def maybe_create_location(state, nil), do: state
-  def maybe_create_location([{ state, _key, _type } | _ ] = breadcrumb, location) do
+  def maybe_create_location([{state, _key, _type} | _] = breadcrumb, location) do
     case Map.get(state, location, nil) do
-      nil -> [ { %{}, location, :location } | breadcrumb ]
-      result -> [ { result, location, :location } | breadcrumb ]
+      nil -> [{%{}, location, :location } | breadcrumb]
+      result -> [{result, location, :location} | breadcrumb]
     end
 
   end
@@ -24,8 +24,8 @@ defmodule StateHandlers.Initialize do
   def maybe_create_types(state, nil, _, _), do: state
   def maybe_create_types(state, _, [], _), do: state
   def maybe_create_types(state, _, nil, _), do: state
-  def maybe_create_types([{ data, key, type } | breadcrumb ], strategy, types, data_type) do
-    [ { maybe_create_types(data, strategy, types, data_type), key, type } | breadcrumb ]
+  def maybe_create_types([{data, key, type} | breadcrumb ], strategy, types, data_type) do
+    [{maybe_create_types(data, strategy, types, data_type), key, type} | breadcrumb]
   end
   def maybe_create_types(state, :by_type, types, :list), do: create_types(state, types, [])
   def maybe_create_types(state, :by_type, types, :map), do: create_types(state, types, %{})

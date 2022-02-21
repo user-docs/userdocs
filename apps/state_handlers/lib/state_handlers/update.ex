@@ -1,11 +1,11 @@
 defmodule StateHandlers.Update do
-
+  @moduledoc "Handles updates to the state"
   alias StateHandlers.Helpers
 
   def do_update(state, data, opts) when is_struct(data) do
     do_update(state, data, data.__meta__.schema, opts)
   end
-  def do_update(state, %{ objects: [ _ | _ ]} = data, opts)  do
+  def do_update(state, %{objects: [_ | _]} = data, opts)  do
     schema =
       data.objects
         |> Enum.at(0)
@@ -14,7 +14,7 @@ defmodule StateHandlers.Update do
 
     do_update(state, data, schema, opts)
   end
-  def do_update(_state, %{ objects: []}, _opts) do
+  def do_update(_state, %{objects: []}, _opts) do
     raise(RuntimeError, "Objects empty")
   end
   def do_update(state, data, schema, opts) do
@@ -30,10 +30,10 @@ defmodule StateHandlers.Update do
     |> Helpers.socket_or_state(loader)
   end
 
-  def update([ { state, key, state_type } | breadcrumb ], data, data_type) do
-    [ { update(state, data, data_type), key, state_type} | breadcrumb ]
+  def update([{state, key, state_type} | breadcrumb], data, data_type) do
+    [{update(state, data, data_type), key, state_type} | breadcrumb]
   end
-  def update(state, %{ objects: data }, :list) when is_list(data) do
+  def update(state, %{objects: data}, :list) when is_list(data) do
     Enum.reduce(data, state,
       fn(object, acc) ->
         update(acc, object, :list)

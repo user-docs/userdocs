@@ -1,5 +1,5 @@
 defmodule StateHandlers.Helpers do
-
+  @moduledoc "Helpers for state manipulation"
   require Logger
 
   def maybe_access_assigns(%Phoenix.LiveView.Socket{} = socket) do

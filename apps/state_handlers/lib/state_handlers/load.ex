@@ -1,4 +1,5 @@
 defmodule StateHandlers.Load do
+  @moduledoc "Functions for loading data into the state"
   require Logger
   alias StateHandlers.Helpers
 
@@ -20,9 +21,9 @@ defmodule StateHandlers.Load do
     |> Helpers.socket_or_state(loader)
   end
 
-  def load_data([ { state, key, state_type } | breadcrumb ], data, data_type, strategy) do
+  def load_data([{state, key, state_type} | breadcrumb], data, data_type, strategy) do
     #IO.puts("load_data state parser")
-    [ { load_data(state, data, data_type, strategy), key, state_type} | breadcrumb ]
+    [{load_data(state, data, data_type, strategy), key, state_type} | breadcrumb]
   end
   def load_data(state, data, :map, :by_key) do
     #IO.puts("Loading Map Data by key")
@@ -34,7 +35,7 @@ defmodule StateHandlers.Load do
   def load_data(state, data, :map, :by_type) do
     #IO.puts("Loading List Data by type")
     Enum.reduce(data, state,
-      fn({ k, v }, s) ->
+      fn({k, v}, s) ->
         Map.put(s, k, v)
       end)
   end

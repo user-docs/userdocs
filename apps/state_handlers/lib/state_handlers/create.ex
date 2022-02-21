@@ -1,5 +1,5 @@
 defmodule StateHandlers.Create do
-
+  @moduledoc "Functions for creating objects in the state."
   alias StateHandlers.Helpers
 
   def apply(state, data, opts) when is_struct(data) do
@@ -14,10 +14,10 @@ defmodule StateHandlers.Create do
     |> Helpers.maybe_put_in_location(opts[:location])
     |> Helpers.socket_or_state(loader)
   end
-  def create([ { state, key, state_type } | breadcrumb ], data, data_type) do
-    [ { create(state, data, data_type), key, state_type} | breadcrumb ]
+  def create([{state, key, state_type} | breadcrumb], data, data_type) do
+    [{create(state, data, data_type), key, state_type} | breadcrumb]
   end
   def create(state, data, :list) do
-    [ data | state ]
+    [data | state]
   end
 end

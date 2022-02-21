@@ -1,4 +1,5 @@
 defmodule StateHandlers.Inspect do
+  @moduledoc "Utilities for inspecting the state"
   require Logger
   alias StateHandlers.Helpers
 
@@ -12,17 +13,20 @@ defmodule StateHandlers.Inspect do
     state
   end
 
+  def state_string(state) do
+    Enum.reduce(state, "",
+      fn({k, v}, log_string) ->
+        log_string
+        <> Atom.to_string(k)
+        <> ": "
+        <> Integer.to_string(Enum.count(v))
+        <> "\n"
+      end
+    )
+  end
+
   def inspect_state(state) do
-    log_string =
-      Enum.reduce(state, "",
-        fn({k, v}, log_string) ->
-          log_string
-          <> Atom.to_string(k)
-          <> ": "
-          <> Integer.to_string(Enum.count(v))
-          <> "\n"
-        end
-      )
-   Logger.debug(log_string)
+    state_string(state)
+    |> IO.puts()
   end
 end

@@ -1,5 +1,5 @@
 defmodule StateHandlers.Broadcast do
-
+  @moduledoc "Handles broadcast receipt and can broadcast a bunch of children based on data and changeset, should probably go."
   require Logger
 
   def apply(_, _, nil), do: raise(RuntimeError, "Broadcast called with nil opts")
@@ -39,7 +39,7 @@ defmodule StateHandlers.Broadcast do
     end
   end
 
-  def handle_associations(channel, action, [ _ | _ ] = data, opts) do
+  def handle_associations(channel, action, [_ | _] = data, opts) do
     Enum.each(data, fn(object) ->
       handle_associations(channel, action, object, opts)
       end

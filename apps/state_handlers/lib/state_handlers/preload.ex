@@ -47,7 +47,7 @@ defmodule StateHandlers.Preload do
     preload_data = handle_assoc(state, data, schema.__schema__(:association, preload), opts)
     Map.put(data, preload, preload_data)
   end
-  defp handle_preload(state, data, { key, value } = preload, opts) when is_tuple(preload) do
+  defp handle_preload(state, data, {key, value} = preload, opts) when is_tuple(preload) do
     #IO.puts("handle_preload tuple, #{inspect(key)}, #{inspect(value)}")
     data_to_preload = Map.get(data, key)
     preloads = value
@@ -55,7 +55,7 @@ defmodule StateHandlers.Preload do
       case data_to_preload do
         nil -> opts
         [] -> opts
-        [ object | _ ] ->
+        [object | _] ->
           prepare_preload_opts(opts, object.__meta__.schema, preload)
         object ->
           prepare_preload_opts(opts, object.__meta__.schema, preload)
@@ -98,22 +98,22 @@ defmodule StateHandlers.Preload do
     #IO.puts("Rejecting order option")
     order_opts
   end
-  def handle_order_option(order_opts, {association, %{ field: _, order: _ } = order_opt}, associations, preload) do
+  def handle_order_option(order_opts, {association, %{field: _, order: _} = order_opt}, associations, preload) do
     #IO.puts("handle_order_option")
     case (association in associations) and association == preload do
-      true -> [ order_opt | order_opts ]
+      true -> [order_opt | order_opts]
       false ->
         #Logger.warn("handle_order_option was passed an invalid association: #{association}, or it didn't match the preload: #{preload}.  Available associations are #{inspect(associations)}")
         order_opts
     end
   end
-  def handle_order_option(order_opts, {_association, [ _ ] = order_opt}, _associations, _preload) do
+  def handle_order_option(order_opts, {_association, [_] = order_opt}, _associations, _preload) do
     #IO.puts("Handling Order Option for a deeply nested order call: #{association}, #{inspect(order_opt)}")
     order_opts ++ order_opt
   end
   def handle_order_option(order_opts, {_association, order_opt}, _associations, _preload) do
     #IO.puts("Handling Order Option for a nested order call: #{association}: #{inspect(order_opt)}")
-    [ order_opt | order_opts ]
+    [order_opt | order_opts]
   end
   def handle_order_option([], _, _, _), do: []
 
@@ -124,19 +124,19 @@ defmodule StateHandlers.Preload do
   def handle_limit_option(limit_opts, {association, limit_opt}, associations, preload) when is_number(limit_opt) do
     #IO.puts("handle_limit_option")
     case (association in associations) and association == preload do
-      true -> [ limit_opt | limit_opts ]
+      true -> [limit_opt | limit_opts]
       false ->
         # Logger.warn("handle_limit_option was passed an invalid association: #{association}, or it didn't match the preload: #{inspect(preload)}.  Available associations are #{inspect(associations)}")
         limit_opts
     end
   end
-  def handle_limit_option(limit_opts, {_association, [ _ ] = limit_opt}, _associations, _preload) do
+  def handle_limit_option(limit_opts, {_association, [_] = limit_opt}, _associations, _preload) do
     #IO.puts("Handling Limit Option for a deeply nested limit call: #{association}, #{inspect(limit_opt)}.  The current opts are #{inspect(limit_opts)}.")
     limit_opts ++ limit_opt
   end
   def handle_limit_option(limit_opts, {_association, limit_opt}, _associations, _preload) do
     #IO.puts("Handling Limit Option for a nested limit call: #{association}: #{inspect(limit_opt)}")
-    [ limit_opt | limit_opts ]
+    [limit_opt | limit_opts]
   end
   def handle_limit_option([], _, _, _), do: []
 
@@ -178,7 +178,7 @@ defmodule StateHandlers.Preload do
     |> maybe_limit(opts[:limit])
   end
 
-  def maybe_limit(data, [ limit ] ) do
+  def maybe_limit(data, [limit] ) do
     Enum.take(data, limit)
   end
   def maybe_limit(data, _limit), do: data
@@ -205,7 +205,7 @@ defmodule StateHandlers.Preload do
     queryable_key = association.join_through.__schema__(:association, queryable).owner_key
 
     #IO.puts("Handling Many to Many Association.  Owner is #{owner}.  Joining through #{}.  Queryable is #{queryable}")
-    join_opts = Keyword.put(opts, :filter, { owner_key, source.id })
+    join_opts = Keyword.put(opts, :filter, {owner_key, source.id})
 
     queryable_ids =
       state

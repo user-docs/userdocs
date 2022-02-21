@@ -1,4 +1,5 @@
 defmodule StateHandlers.List do
+  @moduledoc "Functions for listing things stored in the state."
   require Logger
   alias StateHandlers.Helpers
 

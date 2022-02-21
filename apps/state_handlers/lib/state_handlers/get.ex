@@ -1,5 +1,5 @@
 defmodule StateHandlers.Get do
-
+  @moduledoc "Functions for getting values from the state"
   alias StateHandlers.Helpers
 
   def apply(state, id, schema, opts) do

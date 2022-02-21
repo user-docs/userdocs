@@ -1,11 +1,11 @@
 defmodule StateHandlers.Upsert do
-
+  @moduledoc "Handles upserts into the state"
   alias StateHandlers.Helpers
 
   def do_upsert(state, data, opts) when is_struct(data) do
     do_upsert(state, data, data.__meta__.schema, opts)
   end
-  def do_upsert(state, %{ objects: [ _ | _ ]} = data, opts)  do
+  def do_upsert(state, %{objects: [_ | _]} = data, opts)  do
     schema =
       data.objects
         |> Enum.at(0)
@@ -14,7 +14,7 @@ defmodule StateHandlers.Upsert do
 
         do_upsert(state, data, schema, opts)
   end
-  def do_upsert(_state, %{ objects: []}, _opts) do
+  def do_upsert(_state, %{objects: []}, _opts) do
     raise(RuntimeError, "Objects empty")
   end
   def do_upsert(state, data, schema, opts) do
@@ -30,10 +30,10 @@ defmodule StateHandlers.Upsert do
     |> Helpers.socket_or_state(loader)
   end
 
-  def upsert([ { state, key, state_type } | breadcrumb ], data, data_type) do
-    [ { upsert(state, data, data_type), key, state_type} | breadcrumb ]
+  def upsert([{state, key, state_type} | breadcrumb], data, data_type) do
+    [{upsert(state, data, data_type), key, state_type} | breadcrumb]
   end
-  def upsert(state, %{ objects: data }, :list) when is_list(data) do
+  def upsert(state, %{objects: data}, :list) when is_list(data) do
     Enum.reduce(data, state,
       fn(object, acc) ->
         upsert(acc, object, :list)

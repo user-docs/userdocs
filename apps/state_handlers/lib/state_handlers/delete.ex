@@ -1,5 +1,5 @@
 defmodule StateHandlers.Delete do
-
+  @moduledoc "Functions for deleting items from the state"
   alias StateHandlers.Helpers
 
   def apply(state, data, opts) when is_struct(data) do
@@ -16,8 +16,8 @@ defmodule StateHandlers.Delete do
   end
   def apply(_, _, opts), do: raise(RuntimeError, "State.Update.apply failed to find a matching clause with options #{inspect(opts)}")
 
-  def delete([ { state, key, state_type } | breadcrumb ], data, data_type) do
-    [ { delete(state, data, data_type), key, state_type} | breadcrumb ]
+  def delete([{state, key, state_type} | breadcrumb], data, data_type) do
+    [{delete(state, data, data_type), key, state_type} | breadcrumb]
   end
   def delete(state, data, :list) do
     Enum.filter(state,
