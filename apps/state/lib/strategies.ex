@@ -6,7 +6,7 @@ defmodule State.Strategies do
   alias Schemas.Strategies.Strategy
 
   def load_strategies(state, opts) do
-    StateHandlers.load(state, Userdocs.Strategies.list_strategies(), Strategy, opts)
+    StateHandlers.load(state, Userdocs.Strategies.list_strategies(opts), Strategy, opts)
   end
 
   def list_strategies(state, opts) do

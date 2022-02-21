@@ -14,7 +14,7 @@ defmodule State.Elements do
     |> maybe_preload(opts[:preloads], state, opts)
   end
 
-  def get_element!(id, state, opts) when is_list(opts) do
+  def get_element!(id, state, opts) do
     StateHandlers.get(state, id, Element, opts)
     |> maybe_preload(opts[:preloads], state, opts)
   end

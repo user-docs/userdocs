@@ -6,11 +6,11 @@ defmodule State.StepTypes do
   alias Schemas.Steps.StepType
   alias Userdocs.StepTypes
 
-  def load_step_types(state, opts \\ %{}) do
+  def load_step_types(state, opts) do
     StateHandlers.load(state, StepTypes.list_step_types(opts), StepType, opts)
   end
 
-  def list_step_types(state, opts \\ %{}) do
+  def list_step_types(state, opts) do
     StateHandlers.list(state, StepType, opts)
   end
 

@@ -9,7 +9,13 @@ defmodule State.TeamUsers do
     StateHandlers.load(state, Userdocs.TeamUsers.list_team_users(opts), TeamUser, opts)
   end
 
-  def get_team_user!(id, state, opts) when is_binary(id), do: get_team_user!(String.to_integer(id), state, opts)
+  def list_team_users(state, opts) do
+    StateHandlers.list(state, TeamUser, opts)
+    |> maybe_preload(opts[:preloads], state, opts)
+  end
+
+  def get_team_user!(id, state, opts) when is_binary(id),
+    do: get_team_user!(String.to_integer(id), state, opts)
   def get_team_user!(id, state, opts) when is_integer(id) do
     StateHandlers.get(state, id, TeamUser, opts)
     |> maybe_preload(opts[:preloads], state, opts)

@@ -6,7 +6,7 @@ defmodule State.Users do
   alias Schemas.Users.User
 
   def load_users(state, opts) do
-    StateHandlers.load(state, Userdocs.Users.list_users(), User, opts)
+    StateHandlers.load(state, Userdocs.Users.list_users(opts), User, opts)
   end
 
   def list_users(state, opts) do

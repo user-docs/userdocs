@@ -5,17 +5,15 @@ defmodule State.Projects do
 
   alias Schemas.Projects.Project
 
-  def load_projects(state, opts \\ %{}) do
+  def load_projects(state, opts) do
     StateHandlers.load(state, Userdocs.Projects.list_projects(opts), Project, opts)
   end
 
-  def list_projects(state, opts \\ %{}) do
+  def list_projects(state, opts) do
     StateHandlers.list(state, Project, opts)
     |> maybe_preload(opts[:preloads], state, opts)
   end
 
-  def get_project!(id, state, opts) when is_binary(id),
-    do: get_project!(String.to_integer(id), state, opts)
   def get_project!(id, state, opts) when is_list(opts) do
     StateHandlers.get(state, id, Project, opts)
     |> maybe_preload(opts[:preloads], state, opts)

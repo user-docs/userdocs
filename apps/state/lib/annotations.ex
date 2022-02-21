@@ -16,8 +16,6 @@ defmodule State.Annotations do
   end
 
   def get_annotation!(id, state, opts \\ [])
-  def get_annotation!(id, state, opts) when is_binary(id),
-    do: get_annotation!(String.to_integer(id), state, opts)
   def get_annotation!(id, state, opts) when is_list(opts) do
     StateHandlers.get(state, id, Annotation, opts)
     |> maybe_preload(opts[:preloads], state, opts)
