@@ -1,15 +1,13 @@
 defmodule UserdocsDesktopWeb.AnnotationLive.Index do
+  @moduledoc "Primary annotation live view"
   use UserdocsDesktopWeb, :live_view
 
   alias Schemas.Annotations.Annotation
-  alias Schemas.Annotations.AnnotationType
-  alias Userdocs.Annotations
   alias Userdocs.Pages
   alias UserdocsDesktop.BrowserController
   alias UserdocsDesktopWeb.Icons
   alias UserdocsDesktopWeb.Root
   alias UserdocsDesktopWeb.LiveHelpers
-  alias UserdocsDesktopWeb.Loaders
   alias UserdocsDesktopWeb.RootSubscriptionHandlers
   alias UserdocsDesktopWeb.RootEventHandlers
 
@@ -18,39 +16,17 @@ defmodule UserdocsDesktopWeb.AnnotationLive.Index do
 
   def opts(token), do: %{access_token: token, context: %{repo: Client}}
 
-  def data_types do
-    [
-      Schemas.Annotations.AnnotationType,
-      Schemas.Elements.ElementAnnotation,
-      Schemas.Annotations.Annotation,
-      Schemas.Elements.Element,
-      Schemas.Pages.Page
-    ]
-  end
-
   @impl true
   def mount(_params, session, socket) do
     {
       :ok,
       socket
-      |> Root.apply(session, data_types())
-      |> initialize()
+      |> Root.apply(session, [])
     }
   end
 
-  def initialize(%{assigns: %{status: "connecting"}} = socket), do: socket
-  def initialize(%{assigns: %{status: "connected"}} = socket) do
-    socket
-    |> Loaders.annotation_types()
-    |> Loaders.pages()
-    |> Loaders.elements()
-    |> Loaders.annotations()
-    |> Loaders.element_annotations()
-  end
-
   @impl true
-  def handle_params(_, _, %{assigns: %{status: "connecting"}} = socket), do: {:noreply, socket}
-  def handle_params(params, url, %{assigns: %{status: "connected"}} = socket) do
+  def handle_params(params, url, socket) do
     {
       :noreply,
       socket
@@ -60,95 +36,89 @@ defmodule UserdocsDesktopWeb.AnnotationLive.Index do
   end
 
   defp apply_action(socket, :edit, %{"id" => id, "page_id" => page_id}) do
-    opts = socket.assigns.state_opts |> Keyword.put(:preloads, @preloads)
+    opts = [preloads: @preloads]
     socket
     |> assign(:page_title, "Edit Annotation")
-    |> assign(:page, State.Pages.get_page!(page_id, socket, socket.assigns.state_opts))
-    |> assign(:annotation, State.Annotations.get_annotation!(id, socket, opts))
-    |> prepare_annotations(String.to_integer(page_id))
+    |> assign(:page, Client.get_page!(page_id, []))
+    |> assign(:annotation, Client.get_annotation!(id, opts))
+    |> prepare_annotations(page_id)
     |> assign_select_lists
   end
 
   defp apply_action(socket, :new, %{"page_id" => page_id}) do
-    opts = socket.assigns.state_opts
     socket
     |> assign(:page_title, "New Annotation")
-    |> assign(:page, State.Pages.get_page!(page_id, socket, opts))
-    |> assign(:annotation, %Annotation{})
-    |> prepare_annotations(String.to_integer(page_id))
+    |> assign(:page, Client.get_page!(page_id, []))
+    |> assign(:annotation, %Annotation{element_annotations: []})
+    |> prepare_annotations(page_id)
     |> assign_select_lists
   end
 
   defp apply_action(socket, :index, %{"page_id" => page_id}) do
-    opts = socket.assigns.state_opts
     socket
     |> assign(:page_title, "Listing Annotation")
-    |> assign(:page, State.Pages.get_page!(page_id, socket, opts))
+    |> assign(:page, Client.get_page!(page_id, []))
     |> assign(:annotation, nil)
-    |> prepare_annotations(String.to_integer(page_id))
+    |> prepare_annotations(page_id)
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    opts = opts(socket.assigns.access_token)
-    Annotations.delete_annotation(id, opts)
+    Client.delete_annotation(id)
     {:noreply, socket}
   end
   def handle_event("apply_annotation", %{"id" => id} = params, socket) do
-    opts = socket.assigns.state_opts |> Keyword.put(:preloads, @preloads)
-    annotation = State.Annotations.get_annotation!(id, socket, opts)
+    opts = [preloads: @preloads]
+    annotation = Client.get_annotation!(id, opts)
     case params["value"] do
-      "true" -> BrowserController.execute({:create_annotation, %{annotation: annotation}})
-      _ -> BrowserController.execute({:remove_annotation, %{annotation: annotation}})
+      "true" -> BrowserController.handle_command({:create_annotation, %{annotation: annotation}})
+      _ -> BrowserController.handle_command({:remove_annotation, %{annotation: annotation}})
     end
     {:noreply, socket}
   end
-  def handle_event("navigate", %{"id" => id}, %{assigns: %{state_opts: opts,  current_user: %{selected_project: project} = user}} = socket) do
-    page = State.Pages.get_page!(String.to_integer(id), socket, opts)
+  def handle_event("navigate", %{"id" => id}, socket) do
+    user = Client.current_user()
+    project = Client.current_project()
+    page = Client.get_page!(id, %{})
     url = Pages.effective_url(page, project, user)
-    BrowserController.execute({:navigate, %{url: url}})
+    BrowserController.handle_command({:navigate, %{url: url}})
     {:noreply, socket}
   end
   def handle_event(n, p, s), do: RootEventHandlers.handle_event(n, p, s)
 
   @impl true
-  def handle_info(%{topic: _, event: _, payload: %Annotation{}} = sub_data,
+  def handle_info(%{topic: _, event: _, payload: %Annotation{}},
   %{assigns: %{page: page}} = socket) do
-    {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
     {:noreply, prepare_annotations(socket, page.id)}
   end
   def handle_info(n, s), do: RootSubscriptionHandlers.handle_info(n, s)
 
   defp prepare_annotations(socket, page_id) do
-     opts = socket.assigns.state_opts
-            |> Keyword.put(:order, @order)
-            |> Keyword.put(:preloads, @preloads)
-            |> Keyword.put(:filter, {:page_id, page_id})
-
-    annotations = State.Annotations.list_annotations(socket, opts)
+    opts = [order: @order, preloads: @preloads, filter: {:page_id, page_id}]
+    annotations = Client.list_annotations(opts)
     assign(socket, :annotations, annotations)
   end
 
   def assign_select_lists(socket) do
     assign(socket, :select_lists, %{
-      pages: pages_select(socket),
-      annotation_types: annotation_types_select(socket),
+      pages: pages_select(),
+      annotation_types: annotation_types_select(),
       elements: elements_select(socket)
     })
   end
 
-  def pages_select(%{assigns: %{state_opts: state_opts}} = socket) do
-    State.Pages.list_pages(socket, state_opts)
+  def pages_select() do
+    Client.list_pages(%{})
     |> LiveHelpers.select_list(:name, :true)
   end
 
-  def annotation_types_select(%{assigns: %{state_opts: state_opts}} = socket) do
-    StateHandlers.list(socket, AnnotationType, state_opts)
+  def annotation_types_select() do
+    Client.list_annotation_types([])
     |> LiveHelpers.select_list(:name, :true)
   end
 
-  def elements_select(%{assigns: %{page: page, state_opts: state_opts}} = socket) do
-    State.Elements.list_elements(socket, state_opts)
+  def elements_select(%{assigns: %{page: page}}) do
+    Client.list_elements([])
     |> Enum.filter(fn(e) -> e.page_id == page.id end)
     |> LiveHelpers.select_list(:name, :true)
   end

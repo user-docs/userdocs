@@ -1,7 +1,5 @@
 defmodule Userdocs.Annotations do
-  @moduledoc """
-  The Annotations context.
-  """
+  @moduledoc "The Annotations context."
   require Logger
   import Ecto.Query, warn: false
   alias Userdocs.RepoHandler
@@ -10,17 +8,11 @@ defmodule Userdocs.Annotations do
   alias Schemas.Elements.ElementAnnotation
   alias Userdocs.Teams
   alias Userdocs.Requests
-  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/annotations"
+  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/annotations"
 
-  def list_annotations(%{access_token: access_token, context: %{repo: Client}} = opts) do
-    params =  Map.take(opts, [:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => pages_attrs}} = Requests.send(request_fun, access_token, params)
-    create_annotation_structs(pages_attrs)
-  end
   def list_annotations(opts)  do
     filters = Map.get(opts, :filters, [])
-    preloads = Map.get(opts, :preloads, [])
+    _preloads = Map.get(opts, :preloads, [])
     base_annotation_query()
     |> maybe_filter_annotation_by_page(filters[:page_id])
     |> maybe_filter_annotation_by_team_id(filters[:team_id])
@@ -66,12 +58,6 @@ defmodule Userdocs.Annotations do
     do: from(annotations in query, preload: [:element_annotations])
 
   def create_annotation(attrs \\ %{}, opts)
-  def create_annotation(attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    params = %{annotation: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => annotation_attrs}} = Requests.send(request_fun, access_token, params)
-    create_annotation_struct(annotation_attrs)
-  end
   def create_annotation(attrs, opts) do
     changeset = Annotation.changeset(%Annotation{}, attrs)
     case RepoHandler.insert(changeset, opts) do
@@ -98,11 +84,6 @@ defmodule Userdocs.Annotations do
     |> Ecto.Changeset.apply_action(:insert)
   end
 
-  def update_annotation(%Annotation{} = annotation, attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    request_fun = Requests.build_update(@url, annotation.id)
-    {:ok, %{"data" => annotation_attrs}} = Requests.send(request_fun, access_token, %{annotation: attrs})
-    create_annotation_struct(annotation_attrs)
-  end
   def update_annotation(%Annotation{} = annotation, attrs, opts) do
     changeset = Annotation.changeset(annotation, attrs)
     case RepoHandler.update(changeset, opts) do
@@ -114,10 +95,6 @@ defmodule Userdocs.Annotations do
     end
   end
 
-  def delete_annotation(id, %{access_token: access_token, context: %{repo: Client}}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
-  end
   def delete_annotation(%Annotation{} = annotation, opts) do
     channel = annotation_channel(annotation, opts[:broadcast])
     {:ok, annotation} = RepoHandler.delete(annotation, opts)
@@ -144,11 +121,12 @@ defmodule Userdocs.Annotations do
     channel, true = broadcast?
   ) do
     Enum.each(ea_changes, fn(changeset) ->
-      element_annotation = Enum.find(ea_data, fn(ea) -> ea.temp_id == Ecto.Changeset.get_field(changeset, :temp_id) end)
+      element_annotation = fetch_element_annotation(changeset, ea_data)
       action = case changeset.action do
         :insert -> "create"
         :update -> "update"
         :delete -> "delete"
+        :replace -> "delete"
       end
       if broadcast? == true do
         Logger.debug("#{__MODULE__} broadcasting an Element Annotation struct")
@@ -167,7 +145,12 @@ defmodule Userdocs.Annotations do
   def maybe_broadcast_children(_, _, _, nil), do: ""
   def maybe_broadcast_children(_, _, _, false), do: ""
 
-
+  def fetch_element_annotation(%{action: action} = changeset, data) when action in [:insert, :update] do
+    Enum.find(data, fn(ea) -> ea.id == Ecto.Changeset.get_field(changeset, :id) end)
+  end
+  def fetch_element_annotation(%{action: action} = changeset, _data) when action in [:delete, :replace] do
+    changeset.data
+  end
 
   def annotation_channel(%Annotation{} = annotation, true) do
     team = Teams.get_annotation_team(annotation.id)

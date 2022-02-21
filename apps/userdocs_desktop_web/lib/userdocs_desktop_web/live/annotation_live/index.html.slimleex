@@ -12,9 +12,6 @@ h1.text-2xl.font-bold.m-4.flex
     action: @live_action,
     annotation: @annotation,
     select_lists: @select_lists,
-    state_opts: @state_opts,
-    access_token: @access_token,
-    data: %{annotation_types: @data.annotation_types, elements: @data.elements, annotations: @data.annotations},
     return_to: Routes.annotation_index_path(@socket, :index, @page.id)
 
 ul.py-3.shadow-lg.bg-base-100.rounded-box.m-4
