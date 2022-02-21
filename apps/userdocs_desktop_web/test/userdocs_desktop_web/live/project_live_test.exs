@@ -1,8 +1,6 @@
 defmodule UserdocsDesktopWeb.ProjectLiveTest do
   use UserdocsDesktopWeb.ConnCase
   import Phoenix.LiveViewTest
-  alias Schemas.Users.User
-  alias Userdocs.Projects
   alias Userdocs.TeamsFixtures
   alias Userdocs.UsersFixtures
   alias Userdocs.WebFixtures
@@ -23,8 +21,13 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
     %{user: user}
   end
   defp create_session(%{user: user, password: password}) do
-    {:ok, _} = Session.authenticate(%{"user" => %{"email" => user.email, "password" => password}})
+    {:ok, _} = Client.authenticate(%{"user" => %{"email" => user.email, "password" => password}})
     %{}
+  end
+  defp load_client(_) do
+    Client.init_state()
+    Client.load()
+    Client.connect()
   end
 
   describe "Index" do
@@ -36,8 +39,13 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
       :create_team_user,
       :create_project,
       :make_selections,
-      :create_session
+      :create_session,
+      :load_client
     ]
+
+    setup do
+      on_exit(fn -> Client.disconnect() end)
+    end
 
     test "lists all projects", %{conn: conn, project: project} do
       {:ok, _index_live, html} = live(conn, Routes.project_index_path(conn, :index))
@@ -59,14 +67,14 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
 
       valid_attrs = ProjectsFixtures.project_attrs(:valid, team.id, strategy.id)
 
-      {:ok, _, html} =
+      html =
         index_live
         |> form("#project-form", project: valid_attrs)
         |> render_submit()
-        |> follow_redirect(conn, Routes.project_index_path(conn, :index, team.id))
 
-      assert html =~ "Project created successfully"
-      assert html =~ valid_attrs.name
+      assert_receive(%{event: "create", topic: "data"})
+      assert render(index_live) =~ "Project created successfully"
+      assert_patched(index_live, Routes.project_index_path(conn, :index, team.id))
     end
 
     test "updates project in listing", %{conn: conn, project: project, team: team, strategy: strategy} do
@@ -83,14 +91,14 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
 
       valid_attrs = ProjectsFixtures.project_attrs(:valid, team.id, strategy.id)
 
-      {:ok, _, html} =
-        index_live
-        |> form("#project-form", project: valid_attrs)
-        |> render_submit()
-        |> follow_redirect(conn, Routes.project_index_path(conn, :index, team.id))
+      index_live
+      |> form("#project-form", project: valid_attrs)
+      |> render_submit()
 
-      assert html =~ "Project updated successfully"
-      assert html =~ valid_attrs.name
+      assert_receive(%{event: "update", topic: "data"})
+      assert_patched(index_live, Routes.project_index_path(conn, :index, team.id))
+      assert render(index_live) =~ "Project updated successfully"
+      assert render(index_live) =~ valid_attrs[:name]
     end
 
     test "deletes project in listing", %{conn: conn, project: project} do
@@ -99,15 +107,16 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
       assert index_live |> element("#delete-project-" <> to_string(project.id)) |> render_click()
       refute has_element?(index_live, "#project-" <> to_string(project.id))
     end
-"""
+
     test "index handles standard events", %{conn: conn, project: project} do
       {:ok, live, _html} = live(conn, Routes.project_index_path(conn, :index))
-      user_attrs = %{"email" => "test@example.com", "project_id" => project.id, "team_users" => []}
-      send(live.pid, %{topic: "data", event: "update_user", payload: user_attrs})
-      assert live
-             |> element("#project-picker-" <> to_string(project.id))
-             |> render_click() =~ project.name
+      {:ok, _, html} =
+        live
+        |> element("#project-picker-" <> to_string(project.id))
+        |> render_click()
+        |> follow_redirect(conn, Routes.project_index_path(conn, :index))
+
+      assert html =~ project.name
     end
-    """
   end
 end

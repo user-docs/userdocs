@@ -5,8 +5,8 @@ defmodule UserdocsDesktopWeb.TeamLiveTest do
   alias Userdocs.UsersFixtures
   alias Userdocs.TeamsFixtures
   alias Userdocs.WebFixtures
-  alias Schemas.Users.User
   @opts %{context: %{repo: Userdocs.Repo}}
+  @receive_timeout 250
 
   defp create_password(_), do: %{password: UUID.uuid4()}
   defp create_user(%{password: password}), do: %{user: UsersFixtures.confirmed_user(password)}
@@ -26,8 +26,12 @@ defmodule UserdocsDesktopWeb.TeamLiveTest do
     %{user: user}
   end
   defp create_session(%{user: user, password: password}) do
-    {:ok, _} = Session.authenticate(%{"user" => %{"email" => user.email, "password" => password}})
+    {:ok, _} = Client.authenticate(%{"user" => %{"email" => user.email, "password" => password}})
     %{}
+  end
+  defp load_client(_) do
+    Client.load()
+    Client.connect()
   end
 
   describe "Index" do
@@ -39,8 +43,13 @@ defmodule UserdocsDesktopWeb.TeamLiveTest do
       :create_team_user,
       :create_project,
       :make_selections,
-      :create_session
+      :create_session,
+      :load_client
     ]
+
+    setup do
+      on_exit(fn -> Client.disconnect() end)
+    end
 
     test "lists all teams", %{conn: conn, team: team} do
       {:ok, _index_live, html} = live(conn, Routes.team_index_path(conn, :index))
@@ -62,18 +71,18 @@ defmodule UserdocsDesktopWeb.TeamLiveTest do
 
       valid_attrs = TeamsFixtures.team_attrs(:valid)
 
-      {:ok, _, html} =
-        index_live
-        |> form("#team-form", team: valid_attrs)
-        |> render_submit()
-        |> follow_redirect(conn, Routes.team_index_path(conn, :index))
+      index_live
+      |> form("#team-form", team: valid_attrs)
+      |> render_submit()
 
-      assert html =~ "Team created successfully"
-      assert html =~ valid_attrs.name
+      :timer.sleep(@receive_timeout)
+      assert_receive(%{event: "create", topic: "data"})
+      assert_patched(index_live, Routes.team_index_path(conn, :index))
+      assert render(index_live) =~ "Team created successfully"
+      assert render(index_live) =~ valid_attrs.name
     end
 
-    test "adds a user to a team", %{conn: conn, team: team, user: user} do
-      invited_email = UUID.uuid4() <> "@user-docs.com"
+    test "adds a new user to a team", %{conn: conn, team: team, user: user} do
       {:ok, index_live, _html} = live(conn, Routes.team_index_path(conn, :invite, team))
 
       assert index_live
@@ -84,12 +93,40 @@ defmodule UserdocsDesktopWeb.TeamLiveTest do
              |> form("#invitation-form", user: %{email: "test@user-docs.com", invited_by_id: user.id})
              |> render_submit(%{"email" => "test@user-docs.com", "invited_by_id" => user.id})
 
-      assert index_live
 
-
+      :timer.sleep(@receive_timeout)
+      assert_receive(%{event: "create", topic: "data"})
+      assert render(index_live) =~ "test@user-docs.com"
     end
 
-    test "updates team in listing", %{conn: conn, team: team, user: user} do
+    test "adds an existing user to a team", %{conn: conn, team: team, user: user} do
+      {:ok, index_live, _html} = live(conn, Routes.team_index_path(conn, :invite, team))
+      new_user = UsersFixtures.confirmed_user(Ecto.UUID.generate())
+
+      assert index_live
+             |> form("#invitation-form", user: %{email: new_user.email, invited_by_id: user.id})
+             |> render_submit(%{"email" => new_user.email, "invited_by_id" => user.id})
+
+      :timer.sleep(@receive_timeout)
+      assert_receive(%{event: "create", topic: "data"})
+      assert render(index_live) =~ new_user.email
+    end
+
+    test "removes an existing user from a team", %{conn: conn, team: team, user: user} do
+      new_user = UsersFixtures.confirmed_user(Ecto.UUID.generate())
+      team_user = TeamsFixtures.team_user(new_user.id, team.id, @opts)
+      Client.load()
+
+      {:ok, index_live, _html} = live(conn, Routes.team_index_path(conn, :invite, team))
+
+      assert index_live |> element("#remove-team-user-" <> team_user.id) |> render_click()
+
+      :timer.sleep(@receive_timeout)
+      assert_receive(%{event: "delete", topic: "data"})
+      refute has_element?(index_live, "#remove-team-user-" <> team_user.id)
+    end
+
+    test "updates team in listing", %{conn: conn, team: team} do
       {:ok, index_live, _html} = live(conn, Routes.team_index_path(conn, :index))
 
       assert index_live |> element("#edit-team-" <> to_string(team.id)) |> render_click() =~
@@ -105,14 +142,15 @@ defmodule UserdocsDesktopWeb.TeamLiveTest do
       |> element("#team-form")
       |> render_change(%{team: valid_attrs = TeamsFixtures.team_attrs(:valid)})
 
-      {:ok, _, html} =
-        index_live
-        |> form("#team-form", team: valid_attrs)
-        |> render_submit(%{"team_id" => team.id, "type" => "invited"})
-        |> follow_redirect(conn, Routes.team_index_path(conn, :index))
+      index_live
+      |> form("#team-form", team: valid_attrs)
+      |> render_submit(%{"team_id" => team.id, "type" => "invited"})
 
-      assert html =~ "Team updated successfully"
-      assert html =~ valid_attrs.name
+      :timer.sleep(@receive_timeout)
+      assert_receive(%{event: "update", topic: "data"})
+      assert_patched(index_live, Routes.team_index_path(conn, :index))
+      assert render(index_live) =~ "Team updated successfully"
+      assert render(index_live) =~ valid_attrs.name
     end
 
     test "deletes team in listing", %{conn: conn, team: team} do
@@ -124,11 +162,13 @@ defmodule UserdocsDesktopWeb.TeamLiveTest do
 
     test "index handles standard events", %{conn: conn, project: project} do
       {:ok, live, _html} = live(conn, Routes.team_index_path(conn, :index))
-      assert live
-             |> element("#project-picker-" <> to_string(project.id))
-             |> render_click() =~ project.name
+      {:ok, _, html} =
+        live
+        |> element("#project-picker-" <> to_string(project.id))
+        |> render_click()
+        |> follow_redirect(conn, Routes.team_index_path(conn, :index))
 
-      :timer.sleep(100)
+      assert html =~ project.name
     end
   end
 end

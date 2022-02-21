@@ -1,26 +1,27 @@
 defmodule UserdocsDesktopWeb.AnnotationLiveTest do
   use UserdocsDesktopWeb.ConnCase
   import Phoenix.LiveViewTest
-  alias Userdocs.Annotations
-  alias Userdocs.AutomationFixtures
   alias Userdocs.ProjectsFixtures
   alias Userdocs.UsersFixtures
   alias Userdocs.TeamsFixtures
   alias Userdocs.WebFixtures
-  @opts %{context: %{repo: Userdocs.Repo}}
+  alias UserdocsDesktop.BrowserController
 
-  defp create_annotation_type(_), do: %{annotation_type: WebFixtures.annotation_type(:badge)}
+  @opts %{context: %{repo: Userdocs.Repo}}
+  @receive_timeout 250
+
+  defp create_annotation_type(_), do: %{annotation_type: WebFixtures.annotation_type(:badge, @opts)}
   defp create_password(_), do: %{password: UUID.uuid4()}
   defp create_user(%{password: password}), do: %{user: UsersFixtures.confirmed_user(password)}
   defp create_team(_), do: %{team: TeamsFixtures.team(@opts)}
   defp create_team_user(%{user: user, team: team}), do: %{team_user: TeamsFixtures.team_user(user.id, team.id, @opts)}
   defp create_strategy(_), do: %{strategy: WebFixtures.strategy(@opts)}
   defp create_project(%{team: team, strategy: strategy}), do: %{project: ProjectsFixtures.project(team.id, strategy.id, @opts)}
-  defp create_page(%{project: project}), do: %{page: WebFixtures.page(project.id)}
+  defp create_page(%{project: project}), do: %{page: WebFixtures.page(project.id, @opts)}
   defp create_annotation(%{page: page}), do: %{annotation: WebFixtures.annotation(page.id, @opts)}
   defp create_element(%{page: page, strategy: strategy}), do: %{element: WebFixtures.element(page.id, strategy.id, @opts)}
   defp create_session(%{user: user, password: password}) do
-    {:ok, _} = Session.authenticate(%{"user" => %{"email" => user.email, "password" => password}})
+    {:ok, _} = Client.authenticate(%{"user" => %{"email" => user.email, "password" => password}})
     %{}
   end
   defp make_selections(%{user: user, team: team, project: project}) do
@@ -29,6 +30,16 @@ defmodule UserdocsDesktopWeb.AnnotationLiveTest do
       selected_project_id: project.id
     }, @opts)
     %{user: user}
+  end
+  defp load_client(_) do
+    Client.connect()
+    Client.load()
+  end
+
+  setup_all do
+    BrowserController.open_browser("{key: value}")
+    on_exit(fn -> BrowserController.close_browser() end)
+    :ok
   end
 
   describe "Index" do
@@ -45,9 +56,14 @@ defmodule UserdocsDesktopWeb.AnnotationLiveTest do
       :create_element,
       :make_selections,
       :create_session,
+      :load_client
     ]
 
-    test "lists all annotation", %{conn: conn, annotation: annotation, page: page} do
+    setup do
+      on_exit(fn -> Client.disconnect() end)
+    end
+
+    test "lists all annotation", %{conn: conn, page: page} do
       {:ok, _index_live, html} = live(conn, Routes.annotation_index_path(conn, :index, page.id))
 
       assert html =~ "Listing Annotation"
@@ -69,13 +85,17 @@ defmodule UserdocsDesktopWeb.AnnotationLiveTest do
              |> form("#annotation-form", annotation: WebFixtures.annotation_attrs(:invalid_badge, page.id))
              |> render_change() =~ "is invalid"
 
-      html =
-        index_live
-        |> form("#annotation-form", annotation: WebFixtures.annotation_attrs(:valid_badge, page.id))
-        |> render_submit()
+      valid_attrs = WebFixtures.annotation_attrs(:valid_badge, page.id)
 
+      index_live
+      |> form("#annotation-form", annotation: valid_attrs)
+      |> render_submit()
+
+      :timer.sleep(@receive_timeout)
+      assert_receive(%{event: "create", topic: "data"})
       assert_patched(index_live, Routes.annotation_index_path(conn, :index, page.id))
       assert render(index_live) =~ "Annotation created successfully"
+      assert render(index_live) =~ valid_attrs.name
     end
 
     test "updates annotation in listing", %{conn: conn, annotation: annotation, page: page, annotation_type: annotation_type} do
@@ -94,20 +114,26 @@ defmodule UserdocsDesktopWeb.AnnotationLiveTest do
              |> form("#annotation-form", annotation: %{font_size: "invalid"})
              |> render_change() =~ "is invalid"
 
-      html =
-        index_live
-        |> form("#annotation-form", annotation: WebFixtures.annotation_attrs(:valid_badge, page.id))
-        |> render_submit()
+      valid_attrs = WebFixtures.annotation_attrs(:valid_badge, page.id)
 
+      index_live
+      |> form("#annotation-form", annotation: valid_attrs)
+      |> render_submit()
+
+      :timer.sleep(@receive_timeout)
+      assert_receive(%{event: "update", topic: "data"})
       assert_patched(index_live, Routes.annotation_index_path(conn, :index, page.id))
       assert render(index_live) =~ "Annotation updated successfully"
+      assert render(index_live) =~ valid_attrs.name
     end
 
     test "deletes annotation in listing", %{conn: conn, annotation: annotation, page: page} do
       {:ok, index_live, _html} = live(conn, Routes.annotation_index_path(conn, :index, page.id))
 
       assert index_live |> element("#delete-annotation-" <> to_string(annotation.id)) |> render_click()
-      #refute has_element?(index_live, "#delete-annotation-" <> to_string(annotation.id))
+      :timer.sleep(@receive_timeout)
+      assert_receive(%{event: "delete", topic: "data"})
+      refute has_element?(index_live, "#delete-annotation-" <> to_string(annotation.id))
     end
   end
 end
