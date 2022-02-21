@@ -1,4 +1,5 @@
 defmodule Userdocs.LocalRepo do
+  @moduledoc "The local sqlite repo"
   require Logger
   use Ecto.Repo,
     otp_app: :userdocs,
@@ -12,8 +13,6 @@ defmodule Userdocs.LocalRepo do
         :test -> Path.join(:code.priv_dir(:userdocs), "test.db")
         _ -> Application.get_env(:userdocs_desktop, :db_path)
       end
-
-    Logger.info("Initializing LocalRepo at #{db_path}")
 
     {:ok, Keyword.put(config, :database, db_path)}
   end
