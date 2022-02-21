@@ -1,7 +1,7 @@
 defmodule Schemas.Annotations.Annotation do
   @moduledoc "mix phx.gen.json Annotations Annotation annotations page_id:references:pages annotation_type_id:references:annotation_types thickness:integer x_offset:integer y_offset:integer font_size:integer font_color:string name:string label:string x_orientation:string y_orientation:string size:integer color:string"
 
-  use Ecto.Schema
+  use Schemas.Schema
   import Ecto.Changeset
 
   require Logger
@@ -36,7 +36,7 @@ defmodule Schemas.Annotations.Annotation do
     belongs_to :page, Page
     belongs_to :annotation_type, AnnotationType, type: :string
 
-    has_many :element_annotations, ElementAnnotation
+    has_many :element_annotations, ElementAnnotation, on_replace: :delete_if_exists
 
     timestamps()
   end

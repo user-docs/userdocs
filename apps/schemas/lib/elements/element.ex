@@ -1,6 +1,6 @@
 defmodule Schemas.Elements.Element do
   @moduledoc "mix phx.gen.json Elements Element elements name:string selector:string page_id:references:pages strategy_id:references:strategies"
-  use Ecto.Schema
+  use Schemas.Schema
   import Ecto.Changeset
   alias Schemas.Pages.Page
   alias Schemas.Strategies.Strategy
@@ -43,7 +43,7 @@ defmodule Schemas.Elements.Element do
 
   def ignore_missing(changeset) do
     case changeset do
-      %{valid?: false, changes: changes} = changeset when changes == %{ } ->
+      %{valid?: false, changes: changes} = changeset when changes == %{} ->
         %{changeset | action: :ignore}
       changeset ->
         changeset
@@ -51,7 +51,7 @@ defmodule Schemas.Elements.Element do
   end
 
   def safe(element, handlers \\ %{})
-  def safe(element = %Schemas.Elements.Element{}, handlers) do
+  def safe(%Schemas.Elements.Element{} = element, handlers) do
     base_safe(element)
     |> maybe_safe_strategy(handlers[:strategy], element.strategy, handlers)
     |> maybe_safe_page(handlers[:page], element.page, handlers)

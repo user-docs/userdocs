@@ -1,54 +1,95 @@
 defmodule Schemas.Screenshots.Screenshot do
-  use Ecto.Schema
+  @moduledoc """
+  mix phx.gen.json Screenshots Screenshot screenshots name:string aws_file:string aws_screenshot:string aws_provisional_screenshot aws_diff_screenshot:string project_id:references:projects
+  mix phx.gen.live Screenshots Screenshot screenshots name:string file_name:string project_id:references:projects page_id:references:pages
+  """
+  use Schemas.Schema
   import Ecto.Changeset
   use Waffle.Ecto.Schema
 
+  alias Schemas.Projects.Project
+  alias Schemas.Pages.Page
   alias Schemas.Steps.Step
-  alias Userdocs.Screenshots
+  alias Schemas.Screenshots.PresignedURLs
 
+  @primary_key {:id, Ecto.UUID, autogenerate: false}
+  @derive {Jason.Encoder, only: [
+    :id, :name, :base64, :aws_screenshot, :file_name, :status,
+    :aws_provisional_screenshot, :aws_diff_screenshot, :project_id,
+    :presigned_urls, :score, :page_id
+  ]}
   schema "screenshots" do
     field :name, :string
-
-    has_one :step, Step
-
+    field :file_name, :string
     field :base64, :string, virtual: true
-
-    field :aws_file, Schemas.ScreenshotUploader.Type
-
+    field :aws_file, :string
     field :aws_screenshot, :string
     field :aws_provisional_screenshot, :string
     field :aws_diff_screenshot, :string
+    field :status, Ecto.Enum, values: [:ok, :difference, :size_difference]
+    field :score, :float
 
+    belongs_to :project, Project
+    belongs_to :page, Page
+    embeds_one :presigned_urls, PresignedURLs
+    has_one :step, Step
     timestamps()
   end
 
   @doc false
   def changeset(screenshot, attrs) do
     screenshot
-    |> cast(attrs, [:name, :step_id, :base64, :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot])
-    |> foreign_key_constraint(:step_id)
-    |> unique_constraint(:step_id)
-    |> maybe_update_screenshots()
-    |> validate_required([])
+    |> cast(attrs, [:id, :name, :file_name, :status, :base64, :aws_file,
+      :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot,
+      :project_id, :score, :page_id])
+    |> foreign_key_constraint(:project_id)
+    |> validate_required([:project_id])
   end
 
-  def fields_changeset(screenshot, attrs) do
+  def api_changeset(screenshot, attrs) do
     screenshot
-    |> cast(attrs, [:name, :step_id, :base64, :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot])
-    |> validate_required([])
+    |> cast(attrs, [:id, :name, :file_name, :status, :base64, :aws_file,
+      :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot,
+      :project_id, :score, :page_id])
+    |> cast_embed(:presigned_urls, with: &PresignedURLs.changeset/2)
+    |> validate_required([:project_id])
+  end
+end
+
+defmodule Schemas.Screenshots.PresignedURLs do
+  use Schemas.Schema
+  import Ecto.Changeset
+  alias Schemas.Screenshots.PresignedURL
+  @primary_key false
+  @derive Jason.Encoder
+  embedded_schema do
+    embeds_one :aws_screenshot, PresignedURL
+    embeds_one :aws_provisional_screenshot, PresignedURL
+    embeds_one :aws_diff_screenshot, PresignedURL
   end
 
-  def maybe_update_screenshots(changeset) do
-    case Ecto.Changeset.get_change(changeset, :base64) do
-      nil -> changeset
-      _base64 -> create_aws_screenshot_or_diff_screenshot(changeset)
-    end
+  def changeset(presigned_urls, attrs) do
+    presigned_urls
+    |> cast(attrs, [])
+    |> cast_embed(:aws_screenshot, with: &PresignedURL.changeset/2)
+    |> cast_embed(:aws_provisional_screenshot, with: &PresignedURL.changeset/2)
+    |> cast_embed(:aws_diff_screenshot, with: &PresignedURL.changeset/2)
+  end
+end
+
+defmodule Schemas.Screenshots.PresignedURL do
+  use Schemas.Schema
+  import Ecto.Changeset
+  @primary_key false
+  @derive Jason.Encoder
+  embedded_schema do
+    field :get, :string, virtual: true
+    field :put, :string, virtual: true
+    field :post, :string, virtual: true
   end
 
-  def create_aws_screenshot_or_diff_screenshot(%{ data: %{ id: _ , aws_screenshot: nil }} = changeset) do
-    Screenshots.create_aws_screenshot(changeset)
-  end
-  def create_aws_screenshot_or_diff_screenshot(%{ data: %{ aws_screenshot: _aws_screenshot }} = changeset) do
-    Screenshots.update_aws_screenshot(changeset)
+  def changeset(presigned_url, attrs) do
+    presigned_url
+    |> cast(attrs, [:get, :put, :post])
   end
 end

@@ -1,4 +1,5 @@
 defmodule Schemas.ScreenshotUploader do
+  @moduledoc "An uploader definition for waffle. May not be required any longer."
   use Waffle.Definition
   use Waffle.Ecto.Definition
 

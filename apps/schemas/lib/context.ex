@@ -2,7 +2,7 @@ defmodule Schemas.Context do
   @moduledoc """
     Holds the context for api calls
   """
-  use Ecto.Schema
+  use Schemas.Schema
   import Ecto.Changeset
   alias Schemas.Users.User
 

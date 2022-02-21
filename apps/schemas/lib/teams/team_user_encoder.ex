@@ -1,4 +1,5 @@
 defmodule Schemas.Teams.TeamUserEncoder do
+  @moduledoc "Jason encoder implementation for Team User Datatype"
   alias Schemas.Teams.Team
   alias Schemas.Users.User
 

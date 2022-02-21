@@ -1,6 +1,6 @@
 defmodule Schemas.Tokens.Token do
-
-  use Ecto.Schema
+  @moduledoc "Represents an access or renewal token to be used in the userdocs application. Stored locally on the client."
+  use Schemas.Schema
   import Ecto.Changeset
 
   @primary_key {:id, :string, autogenerate: false}

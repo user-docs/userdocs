@@ -1,5 +1,6 @@
 defmodule Schemas.Teams.TeamUser do
-  use Ecto.Schema
+  @moduledoc "The team user datatype, which maps users to their team"
+  use Schemas.Schema
   import Ecto.Changeset
 
   alias Schemas.Users.User

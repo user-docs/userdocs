@@ -3,7 +3,7 @@ defmodule Schemas.Users.User do
   The User Module
   mix phx.gen.json Users User users email:string password:string current_password:string selected_team_id:references:teams selected_project_id:references:projects
   """
-  use Ecto.Schema
+  use Schemas.Schema
   import Ecto.Changeset
   use Pow.Ecto.Schema
   use Pow.Extension.Ecto.Schema,

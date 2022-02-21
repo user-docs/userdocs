@@ -1,5 +1,6 @@
 defmodule Schemas.Steps.StepType do
-  use Ecto.Schema
+  @moduledoc "A type of step"
+  use Schemas.Schema
   import Ecto.Changeset
 
   @primary_key {:id, :string, autogenerate: false}
@@ -13,6 +14,13 @@ defmodule Schemas.Steps.StepType do
 
   @doc false
   def changeset(step_type, attrs) do
+    step_type
+    |> cast(attrs, [:id, :name, :args])
+    |> validate_required([:name, :args])
+  end
+
+  @doc false
+  def api_changeset(step_type, attrs) do
     step_type
     |> cast(attrs, [:id, :name, :args])
     |> validate_required([:name, :args])

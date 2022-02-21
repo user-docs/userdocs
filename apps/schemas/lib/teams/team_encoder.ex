@@ -1,4 +1,5 @@
 defmodule Schemas.Teams.TeamEncoder do
+  @moduledoc "Jason encoder implementation for the Team data type"
   alias Schemas.Projects.Project
 
   def encode(%{} = team, opts) do

@@ -1,5 +1,6 @@
 defmodule Schemas.Strategies.Strategy do
-  use Ecto.Schema
+  @moduledoc "A strategy for finding an on-page element, typically using a selector or a type of selector"
+  use Schemas.Schema
   import Ecto.Changeset
 
   @primary_key {:id, :string, autogenerate: false}

@@ -2,12 +2,11 @@ defmodule Schemas.Users.Override do
   @moduledoc """
     This object is used to override the URL of a project, and may be expanded to override other objects later
   """
-  use Ecto.Schema
+  use Schemas.Schema
   import Ecto.Changeset
   alias Schemas.Projects.Project
   alias Schemas.Users.User
 
-  @primary_key {:id, :binary_id, autogenerate: true}
   @derive {Jason.Encoder, only: [:url, :project_id]}
   embedded_schema do
     field :temp_id, :string, virtual: true
