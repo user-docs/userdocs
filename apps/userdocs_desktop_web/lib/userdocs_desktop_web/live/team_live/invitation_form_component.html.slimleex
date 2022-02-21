@@ -4,7 +4,7 @@ h2.title = @title
   = for team_user <- @team.team_users do  
     input.input.input-bordered.col-span-8.mb-4 type="text" disabled="disabled" value=team_user.user.email
     button.btn.btn-square.btn-error.rounded-l-none
-      = link(to: "#", phx_click: "remove-team-user", phx_value_remove: team_user.id) do 
+      = link(to: "#", phx_click: "remove-team-user", phx_value_remove: team_user.id, id: "remove-team-user-#{team_user.id}") do 
         = Icons.x_circle([])
 
 = form = form_for @changeset, "#",
@@ -15,7 +15,7 @@ h2.title = @title
 
   .grid.grid-cols-9
     .col-span-9
-      = hidden_input form, :invited_by_id, value: @current_user.id
+      = hidden_input form, :invited_by_id, value: Client.current_user_id()
       = text_input form, :email, [label: false, class: "input input-bordered w-full", type: "text", placeholder: "Email Address"]
       = error_tag form, :email
 

@@ -1,8 +1,7 @@
 defmodule UserdocsDesktopWeb.TeamLive.FormComponent do
+  @moduledoc "Team form"
   use UserdocsDesktopWeb, :live_component
   alias Userdocs.Teams
-
-  def opts(token), do: %{access_token: token, context: %{repo: Client}}
 
   @aws_region_select_options [
     "US East (Ohio)": "us-east-2",
@@ -61,13 +60,13 @@ defmodule UserdocsDesktopWeb.TeamLive.FormComponent do
   end
 
   defp save_team(socket, :edit, team_params) do
-    case Teams.update_team(socket.assigns.team, team_params, opts(socket.assigns.access_token)) do
+    case Client.update_team(socket.assigns.team, team_params) do
       {:ok, _team} ->
         {
           :noreply,
           socket
           |> put_flash(:info, "Team updated successfully")
-          |> push_redirect(to: socket.assigns.return_to)
+          |> push_patch(to: socket.assigns.return_to)
         }
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -76,14 +75,15 @@ defmodule UserdocsDesktopWeb.TeamLive.FormComponent do
   end
 
   defp save_team(socket, :new, team_params) do
-    params = Map.put(team_params, "team_users", [%{"user_id" => Integer.to_string(socket.assigns.current_user.id)}])
-    case Teams.create_team(params, opts(socket.assigns.access_token)) do
+    user = Client.current_user()
+    params = Map.put(team_params, "team_users", [%{"user_id" => user.id}])
+    case Client.create_team(params) do
       {:ok, _team} ->
         {
           :noreply,
           socket
           |> put_flash(:info, "Team created successfully")
-          |> push_redirect(to: socket.assigns.return_to)
+          |> push_patch(to: socket.assigns.return_to)
         }
 
       {:error, %Ecto.Changeset{} = changeset} ->

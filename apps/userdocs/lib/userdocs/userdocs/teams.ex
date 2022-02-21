@@ -7,17 +7,12 @@ defmodule Userdocs.Teams do
   import Ecto.Query, warn: false
   alias Userdocs.RepoHandler
   alias Userdocs.Repo
+  alias Userdocs.RepoHandler
   alias Userdocs.Requests
   alias Schemas.Teams.Team
-  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/teams"
+  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/teams"
 
   @doc "Returns the list of teams."
-  def list_teams(%{access_token: access_token, context: %{repo: Client}} = opts) do
-    params = opts |> Map.take([:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => team_attrs}} = Requests.send(request_fun, access_token, params)
-    create_team_structs(team_attrs)
-  end
   def list_teams(opts) do
     filters = Map.get(opts, :filters, [])
     base_teams_query()
@@ -49,22 +44,20 @@ defmodule Userdocs.Teams do
     RepoHandler.get!(Team, id, opts)
   end
 
-  def get_element_team!(id) do
+  def get_element_team!(id, opts) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], pr in assoc(t, :projects), as: :projects)
     |> join(:left, [projects: pr], pa in assoc(pr, :pages), as: :pages)
     |> join(:left, [pages: pa], e in assoc(pa, :elements), as: :elements)
     |> where([elements: e], e.id == ^id)
-    |> Repo.one!()
+    |> RepoHandler.one!(opts)
   end
 
   def get_screenshot_team!(id) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], p in assoc(t, :projects), as: :projects)
-    |> join(:left, [projects: p], v in assoc(p, :processes), as: :processes)
-    |> join(:left, [processes: p], s in assoc(p, :steps), as: :steps)
-    |> join(:left, [steps: s], si in assoc(s, :screenshot), as: :screenshot)
-    |> where([screenshot: s], s.id == ^id)
+    |> join(:left, [projects: p], s in assoc(p, :screenshots), as: :screenshots)
+    |> where([screenshots: s], s.id == ^id)
     |> Repo.one!()
   end
 
@@ -94,6 +87,22 @@ defmodule Userdocs.Teams do
     |> Repo.one!()
   end
 
+  def get_process_team(id) do
+    from(t in Team, as: :teams)
+    |> join(:left, [teams: t], p in assoc(t, :projects), as: :projects)
+    |> join(:left, [projects: p], v in assoc(p, :processes), as: :processes)
+    |> where([processes: p], p.id == ^id)
+    |> Repo.one!()
+  end
+
+  def list_user_teams(id) do
+    from(t in Team, as: :teams)
+    |> join(:left, [teams: t], tu in assoc(t, :team_users), as: :team_users)
+    |> join(:left, [team_users: tu], u in assoc(tu, :user), as: :users)
+    |> where([users: u], u.id == ^id)
+    |> Repo.all()
+  end
+
   def search_team_name(search_term) do
     wildcard_search = "%#{search_term}%"
 
@@ -104,16 +113,15 @@ defmodule Userdocs.Teams do
 
   @doc "Creates a team."
   def create_team(attrs \\ %{}, opts)
-  def create_team(attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    params = %{team: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => team_attrs}} = Requests.send(request_fun, access_token, params)
-    create_team_struct(team_attrs)
-  end
   def create_team(attrs, opts) do
     %Team{}
     |> Team.changeset(attrs)
-    |> Repo.insert()
+    |> RepoHandler.insert(opts)
+    |> case do
+      {:ok, team} = result ->
+        maybe_broadcast_team(result, "create", channels(team, opts[:broadcast]), opts[:broadcast])
+      result -> result
+    end
   end
 
   def create_team_structs(attrs_list) do
@@ -130,11 +138,6 @@ defmodule Userdocs.Teams do
   end
 
   @doc "Updates a team."
-  def update_team(%Team{} = team, attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    request_fun = Requests.build_update(@url, team.id)
-    {:ok, %{"data" => team_attrs}} = Requests.send(request_fun, access_token, %{team: attrs})
-    create_team_struct(team_attrs)
-  end
   #TODO this could be more elegant, probably
   def update_team(%Team{} = team, %{"users" => _users} = attrs, opts) do
     users =
@@ -147,24 +150,44 @@ defmodule Userdocs.Teams do
     team
     |> Team.changeset(attrs)
     |> RepoHandler.update(opts)
+    |> maybe_broadcast_team("update", channels(team, opts[:broadcast]), opts[:broadcast])
   end
   def update_team(%Team{} = team, attrs, opts) do
     team
     |> Team.changeset(attrs)
     |> RepoHandler.update(opts)
+    |> maybe_broadcast_team("update", channels(team, opts[:broadcast]), opts[:broadcast])
   end
 
   @doc "Deletes a team."
-  def delete_team(id, %{access_token: access_token, context: %{repo: Client}}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
-  end
   def delete_team(%Team{} = team, opts) do
+    channels = channels(team, opts[:broadcast])
     RepoHandler.delete(team, opts)
+    |> maybe_broadcast_team("delete", channels, opts[:broadcast])
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking team changes."
   def change_team(%Team{} = team, attrs \\ %{}) do
     Team.changeset(team, attrs)
   end
+
+  @doc "Broadcasts a team to the team it belongs to"
+  def maybe_broadcast_team({:error, _} = state, _, _, _), do: state
+  def maybe_broadcast_team({:ok, %Team{} = team}, action, channels, true) do
+    payload = %{type: "Schemas.Teams.Team", attrs: team}
+    channels
+    |> Enum.each(fn channel ->
+      Logger.debug("#{__MODULE__} broadcasting a Team struct on #{channel}")
+      UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+    end)
+
+    {:ok, team}
+  end
+  def maybe_broadcast_team(state, _, _, _), do: state
+
+  def channels(%Team{id: id}, true) do
+    Userdocs.Users.list_users(%{filters: %{team_id: id}, context: %{repo: Userdocs.Repo}})
+    |> Enum.map(fn user -> "user:#{user.id}" end)
+  end
+  def channels(_, _), do: []
 end
