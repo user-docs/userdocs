@@ -1,4 +1,5 @@
 defmodule Userdocs.TeamsFixtures do
+  @moduledoc false
   alias Userdocs.Teams
   alias Userdocs.TeamUsers
 

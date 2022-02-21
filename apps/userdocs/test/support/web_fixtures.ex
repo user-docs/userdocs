@@ -4,13 +4,7 @@ defmodule Userdocs.WebFixtures do
   entities via the `Userdocs.Auth` context.
   """
 
-  alias Schemas.Annotations.AnnotationType
-  alias Schemas.Annotations.Annotation
-  alias Schemas.Elements.Element
   alias Schemas.Pages.Page
-  alias Schemas.Strategies.Strategy
-
-  alias Userdocs.Projects
   alias Userdocs.Annotations
   alias Userdocs.AnnotationTypes
   alias Userdocs.Elements
@@ -19,22 +13,22 @@ defmodule Userdocs.WebFixtures do
 
   @opts %{context: %{repo: Userdocs.Repo}}
 
-  def page(project_id \\ nil) do
+  def page(project_id \\ nil, opts) do
     {:ok, object } =
       page_attrs(:valid, project_id)
-      |> Pages.create_page(@opts)
+      |> Pages.create_page(opts)
     object
   end
 
-  def element(page_id, strategy_id, opts) when is_integer(page_id) and is_binary(strategy_id) do
+  def element(page_id, strategy_id, opts) when is_binary(page_id) and is_binary(strategy_id) do
     {:ok, object } =
       element_attrs(:valid, page_id, strategy_id)
       |> Elements.create_element(opts)
     object
   end
 
-  def element(page, strategy) do
-    element(page.id, strategy.id)
+  def element(page, strategy, opts) do
+    element(page.id, strategy.id, opts)
   end
 
   def strategy(opts) do
@@ -44,7 +38,7 @@ defmodule Userdocs.WebFixtures do
       strategy
   end
 
-  def annotation(page_id, opts) when is_integer(page_id) do
+  def annotation(page_id, opts) when is_binary(page_id) do
     {:ok, annotation } =
       annotation_attrs(:valid)
       |> Map.put(:page_id, page_id)
@@ -56,10 +50,10 @@ defmodule Userdocs.WebFixtures do
     annotation(page.id)
   end
 
-  def annotation_type(name \\ :badge) do
+  def annotation_type(name, opts) do
     {:ok, annotation } =
       annotation_type_attrs(:valid, name)
-      |> AnnotationTypes.create_annotation_type(@opts)
+      |> AnnotationTypes.create_annotation_type(opts)
     annotation
   end
 
@@ -67,21 +61,28 @@ defmodule Userdocs.WebFixtures do
     Userdocs.WebFixtures.AnnotationTypes.data()
     |> Enum.map(
       fn(st) ->
-        { :ok, annotation_type } = AnnotationTypes.create_annotation_type(st, @opts)
+        {:ok, annotation_type } = AnnotationTypes.create_annotation_type(st, @opts)
         annotation_type
       end
     )
   end
 
-  def page_attrs(:valid, project_id \\ nil) do
+  def page_attrs(type, project_id \\ nil)
+  def page_attrs(:valid, project_id) do
     %{
       url: "http://www.user-docs.com",
       name: UUID.uuid4(),
       project_id: project_id
     }
   end
-
-  def page_attrs(:invalid, project_id) do
+  def page_attrs(:relative, project_id) do
+    %{
+      url: "/#{UUID.uuid4()}",
+      name: UUID.uuid4(),
+      project_id: project_id
+    }
+  end
+  def page_attrs(:invalid, _project_id) do
     %{
       url: nil,
       name: UUID.uuid4(),
@@ -125,6 +126,12 @@ defmodule Userdocs.WebFixtures do
       page_id: nil
     }
   end
+  def annotation_attrs(:valid) do
+    %{
+      label: UUID.uuid4(),
+      name: UUID.uuid4()
+    }
+  end
 
   def annotation_attrs(:invalid_badge, page_id) do
     %{
@@ -132,11 +139,11 @@ defmodule Userdocs.WebFixtures do
       font_size: "big"
     }
   end
-
   def annotation_attrs(:valid_badge, page_id) do
     %{
       page_id: page_id,
       label: UUID.uuid4(),
+      name: UUID.uuid4(),
       color: "some color",
       font_size: 42,
       size: 42,
@@ -146,14 +153,6 @@ defmodule Userdocs.WebFixtures do
       y_orientation: "M"
     }
   end
-
-  def annotation_attrs(:valid) do
-    %{
-      label: UUID.uuid4(),
-      name: UUID.uuid4()
-    }
-  end
-
   def annotation_attrs(:valid, page_id) do
     %{
       page_id: page_id,
@@ -170,7 +169,6 @@ defmodule Userdocs.WebFixtures do
       y_orientation: "some y_orientation"
     }
   end
-
   def annotation_attrs(:valid_limited, page_id) do
     %{
       page_id: page_id

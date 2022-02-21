@@ -5,14 +5,13 @@ defmodule Userdocs.AutomationFixtures do
   """
 
   alias Userdocs.Processes
-  alias Userdocs.WebFixtures
   alias Userdocs.StepTypes
-  @opts %{context: %{repo: Userdocs.Repo}}
+  alias Userdocs.Steps
 
-  def process(project_id \\ nil) do
+  def process(project_id \\ nil, opts) do
     {:ok, process} =
       process_attrs(:valid, project_id)
-      |> Processes.create_process()
+      |> Processes.create_process(opts)
     process
   end
 
@@ -33,47 +32,12 @@ defmodule Userdocs.AutomationFixtures do
     step_type
   end
 
-  def step(:both) do
-    {:ok, step} =
-      step_attrs(:valid)
-      |> Steps.create_step()
-
-    strategy = WebFixtures.strategy(@opts)
-    page = WebFixtures.page()
-    annotation_type = WebFixtures.annotation_type(:badge)
-    element_attrs = WebFixtures.element_attrs(:valid, page.id, strategy.id)
-    annotation_attrs =
-      WebFixtures.annotation_attrs(:valid)
-      |> Map.put(:annotation_type_id, annotation_type.id)
-      |> Map.put(:page_id, page.id)
-
-    attrs = %{
-      element: element_attrs,
-      annotation: annotation_attrs
-    }
-
-    {:ok, step} =
-      step
-      |> Map.put(:element, nil)
-      |> Map.put(:annotation, nil)
-      |> Steps.update_step(attrs)
-
-    step
-  end
   def step(page_id \\ nil, process_id \\ nil,
-    element_id \\ nil, annotation_id \\ nil, step_type_id \\ nil) do
+    element_id \\ nil, annotation_id \\ nil, step_type_id \\ nil, opts) do
     {:ok, step} =
       step_attrs(:valid, page_id, process_id, element_id,
         annotation_id, step_type_id)
-      |> Steps.create_step()
-      step
-  end
-  def step_form(page_id \\ nil, process_id \\ nil,
-    element_id \\ nil, annotation_id \\ nil, step_type_id \\ nil) do
-    {:ok, step} =
-      step_attrs(:valid, page_id, process_id, element_id,
-        annotation_id, step_type_id)
-      |> Steps.create_step_form()
+      |> Steps.create_step(opts)
       step
   end
 
@@ -87,6 +51,9 @@ defmodule Userdocs.AutomationFixtures do
       element_id: element_id,
       annotation_id: annotation_id,
       step_type_id: step_type_id,
+      text: "Test text",
+      height: 0,
+      width: 0,
       margin_all: 0,
       margin_bottom: 0,
       margin_left: 0,
