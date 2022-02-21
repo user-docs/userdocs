@@ -8,7 +8,12 @@ defmodule Userdocs.Application do
     server_environment = Application.get_env(:userdocs_web, :environment)
     environment = Application.get_env(:userdocs_desktop, :environment, server_environment)
     Logger.info("Starting #{__MODULE__} in environment #{environment}")
-    children = [Userdocs.LocalRepo, Userdocs.Repo, Userdocs.Vault] # when in dev, we need to start both
+    children = [
+      {Phoenix.PubSub, name: Userdocs.PubSub},
+      Userdocs.LocalRepo,
+      Userdocs.Repo,
+      Userdocs.Vault
+    ] # when in dev, we need to start both
     """
       case environment do
         :desktop -> [Userdocs.LocalRepo, Userdocs.Vault]
