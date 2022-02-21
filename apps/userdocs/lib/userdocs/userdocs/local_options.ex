@@ -1,4 +1,5 @@
 defmodule Userdocs.LocalOptions do
+  @moduledoc "Functions for manipulating local options (always stored locally in the sqlite database)"
   alias Userdocs.LocalRepo
 
   alias Schemas.Users.LocalOption

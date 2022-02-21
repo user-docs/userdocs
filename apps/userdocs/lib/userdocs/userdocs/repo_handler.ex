@@ -1,4 +1,5 @@
 defmodule Userdocs.RepoHandler do
+  @moduledoc "Used for executing appropriate repo calls on a repo passed in as an argument"
   def all(query,  %{context: %{repo: repo}}) do
     repo.all(query)
   end
@@ -6,11 +7,7 @@ defmodule Userdocs.RepoHandler do
   def get!(schema, id, %{context: %{repo: repo}}) do
     repo.get!(schema, id)
   end
-"""
-  def one!(query, id, %{context: %{repo: repo}}) do
-    repo.one!(query, id)
-  end
-"""
+
   def one!(query, %{context: %{repo: repo}}) do
     repo.one!(query)
   end

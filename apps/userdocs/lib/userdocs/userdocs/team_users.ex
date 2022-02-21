@@ -5,7 +5,7 @@ defmodule Userdocs.TeamUsers do
   alias Userdocs.RepoHandler
   alias Userdocs.Requests
   alias Schemas.Teams.TeamUser
-  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/team_users"
+  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/team_users"
 
   @doc ""
   def list_team_users(%{access_token: access_token, context: %{repo: Client}} = opts) do
@@ -31,7 +31,7 @@ defmodule Userdocs.TeamUsers do
 
   defp maybe_filter_by_opposite_user(query, nil), do: query
   defp maybe_filter_by_opposite_user(query, user_id) do
-    from(tu in TeamUser, as: :team_users_1)
+    from(tu in query, as: :team_users_1)
     |> join(:left, [team_users_1: tu], t in assoc(tu, :team), as: :teams)
     |> join(:left, [teams: t], tu in assoc(t, :team_users), as: :team_users_2)
     |> where([team_users_2: tu], tu.user_id == ^user_id)
@@ -49,6 +49,11 @@ defmodule Userdocs.TeamUsers do
     %TeamUser{}
     |> TeamUser.changeset(attrs)
     |> RepoHandler.insert(opts)
+    |> case do
+      {:ok, team} = result ->
+        maybe_broadcast_team_user(result, "create", channels(team, opts[:broadcast]), opts[:broadcast])
+      result -> result
+    end
   end
 
   def create_team_user_structs(attrs_list) do
@@ -69,6 +74,7 @@ defmodule Userdocs.TeamUsers do
     team_user
     |> TeamUser.changeset(attrs)
     |> RepoHandler.update(opts)
+    |> maybe_broadcast_team_user("update", channels(team_user, opts[:broadcast]), opts[:broadcast])
   end
 
   @doc "Deletes a team_user."
@@ -77,11 +83,33 @@ defmodule Userdocs.TeamUsers do
     Requests.send(request, access_token, nil)
   end
   def delete_team_user(%TeamUser{} = team_user, opts) do
+    channels = channels(team_user, opts[:broadcast])
     RepoHandler.delete(team_user, opts)
+    |> maybe_broadcast_team_user("delete", channels, opts[:broadcast])
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking team_user changes."
   def change_team_user(%TeamUser{} = team_user, attrs \\ %{}) do
     TeamUser.changeset(team_user, attrs)
   end
+
+  @doc "Broadcasts a team_user to the users that have acess to it."
+  def maybe_broadcast_team_user({:error, _} = state, _, _, _), do: state
+  def maybe_broadcast_team_user({:ok, %TeamUser{} = team_user}, action, channels, true) do
+    payload = %{type: "Schemas.Teams.TeamUser", attrs: team_user}
+    channels
+    |> Enum.each(fn channel ->
+      Logger.debug("#{__MODULE__} broadcasting a TeamUser struct on #{channel}")
+      UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+    end)
+
+    {:ok, team_user}
+  end
+  def maybe_broadcast_team_user(state, _, _, _), do: state
+
+  def channels(%TeamUser{team_id: team_id}, true) do
+    Userdocs.Users.list_users(%{filters: %{team_id: team_id}, context: %{repo: Userdocs.Repo}})
+    |> Enum.map(fn user -> "user:#{user.id}" end)
+  end
+  def channels(_, _), do: []
 end

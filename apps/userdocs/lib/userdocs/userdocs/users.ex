@@ -9,7 +9,7 @@ defmodule Userdocs.Users do
   alias Userdocs.RepoHandler
   alias Userdocs.Requests
   alias Userdocs.Email
-  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/users"
+  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/users"
 
   @behaviour Bodyguard.Policy
   def authorize(:get_user!, %{id: user_id} = _current_user, %{id: user_id} = _user), do: :ok
@@ -32,15 +32,15 @@ defmodule Userdocs.Users do
 
   defp maybe_filter_by_team(query, nil), do: query
   defp maybe_filter_by_team(query, team_id) do
-    from(u in User, as: :user)
+    from(u in query, as: :user)
     |> join(:left, [user: u], tu in assoc(u, :team_users), as: :team_users)
     |> join(:left, [team_users: tu], t in assoc(tu, :team), as: :team)
     |> where([team: t], t.id == ^team_id)
   end
 
   defp maybe_filter_by_user(query, nil), do: query
-    defp maybe_filter_by_user(query, id) do
-    from(u in User, as: :user_1)
+  defp maybe_filter_by_user(query, id) do
+    from(u in query, as: :user_1)
     |> join(:left, [user_1: u], tu in assoc(u, :team_users), as: :team_users_1)
     |> join(:left, [team_users_1: tu], t in assoc(tu, :team), as: :team)
     |> join(:left, [team: t], tu in assoc(t, :team_users), as: :team_users_2)
@@ -111,12 +111,22 @@ defmodule Userdocs.Users do
     %User{}
     |> User.changeset(attrs)
     |> Repo.insert()
+    |> case do
+      {:ok, user} = result ->
+        maybe_broadcast_user(result, "create", channels(user, opts[:broadcast]), opts[:broadcast])
+      result -> result
+    end
   end
 
-  def invite_user(%User{} = invited_by, attrs \\ %{}) do
+  def invite_user(%User{} = invited_by, attrs \\ %{}, opts) do
     %User{}
     |> User.invite_changeset(invited_by, attrs)
     |> Repo.insert()
+    |> case do
+      {:ok, user} = result ->
+        maybe_broadcast_user(result, "create", channels(user, opts[:broadcast]), opts[:broadcast])
+      result -> result
+    end
   end
 
   def send_email_invitation(attrs) do
@@ -171,9 +181,14 @@ defmodule Userdocs.Users do
     user
     |> User.change_options(attrs)
     |> RepoHandler.update(opts)
-    |> maybe_broadcast_user("update", "user:#{user.id}", opts[:broadcast])
+    |> maybe_broadcast_user("update", channels(user, opts[:broadcast]), opts[:broadcast])
   end
 
+  def update_user_selections(%User{} = user, attrs, %{access_token: access_token, context: %{repo: Client}}) do
+    request_fun = Requests.build_update(@url, user.id)
+    {:ok, %{"data" => user_attrs}} = Requests.send(request_fun, access_token, %{user: attrs})
+    create_user_struct(user_attrs)
+  end
   def update_user_selections(%User{} = user, attrs, %{context: %{repo: repo}} = opts)
   when repo in [Userdocs.LocalRepo, Userdocs.Repo] do
     {:ok, updated_user} =
@@ -184,22 +199,12 @@ defmodule Userdocs.Users do
     {:ok, get_user_and_configs!(updated_user.id)}
     |> maybe_broadcast_user("update", "user:#{user.id}", opts[:broadcast])
   end
-  def update_user_selections(%User{} = user, attrs, %{context: %{repo: Client}} = opts) do
-    {:ok, payload} = %{
-      module: "Userdocs.Users",
-      function: "update_user_selections",
-      struct_function: "create_prepared_user",
-      type: "Schemas.Users.User",
-      fields: user,
-      attrs: attrs
-    } |> Jason.encode()
-
-    Client.update(payload)
-  end
 
   @doc "Deletes a user."
-  def delete_user(%User{} = user) do
+  def delete_user(%User{} = user, opts) do
+    channels = channels(user, opts[:broadcast])
     Repo.delete(user)
+    |> maybe_broadcast_user("delete", channels, opts[:broadcast])
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking user changes."
@@ -232,13 +237,27 @@ defmodule Userdocs.Users do
   """
   @doc "Broadcasts a element to the team it belongs to"
   def maybe_broadcast_user({:error, _} = state, _, _, _), do: state
-  def maybe_broadcast_user({:ok, %User{} = user}, action, channel, true) do
-    Logger.debug("#{__MODULE__} broadcasting a User struct")
-    payload = %{type: "Schemas.Users.User", attrs: user}
-    UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+  def maybe_broadcast_user({:ok, %User{} = user}, action, channels, true) do
+    broadcast_user(user, action, channels)
     {:ok, user}
   end
   def maybe_broadcast_user(state, _, _, _), do: state
+
+  def broadcast_user(user, action, channels) do
+    payload = %{type: "Schemas.Users.User", attrs: user}
+    channels
+    |> Enum.each(fn channel ->
+      Logger.debug("#{__MODULE__} broadcasting a User struct on #{channel}")
+      UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+    end)
+  end
+
+
+  def channels(%User{id: id}, true) do
+    Userdocs.Teams.list_user_teams(id)
+    |> Enum.map(fn team -> "team:#{team.id}" end)
+  end
+  def channels(_, _), do: []
 
   alias Schemas.Users.Override
   def change_override(%Override{} = override, attrs \\ %{}) do

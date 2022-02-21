@@ -48,11 +48,14 @@ defmodule Userdocs.MixProject do
       {:pow, "~> 1.0.21"},
       {:bodyguard, "~> 2.4"},
       {:bamboo, "~> 2.2.0"},
+      {:ex_aws, "~> 2.2"},
+      {:ex_aws_s3, "~> 2.3"},
+      {:httpoison, "~> 1.8"},
       {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.22", only: :dev, runtime: false},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:schemas, in_umbrella: true},
-      {:client, in_umbrella: true, runtime: false}
+      {:state_handlers, in_umbrella: true, runtime: false}
     ]
   end
 
@@ -60,9 +63,15 @@ defmodule Userdocs.MixProject do
   #
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
+    setup_clause =
+      if Mix.env() in [:test] do
+        ["ecto.create", "ecto.migrate"]
+      else
+        ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"]
+      end
     [
       setup: ["deps.get", "ecto.setup"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      "ecto.setup": setup_clause,
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
     ]

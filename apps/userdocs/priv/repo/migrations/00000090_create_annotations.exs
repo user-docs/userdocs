@@ -2,7 +2,8 @@ defmodule Userdocs.Repo.Migrations.CreateAnnotations do
   use Ecto.Migration
 
   def change do
-    create table(:annotations) do
+    create table(:annotations, primary_key: false) do
+      add :id, :uuid, primary_key: true, null: false
       add :name, :string
       add :label, :string
       add :x_orientation, :string
@@ -16,7 +17,7 @@ defmodule Userdocs.Repo.Migrations.CreateAnnotations do
       add :font_color, :string
 
       add :annotation_type_id, references(:annotation_types, type: :string, on_delete: :nothing)
-      add :page_id, references(:pages, on_delete: :nothing)
+      add :page_id, references(:pages, on_delete: :nothing, type: :uuid)
 
       timestamps()
     end

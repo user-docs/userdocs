@@ -7,7 +7,7 @@ defmodule Userdocs.ElementAnnotations do
   alias Userdocs.RepoHandler
   alias Userdocs.Requests
   alias Schemas.Elements.ElementAnnotation
-  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/element_annotations"
+  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/element_annotations"
 
 
   def list_element_annotations(%{access_token: access_token, context: %{repo: Client}} = opts) do
@@ -34,6 +34,12 @@ defmodule Userdocs.ElementAnnotations do
   end
 
   defp base_element_annotations_query(), do: from(element_annotations in ElementAnnotation)
+
+  def create_element_annotation(attrs, opts) do
+    %ElementAnnotation{}
+    |> ElementAnnotation.changeset(attrs)
+    |> RepoHandler.insert(opts)
+  end
 
   def create_element_annotation_structs(attrs_list) do
     Enum.map(attrs_list, fn(attrs) ->

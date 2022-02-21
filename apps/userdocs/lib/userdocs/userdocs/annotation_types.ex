@@ -5,16 +5,15 @@ defmodule Userdocs.AnnotationTypes do
   require Logger
   import Ecto.Query, warn: false
   alias Userdocs.RepoHandler
+  alias Userdocs.Requests
   alias Schemas.Annotations.AnnotationType
   @url "http://localhost:4000/api/annotation_types"
 
-  def list_annotation_types(%{access_token: access_token, context: %{repo: Client}}) do
-    {:ok, %{body: body}} = HTTPoison.get(@url, [{"authorization", access_token}])
-    {:ok, %{"data" => annotation_types_attrs}} = Jason.decode(body)
-    Enum.map(annotation_types_attrs, fn(attrs) ->
-      {:ok, annotation_type} = create_annotation_type_struct(attrs)
-      annotation_type
-    end)
+  def list_annotation_types(%{access_token: access_token, context: %{repo: Client}} = opts) do
+    params = opts |> Map.take([:filters])
+    request_fun = Requests.build_get(@url)
+    {:ok, %{"data" => annotation_type_attrs}} = Requests.send(request_fun, access_token, params)
+    create_annotation_type_structs(annotation_type_attrs)
   end
   def list_annotation_types(opts) do
     from(at in AnnotationType)
@@ -29,6 +28,13 @@ defmodule Userdocs.AnnotationTypes do
     %AnnotationType{}
     |> AnnotationType.changeset(attrs)
     |> RepoHandler.insert(opts)
+  end
+
+  def create_annotation_type_structs(attrs_list) do
+    Enum.map(attrs_list, fn(attrs) ->
+      {:ok, annotation_type} = create_annotation_type_struct(attrs)
+      annotation_type
+    end)
   end
 
   def create_annotation_type_struct(attrs \\ %{}) do

@@ -6,6 +6,7 @@ defmodule Userdocs.Repo.Migrations.CreateAnnotationTypes do
       add :id, :string, primary_key: true
       add :name, :string
       add :args, {:array, :string}
+      add :max_elements, :integer
 
       timestamps()
     end

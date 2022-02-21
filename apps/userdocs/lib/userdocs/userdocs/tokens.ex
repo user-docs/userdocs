@@ -1,4 +1,5 @@
 defmodule Userdocs.Tokens do
+  @moduledoc "Functions for manipulating tokens stored locally on the client"
   import Ecto.Query
   alias Userdocs.RepoHandler
   alias Schemas.Tokens.Token

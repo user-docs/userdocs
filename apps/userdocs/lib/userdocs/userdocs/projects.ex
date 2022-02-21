@@ -7,7 +7,7 @@ defmodule Userdocs.Projects do
   alias Schemas.Projects.Project
   alias Userdocs.RepoHandler
   alias Userdocs.Requests
-  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/projects"
+  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/projects"
 
   @doc "Returns the list of projects."
   def list_projects(%{access_token: access_token, context: %{repo: Client}} = opts) do
@@ -110,7 +110,7 @@ defmodule Userdocs.Projects do
   @doc "Broadcasts a project to the team it belongs to"
   def maybe_broadcast_project({:error, _} = state, _, _, _), do: state
   def maybe_broadcast_project({:ok, %Project{} = project}, action, channel, true) do
-    Logger.debug("#{__MODULE__} broadcasting a Project struct")
+    Logger.debug("#{__MODULE__} broadcasting a Project struct on #{channel}")
     payload = %{type: "Schemas.Projects.Project", attrs: project}
     UserdocsWeb.Endpoint.broadcast(channel, action, payload)
     {:ok, project}

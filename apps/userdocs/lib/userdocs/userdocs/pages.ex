@@ -8,10 +8,12 @@ defmodule Userdocs.Pages do
   alias Schemas.Projects.Project
   alias Schemas.Users.User
   alias Schemas.Teams.Team
+  alias Schemas.Screenshots.Screenshot
   alias Userdocs.Teams
+  alias Userdocs.Screenshots
   alias Userdocs.RepoHandler
   alias Userdocs.Requests
-  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/pages"
+  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/pages"
 
   @doc "Returns the list of pages."
   def list_pages(%{access_token: access_token, context: %{repo: Client}} = opts) do
@@ -138,4 +140,44 @@ defmodule Userdocs.Pages do
     end)
   end
   def effective_url(%Page{url: url}, %Project{}, %User{}), do: url
+
+  def page_screenshot(%Page{screenshots: []}), do: nil
+  def page_screenshot(%Page{screenshots: screenshots}) do
+    screenshots
+    |> Enum.filter(fn screenshot -> screenshot.page_id != nil end)
+    |> Enum.at(0)
+  end
+
+  def create_page_screenshot_attrs(page, base64) do
+    %{
+      id: Ecto.UUID.generate(),
+      page_id: page.id,
+      project_id: page.project_id,
+      name: page.name <> " screenshot",
+      status: :ok,
+      base64: base64
+    }
+  end
+
+  def upsert_page_screenshot_callback(%Page{screenshots: []} = page, %Team{} = team, opts) do
+    fn(inner_base64) ->
+      attrs = %{
+        "id" => UUID.uuid4(),
+        "page_id" => page.id,
+        "name" => page.name <> " screenshot",
+        "status" => "ok",
+        "base64" => inner_base64
+      }
+      Screenshots.create_screenshot(attrs, opts)
+    end
+  end
+  def upsert_page_screenshot_callback(%Page{screenshots: [%Screenshot{} = screenshot]} = page, %Team{}, opts) do
+    fn(inner_base64) ->
+      attrs = %{
+        "page_id" => page.id,
+        "base64" => inner_base64
+      }
+      Screenshots.update_screenshot(screenshot, attrs, opts)
+    end
+  end
 end

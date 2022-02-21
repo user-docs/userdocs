@@ -8,7 +8,7 @@ defmodule Userdocs.Elements do
   alias Userdocs.Teams
   alias Userdocs.Requests
   alias Schemas.Elements.Element
-  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/elements"
+  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/elements"
 
   def list_elements(%{access_token: access_token, context: %{repo: Client}} = opts) do
     params = opts |> Map.take([:filters])
@@ -57,7 +57,7 @@ defmodule Userdocs.Elements do
     |> Element.changeset(attrs)
     |> RepoHandler.insert(opts)
     |> case do
-      {:ok, element} = result -> maybe_broadcast_element(result, "create", element_channel(element), opts[:broadcast])
+      {:ok, element} = result -> maybe_broadcast_element(result, "create", element_channel(element, opts), opts[:broadcast])
       result -> result
     end
   end
@@ -85,7 +85,7 @@ defmodule Userdocs.Elements do
     element
     |> Element.changeset(attrs)
     |> RepoHandler.update(opts)
-    |> maybe_broadcast_element("update", element_channel(element), opts[:broadcast])
+    |> maybe_broadcast_element("update", element_channel(element, opts), opts[:broadcast])
   end
 
   @doc "Deletes an element"
@@ -94,7 +94,7 @@ defmodule Userdocs.Elements do
     Requests.send(request, access_token, nil)
   end
   def delete_element(%Element{} = element, opts) do
-    channel = element_channel(element)
+    channel = element_channel(element, opts)
     RepoHandler.delete(element, opts)
     |> maybe_broadcast_element("delete", channel, opts[:broadcast])
   end
@@ -114,8 +114,8 @@ defmodule Userdocs.Elements do
   def maybe_broadcast_element(state, _, _, _), do: state
 
   alias Userdocs.Teams
-  def element_channel(%Element{} = element) do
-    team = Teams.get_element_team!(element.id)
+  def element_channel(%Element{} = element, opts) do
+    team = Teams.get_element_team!(element.id, opts)
     "team:#{team.id}"
   end
 end

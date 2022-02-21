@@ -77,38 +77,43 @@ css_strategy = %{
 # Annotation_types
 
 _annotation_types = [
-outline = %{
-  id: "outline",
-  args: ["color", "thickness"],
-  name: "Outline"
-},
-blur = %{
-  id: "blur",
-  args: ["color", "thickness"],
-  name: "Blur"
-},
-badge = %{
-  id: "badge",
-  args: ["x_orientation", "y_orientation", "size", "label", "color", "x_offset", "y_offset", "font_size"],
-  name: "Badge"
-},
-badge_blur = %{
-  id: "badge_blur",
-  args: ["x_orientation", "y_orientation", "size", "label", "color",
-    "x_offset", "y_offset", "font_size"],
-  name: "Badge Blur"
-},
-badge_outline = %{
-  id: "badge_outline",
-  args: ["x_orientation", "y_orientation", "size", "label", "color",
-    "thickness", "x_offset", "y_offset", "font_size"],
-  name: "Badge Outline"
-},
-none = %{
-  id: "none",
-  args: [],
-  name: "None"
-}
+  outline = %{
+    id: "outline",
+    args: ["color", "thickness"],
+    name: "Outline",
+    max_elements: 999,
+  },
+  blur = %{
+    id: "blur",
+    args: ["color", "thickness"],
+    name: "Blur",
+    max_elements: 999,
+  },
+  badge = %{
+    id: "badge",
+    args: ["x_orientation", "y_orientation", "size", "label", "color", "x_offset", "y_offset", "font_size"],
+    name: "Badge",
+    max_elements: 1,
+  },
+  badge_outline = %{
+    id: "badge_outline",
+    args: ["x_orientation", "y_orientation", "size", "label", "color",
+      "thickness", "x_offset", "y_offset", "font_size"],
+    name: "Badge Outline",
+    max_elements: 999,
+  },
+  badge_blur = %{
+    id: "badge_blur",
+    args: ["x_orientation", "y_orientation", "size", "label", "color", "x_offset", "y_offset", "font_size"],
+    name: "Badge Blur",
+    max_elements: 999,
+  },
+  none = %{
+    id: "none",
+    args: [],
+    name: "None",
+    max_elements: 0,
+  }
 ]
 
 {:ok, %AnnotationType{id: outline_id}} =
@@ -165,7 +170,7 @@ _step_types = [
   },
   apply_annotation = %{
     id: "apply_annotation",
-    args: ["annotation_id", "annotation_form", "element_id", "element_form"],
+    args: ["annotation_id", "annotation_form"],
     name: "Apply Annotation"
   },
   set_size_explicit = %{
@@ -178,6 +183,11 @@ _step_types = [
     args: ["screenshot_form"],
     name: "Full Screen Screenshot"
   },
+  full_screen_svg = %{
+    id: "full_screen_svg",
+    args: ["screenshot_form"],
+    name: "Full Screen SVG Document"
+  },
   clear_annotations = %{
     id: "clear_annotations",
     args: [],
@@ -185,7 +195,7 @@ _step_types = [
   },
   element_screenshot = %{
     id: "element_screenshot",
-    args: ["element_id", "element_form", "screenshot_form", "margin_top", "margin_bottom", "margin_left", "margin_right", "margin_left"],
+    args: ["element_id", "screenshot_id", "margin_all", "margin_top", "margin_bottom", "margin_left", "margin_right", "margin_left"],
     name: "Element Screenshot"
   },
   scroll_to_element = %{
@@ -270,6 +280,11 @@ _step_types = [
 |> StepType.changeset(submit_form)
 |> Repo.insert()
 
+{:ok, %StepType{id: _full_screen_svg_id}} =
+%StepType{}
+|> StepType.changeset(full_screen_svg)
+|> Repo.insert()
+
 # User Data
 
 default_password = "userdocs"
@@ -335,7 +350,64 @@ userdocs_team =
     aws_access_key_id: "AKIAT5VKLWBUOAYXO656",
     aws_secret_access_key: "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",
     aws_region: "us-east-2",
-    css: "{key: value}"
+    css: """
+      *,
+      *::after,
+      *::before {
+        transition-delay: 0s !important;
+        transition-duration: 0s !important;
+        animation-delay: -0.0001s !important;
+        animation-duration: 0s !important;
+        animation-play-state: paused !important;
+        caret-color: transparent !important;
+      }
+      body::-webkit-scrollbar {
+        display: none;
+      }
+      .userdocs-locator{
+        position: absolute;
+        width: 0;
+        height: 0;
+      }
+      .userdocs-mask{
+        position: relative;
+        display: flex;
+      }
+      .userdocs-badge {
+        position: relative;
+        color: #fff;
+        background-color: blue;
+        border-radius: 50%;
+        line-height: 0;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        min-width: 1em;
+        padding: .3em;
+        font-size: 24px;
+        z-index: 999999 !important;
+        transform: translate(-50%, -50%)
+      }
+      .userdocs-badge::after {
+        content: "";
+        display: block;
+        padding-bottom: 100%;
+      }
+      .userdocs-outline {
+        position: absolute;
+        outline-width: 4px;
+        outline-color: blue;
+        outline-style: solid;
+        z-index: 999999 !important;
+      }
+      .ud-x-middle { margin-left: 50%; margin-right: 50%; }
+      .ud-x-right { margin-left: 100%; }
+      .ud-x-left { margin-right: 100%; }
+      .ud-y-middle { align-self: center; }
+      .ud-y-top { align-self: start; }
+      .ud-y-bottom { align-self: end; }
+    """
   }
 
 loreline_team =
@@ -395,14 +467,18 @@ the_internet_project =
     base_url: "https://the-internet.herokuapp.com",
     name: "The Internet",
     team_id: userdocs_team_id,
-    strategy_id: css_strategy_id
+    strategy_id: css_strategy_id,
+    default_width: 1280,
+    default_height: 800
   }
 userdocs_project =
   %{
     base_url: "https://app.user-docs.com",
     name: "Userdocs",
     team_id: userdocs_team_id,
-    strategy_id: css_strategy_id
+    strategy_id: css_strategy_id,
+    default_width: 1280,
+    default_height: 800
   }
 
 john_davenport_rocks_project =
@@ -410,7 +486,9 @@ john_davenport_rocks_project =
     base_url: "https://www.davenport.rocks",
     name: "John Davenport Rocks",
     team_id: loreline_team_id,
-    strategy_id: css_strategy_id
+    strategy_id: css_strategy_id,
+    default_width: 1280,
+    default_height: 800
   }
 
 {:ok, the_internet_project = %Project{id: the_internet_project_id}} =
@@ -1038,3 +1116,13 @@ steps = [
     width: nil
   }
 ]
+
+Enum.map(steps,
+fn(s) ->
+  {:ok, step} =
+    %Step{}
+    |> Step.changeset(s)
+    |> Repo.insert()
+
+  step
+end)

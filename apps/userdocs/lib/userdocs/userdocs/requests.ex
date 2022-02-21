@@ -1,8 +1,16 @@
 defmodule Userdocs.Requests do
+  @moduledoc "A wrapper for HTTPoison that assists with consistently executing http requests back to the server"
   def build_get(base_url) do
     fn(inner_access_token, inner_params) ->
       params_clause = build_params(inner_params)
       HTTPoison.get(base_url <> "?#{params_clause}", [{"authorization", inner_access_token}])
+    end
+  end
+
+  def build_get_one(base_url, id) do
+    fn(inner_access_token, inner_params) ->
+      params_clause =  build_params(inner_params)
+      HTTPoison.get(base_url <> "/#{id}" <> "?#{params_clause}", [{"authorization", inner_access_token}])
     end
   end
 
@@ -39,12 +47,14 @@ defmodule Userdocs.Requests do
     |> handle_server_response()
   end
 
+  def handle_server_response({:ok, %{status_code: status_code, body: ""}})
+  when status_code in [200, 201, 204], do: {:ok, ""}
   def handle_server_response({:ok, %{status_code: status_code, body: body}})
   when status_code in [200, 201, 204], do: Jason.decode(body)
-
+  def handle_server_response({:ok, %{status_code: 422, body: body}}),
+    do: {:error, Jason.decode!(body)}
   def handle_server_response({:ok, %{status_code: 401, body: _body}}),
     do: {:error, "Authentication failed, please try again."}
-
   def handle_server_response({:error, %{status_code: 500, body: _body}}),
     do: {:error, "Server error"}
 end

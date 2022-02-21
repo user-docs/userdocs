@@ -1,4 +1,5 @@
 defmodule Userdocs.Vault do
+  @moduledoc "definitions for storage of encrypted values"
   use Cloak.Vault, otp_app: :userdocs
 
   @impl GenServer

@@ -2,9 +2,10 @@ defmodule Userdocs.Repo.Migrations.CreateElementAnnotations do
   use Ecto.Migration
 
   def change do
-    create table(:element_annotations) do
-      add :element_id, references(:elements, on_delete: :delete_all), null: false
-      add :annotation_id, references(:annotations, on_delete: :delete_all), null: false
+    create table(:element_annotations, primary_key: false) do
+      add :id, :uuid, primary_key: true, null: false
+      add :element_id, references(:elements, on_delete: :delete_all, type: :uuid), null: false
+      add :annotation_id, references(:annotations, on_delete: :delete_all, type: :uuid), null: false
 
       timestamps()
     end

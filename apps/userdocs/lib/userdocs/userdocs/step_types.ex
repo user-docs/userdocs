@@ -35,6 +35,19 @@ defmodule Userdocs.StepTypes do
     |> Repo.insert()
   end
 
+  def create_step_type_structs(attrs_list) do
+    Enum.map(attrs_list, fn(attrs) ->
+      {:ok, step_type} = create_step_type_struct(attrs)
+      step_type
+    end)
+  end
+
+  def create_step_type_struct(attrs \\ %{}) do
+    %StepType{}
+    |> StepType.api_changeset(attrs)
+    |> Ecto.Changeset.apply_action(:insert)
+  end
+
   @doc "Updates a step_type."
   def update_step_type(%StepType{} = step_type, attrs) do
     step_type

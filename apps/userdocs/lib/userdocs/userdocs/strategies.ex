@@ -7,21 +7,24 @@ defmodule Userdocs.Strategies do
   import Ecto.Query, warn: false
   alias Schemas.Strategies.Strategy
   alias Userdocs.RepoHandler
+  alias Userdocs.Requests
 
-  @url Application.get_env(:userdocs_desktop, :host_url) <> "/api/strategies"
+  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/strategies"
 
   @doc "Returns the list of strategies."
-  def list_strategies(%{access_token: access_token, context: %{repo: Client}}) do
-    {:ok, %{body: body}} = HTTPoison.get(@url, [{"authorization", access_token}])
-    {:ok, %{"data" => strategy_attrs}} = Jason.decode(body)
-    Enum.map(strategy_attrs, fn(attrs) ->
-      {:ok, strategy} = create_strategy_struct(attrs)
-      strategy
-    end)
+  def list_strategies(%{access_token: access_token, context: %{repo: Client}} = opts) do
+    params = opts |> Map.take([:filters])
+    request_fun = Requests.build_get(@url)
+    {:ok, %{"data" => strategy_attrs}} = Requests.send(request_fun, access_token, params)
+    create_strategy_structs(strategy_attrs)
   end
   def list_strategies(opts) do
     from(s in Strategy)
     |> RepoHandler.all(opts)
+  end
+
+  def get_strategy!(id, opts) do
+    RepoHandler.get!(Strategy, id, opts)
   end
 
   def css_strategy(opts) do
@@ -34,6 +37,13 @@ defmodule Userdocs.Strategies do
     %Strategy{}
     |> Strategy.changeset(attrs)
     |> RepoHandler.insert(opts)
+  end
+
+  def create_strategy_structs(attrs_list) do
+    Enum.map(attrs_list, fn(attrs) ->
+      {:ok, strategy} = create_strategy_struct(attrs)
+      strategy
+    end)
   end
 
   def create_strategy_struct(attrs \\ %{}) do

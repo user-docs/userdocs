@@ -1,5 +1,5 @@
 defmodule Userdocs.Subscription do
-
+  @moduledoc "Functions for broadcasting data, mostly for broadcasting childrens."
   require Logger
 
   alias UserdocsWeb.Endpoint
@@ -44,7 +44,7 @@ defmodule Userdocs.Subscription do
     attrs = Enum.map(changesets, &cast_change/1)
     Map.put(acc, field, attrs)
   end
-  def check_change(nil, field, acc) do
+  def check_change(nil, _field, acc) do
     Logger.debug("    No change detected")
     acc
   end
@@ -56,7 +56,7 @@ defmodule Userdocs.Subscription do
     schema = changeset.data.__struct__
     Logger.debug("    Change detected on #{schema}")
 
-    attrs = %{
+    %{
       action: changeset.action,
       changes: changes,
       id: changeset |> Map.get(:data, %{id: :no_primary_key}) |> Map.get(:id)
@@ -99,7 +99,7 @@ defmodule Userdocs.Subscription do
           UndefinedFunctionError ->
             Logger.debug("UndefinedFunctionError, Endpoint Unavailable.")
             {status, result}
-          e -> raise(e)
+          e -> reraise(e, __STACKTRACE__)
         end
         {status, result}
       _ ->
@@ -108,19 +108,15 @@ defmodule Userdocs.Subscription do
   end
 
   def handle_event(socket, "create" = _event, payload, opts) do
-    Logger.debug("Handling Event")
     StateHandlers.create(socket, payload, opts)
   end
   def handle_event(socket, "update" = _event, payload, opts) do
-    Logger.debug("Handling Update Event")
     StateHandlers.update(socket, payload, opts)
   end
   def handle_event(socket, "delete" = _event, payload, opts) do
-    Logger.debug("Handling Event")
     StateHandlers.delete(socket, payload, opts)
   end
   def handle_event(socket, "upsert" = _event, payload, opts) do
-    Logger.debug("Handling upsert Event")
     StateHandlers.upsert(socket, payload, opts)
   end
 end
