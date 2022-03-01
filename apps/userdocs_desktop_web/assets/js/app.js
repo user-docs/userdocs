@@ -22,6 +22,7 @@
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
 import Alpine from "alpinejs";
+import ImageCompare from "image-compare-viewer";
 window.Alpine = Alpine;
 Alpine.start();
 
@@ -35,6 +36,53 @@ Hooks.MaintainAttrs = {
   attrs(){ return this.el.getAttribute("data-attrs").split(", ") },
   beforeUpdate(){ this.prevAttrs = this.attrs().map(name => [name, this.el.getAttribute(name)]) },
   updated(){ this.prevAttrs.forEach(([name, val]) => this.el.setAttribute(name, val)) }
+}
+Hooks.ImageComparison = {
+  mounted() {
+    const element = document.getElementById("image-compare");
+    window.viewer = new ImageCompare(element).mount();
+  }
+}
+Hooks.dragDropReorder = {
+  mounted() {
+    this.el.addEventListener("drop", e => {
+      e.preventDefault();
+      this.pushEvent("reorder_end", { "step-id": e.target.id  })
+    })
+    this.el.addEventListener("dragenter", e => {
+      console.log("dragenter")
+      e.dataTransfer.dropEffect = 'move'
+      e.preventDefault();   
+      console.log(e.target)
+      if (e.target.id) {
+        const element = document.getElementById(e.target.id) 
+        var order = element.getAttribute('order');
+        var stepId = element.getAttribute('step-id');
+        console.log(order)
+        console.log(stepId)
+        this.pushEvent("reorder_dragenter", {"order": order, "step-id": stepId})
+      }
+    })
+    this.el.addEventListener("dragstart", e => {
+      e.dataTransfer.dropEffect = "move";
+      const element = document.getElementById(e.target.id) 
+      var id = element.getAttribute('step-id');
+      this.pushEvent("reorder_start", {"id": id})
+    })
+    this.el.addEventListener("dragend", e => {
+      this.pushEvent("reorder_dragend")
+    })
+  }
+}
+Hooks.marginFields = {
+  mounted() {
+    this.el.addEventListener("input", e => {
+      updateValue("margin-top-input", this.el.value)
+      updateValue("margin-bottom-input", this.el.value)
+      updateValue("margin-left-input", this.el.value)
+      updateValue("margin-right-input", this.el.value)
+    })
+  }
 }
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
