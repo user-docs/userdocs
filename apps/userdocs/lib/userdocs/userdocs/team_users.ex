@@ -3,17 +3,9 @@ defmodule Userdocs.TeamUsers do
   require Logger
   import Ecto.Query, warn: false
   alias Userdocs.RepoHandler
-  alias Userdocs.Requests
   alias Schemas.Teams.TeamUser
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/team_users"
 
   @doc ""
-  def list_team_users(%{access_token: access_token, context: %{repo: Client}} = opts) do
-    params = opts |> Map.take([:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => team_user_attrs}} = Requests.send(request_fun, access_token, params)
-    create_team_user_structs(team_user_attrs)
-  end
   def list_team_users(opts) do
     filters = Map.get(opts, :filters, [])
     base_team_users_query()
@@ -78,10 +70,6 @@ defmodule Userdocs.TeamUsers do
   end
 
   @doc "Deletes a team_user."
-  def delete_team_user(id, %{access_token: access_token, context: %{repo: Client}}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
-  end
   def delete_team_user(%TeamUser{} = team_user, opts) do
     channels = channels(team_user, opts[:broadcast])
     RepoHandler.delete(team_user, opts)

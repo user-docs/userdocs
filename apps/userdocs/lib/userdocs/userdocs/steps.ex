@@ -5,19 +5,10 @@ defmodule Userdocs.Steps do
   require Logger
   import Ecto.Query, warn: false
   alias Userdocs.RepoHandler
-  alias Userdocs.Requests
-  alias Userdocs.TeamUsers
   alias Userdocs.Teams
   alias Schemas.Steps.Step
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/steps"
 
   @doc "Returns the list of steps."
-  def list_steps(%{access_token: access_token, context: %{repo: Client}} = opts) do
-    params =  Map.take(opts, [:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => steps_attrs}} = Requests.send(request_fun, access_token, params)
-    create_step_structs(steps_attrs)
-  end
   def list_steps(opts) do
     filters = Map.get(opts, :filters, [])
     base_steps_query()
@@ -60,13 +51,6 @@ defmodule Userdocs.Steps do
   end
 
   @doc "Creates a step."
-  def create_step(attrs \\ %{}, opts)
-  def create_step(attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    params = %{step: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => step_attrs}} = Requests.send(request_fun, access_token, params)
-    create_step_struct(step_attrs)
-  end
   def create_step(attrs, opts) do
     %Step{}
     |> Step.changeset(attrs)
@@ -91,11 +75,6 @@ defmodule Userdocs.Steps do
   end
 
   @doc "Updates a step."
-  def update_step(%Step{} = step, attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    request_fun = Requests.build_update(@url, step.id)
-    {:ok, %{"data" => step_attrs}} = Requests.send(request_fun, access_token, %{step: attrs})
-    create_step_struct(step_attrs)
-  end
   def update_step(%Step{} = step, attrs, opts) do
     Step.changeset(step, attrs)
     |> RepoHandler.update(opts)
@@ -103,10 +82,6 @@ defmodule Userdocs.Steps do
   end
 
   @doc "Deletes a step."
-  def delete_step(id, %{access_token: access_token, context: %{repo: Client}}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
-  end
   def delete_step(%Step{} = step, opts) do
     channel = channel(step, opts[:broadcast])
     RepoHandler.delete(step, opts)

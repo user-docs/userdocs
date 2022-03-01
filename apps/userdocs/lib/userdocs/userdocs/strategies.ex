@@ -7,17 +7,8 @@ defmodule Userdocs.Strategies do
   import Ecto.Query, warn: false
   alias Schemas.Strategies.Strategy
   alias Userdocs.RepoHandler
-  alias Userdocs.Requests
-
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/strategies"
 
   @doc "Returns the list of strategies."
-  def list_strategies(%{access_token: access_token, context: %{repo: Client}} = opts) do
-    params = opts |> Map.take([:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => strategy_attrs}} = Requests.send(request_fun, access_token, params)
-    create_strategy_structs(strategy_attrs)
-  end
   def list_strategies(opts) do
     from(s in Strategy)
     |> RepoHandler.all(opts)

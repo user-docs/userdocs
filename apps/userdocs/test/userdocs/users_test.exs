@@ -36,7 +36,7 @@ defmodule Userdocs.UsersTest do
     end
 
     test "create_user/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Users.create_user(UsersFixtures.user_attrs(:invalid))
+      assert {:error, %Ecto.Changeset{}} = Users.create_user(UsersFixtures.user_attrs(:invalid), @opts)
     end
 
     test "update_user/2 with valid data updates the user" do
@@ -80,7 +80,6 @@ defmodule Userdocs.UsersTest do
       user = Users.prepare_user(user.id)
       assert user.selected_project.id == project.id
       assert user.selected_team.id == team.id
-      Jason.encode(user)
     end
 
     _some_state_handlers_tests = """

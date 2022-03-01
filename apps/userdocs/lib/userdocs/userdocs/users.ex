@@ -7,21 +7,13 @@ defmodule Userdocs.Users do
   alias Schemas.Users.User
   alias Userdocs.Repo
   alias Userdocs.RepoHandler
-  alias Userdocs.Requests
   alias Userdocs.Email
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/users"
 
   @behaviour Bodyguard.Policy
   def authorize(:get_user!, %{id: user_id} = _current_user, %{id: user_id} = _user), do: :ok
   def authorize(:get_user!, _current_user, _user), do: :error
 
   @doc "Returns the list of users."
-  def list_users(%{access_token: access_token, context: %{repo: Client}} = opts) do
-    params = opts |> Map.take([:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => user_attrs}} = Requests.send(request_fun, access_token, params)
-    create_user_structs(user_attrs)
-  end
   def list_users(opts) do
     filters = Map.get(opts, :filters, [])
     base_users_query()
@@ -100,13 +92,6 @@ defmodule Userdocs.Users do
   end
 
   @doc "Creates a user."
-  def create_user(attrs \\ %{}, opts)
-  def create_user(attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    params = %{user: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => user_attrs}} = Requests.send(request_fun, access_token, params)
-    {:ok, create_user_struct(user_attrs)}
-  end
   def create_user(attrs, opts) do
     %User{}
     |> User.changeset(attrs)
@@ -172,11 +157,6 @@ defmodule Userdocs.Users do
     |> Repo.update()
   end
 
-  def update_user_options(%User{} = user, attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    request_fun = Requests.build_update(@url, user.id)
-    {:ok, %{"data" => user_attrs}} = Requests.send(request_fun, access_token, %{user: attrs})
-    create_user_struct(user_attrs)
-  end
   def update_user_options(%User{} = user, attrs, opts) do
     user
     |> User.change_options(attrs)
@@ -184,11 +164,6 @@ defmodule Userdocs.Users do
     |> maybe_broadcast_user("update", channels(user, opts[:broadcast]), opts[:broadcast])
   end
 
-  def update_user_selections(%User{} = user, attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    request_fun = Requests.build_update(@url, user.id)
-    {:ok, %{"data" => user_attrs}} = Requests.send(request_fun, access_token, %{user: attrs})
-    create_user_struct(user_attrs)
-  end
   def update_user_selections(%User{} = user, attrs, %{context: %{repo: repo}} = opts)
   when repo in [Userdocs.LocalRepo, Userdocs.Repo] do
     {:ok, updated_user} =
