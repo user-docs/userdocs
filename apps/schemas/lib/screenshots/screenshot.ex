@@ -5,7 +5,6 @@ defmodule Schemas.Screenshots.Screenshot do
   """
   use Schemas.Schema
   import Ecto.Changeset
-  use Waffle.Ecto.Schema
 
   alias Schemas.Projects.Project
   alias Schemas.Pages.Page

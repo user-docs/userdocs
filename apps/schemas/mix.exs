@@ -28,8 +28,7 @@ defmodule Schemas.MixProject do
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:ecto, "~> 3.7"},
       {:cloak_ecto, "~> 1.2.0"},
-      {:pow, "~> 1.0.21"},
-      {:waffle_ecto, "~> 0.0.9"}
+      {:pow, "~> 1.0.21"}
     ]
   end
 end
