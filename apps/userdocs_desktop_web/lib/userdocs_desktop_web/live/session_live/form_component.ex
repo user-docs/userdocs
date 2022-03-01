@@ -28,18 +28,18 @@ defmodule UserdocsDesktopWeb.SessionLive.FormComponent do
   end
 
   def handle_event("save", %{"user" => _user_params} = params, socket) do
-    case Session.authenticate(params) do
-      {:ok, user} ->
-        {:ok, %{access_token: at}} = Session.tokens()
-        :ok = Client.connect(user, at)
+    case Client.authenticate(params) do
+      {:ok, _user} ->
+        :ok = Client.connect()
+        Client.load()
         {
           :noreply,
           socket
-          |> Phoenix.LiveView.put_flash(:info, "Logged in successfully")
+          |> put_flash(:info, "Logged in successfully")
           |> push_redirect(to: Routes.home_path(socket, :index))
         }
       {:error, message} ->
-        {:noreply, Phoenix.LiveView.put_flash(socket, :error, message)}
+        {:noreply, put_flash(socket, :error, message)}
     end
   end
 end

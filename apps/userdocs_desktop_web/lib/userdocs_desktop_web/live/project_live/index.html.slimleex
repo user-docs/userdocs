@@ -6,11 +6,9 @@ h1.text-2xl.font-bold.m-4 Listing Projects
     id: @project.id || :new,
     parent_id: @current_team.id,
     title: @page_title,
-    access_token: @access_token,
     action: @live_action,
     project: @project,
     select_lists: %{ teams: @teams_select_options, strategies: @strategies_select_options },
-    state_opts: @state_opts,
     return_to: Routes.project_index_path(@socket, :index, @current_team.id)
 
 ul.py-3.shadow-lg.bg-base-100.rounded-box.m-4

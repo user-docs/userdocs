@@ -26,6 +26,17 @@ h2.title
     = text_input f, :base_url, type: "text", class: "input input-bordered"
     = error_tag f, :base_url 
 
+  .flex
+    .form-control.mr-4
+      = label f, :default_width, class: "label"
+      = number_input f, :default_width, type: "text", class: "input input-bordered"
+      = error_tag f, :default_width 
+
+    .form-control
+      = label f, :default_height, class: "label"
+      = number_input f, :default_height, type: "text", class: "input input-bordered"
+      = error_tag f, :default_height 
+
   .mt-4
     = submit "Save", phx_disable_with: "Saving...", class: "btn btn-primary mr-2"
 

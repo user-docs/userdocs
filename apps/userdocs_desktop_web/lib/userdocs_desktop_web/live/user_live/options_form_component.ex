@@ -1,4 +1,6 @@
+
 defmodule UserdocsDesktopWeb.UserLive.OptionsFormComponent do
+  @moduledoc "This is a form for the user options (not including credentials)"
   use UserdocsDesktopWeb, :live_component
 
   alias Schemas.Users.Override
@@ -7,11 +9,11 @@ defmodule UserdocsDesktopWeb.UserLive.OptionsFormComponent do
   def opts(token), do: %{access_token: token, context: %{repo: Client}}
 
   @impl true
-  def update(%{user: user, access_token: access_token} = assigns, socket) do
+  def update(%{user: user} = assigns, socket) do
     changeset = Users.change_user(user)
-    opts = %{filters: %{user_id: user.id}, context: %{repo: Client}, access_token: access_token}
+    opts = %{filters: %{user_id: user.id}}
     project_select_options =
-      Userdocs.Projects.list_projects(opts)
+      Client.list_projects(opts)
       |> LiveHelpers.select_list(:name, true)
 
     {
@@ -32,12 +34,6 @@ defmodule UserdocsDesktopWeb.UserLive.OptionsFormComponent do
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, :changeset, changeset)}
-  end
-
-  @impl true
-  def handle_event("validate", %{"user" => _user_params}, socket) do
-    # blank validation, for tests
-    {:noreply, socket}
   end
 
   def handle_event("save", %{"user" => user_params}, socket) do
@@ -65,7 +61,7 @@ defmodule UserdocsDesktopWeb.UserLive.OptionsFormComponent do
   end
 
   defp save_user(socket, :edit, user_params) do
-    case Users.update_user_options(socket.assigns.user, user_params, opts(socket.assigns.access_token)) do
+    case Client.update_user_selections(socket.assigns.user, user_params) do
       {:ok, _user} ->
         {
           :noreply,

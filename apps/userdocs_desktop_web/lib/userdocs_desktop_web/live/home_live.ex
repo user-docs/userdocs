@@ -1,4 +1,5 @@
 defmodule UserdocsDesktopWeb.HomeLive do
+  @moduledoc "the home page/entrypoint of the application"
   use UserdocsDesktopWeb, :live_view
   alias Schemas.Projects.Project
   alias Schemas.Teams.Team

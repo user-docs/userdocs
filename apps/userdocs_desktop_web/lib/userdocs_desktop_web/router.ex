@@ -20,8 +20,9 @@ defmodule UserdocsDesktopWeb.Router do
     live "/", HomeLive, :index
     live "/session/new", SessionLive.Index, :new
     live "/initialize", InitializeLive, :index
-
     live "/browser_controls", BrowserControlsLive, :index
+
+    get "/styles/:filename", StylesController, :index
 
     # Teams
     live "/teams/new", TeamLive.Index, :new
@@ -35,6 +36,7 @@ defmodule UserdocsDesktopWeb.Router do
     live "/pages/new", PageLive.Index, :new
     live "/pages/:id/edit", PageLive.Index, :edit
     live "/pages/:id", PageLive.Show, :show
+    live "/pages/:id/review_screenshot", PageLive.Index, :review_screenshot
     live "/pages/:page_id/element/new", PageLive.Show, :new_element
     live "/pages/:id/show/edit", PageLive.Show, :edit
 
@@ -56,6 +58,44 @@ defmodule UserdocsDesktopWeb.Router do
     live "/projects/:id/edit", ProjectLive.Index, :edit
     live "/projects/new", ProjectLive.Index, :new
     live "/projects/:id", ProjectLive.Show, :show
+
+    # Screenshots
+    live "/screenshots", ScreenshotLive.Index, :index
+    live "/screenshots/new", ScreenshotLive.Index, :new
+    live "/screenshots/:id/edit", ScreenshotLive.Index, :edit
+    live "/screenshots/:id", ScreenshotLive.Show, :show
+    live "/screenshots/:id/show/edit", ScreenshotLive.Show, :edit
+
+    # Processes
+    live "/projects/:project_id/processes", ProcessLive.Index, :index
+    live "/processes", ProcessLive.Index, :index
+    live "/processes/new", ProcessLive.Index, :new
+    live "/processes/:id/edit", ProcessLive.Index, :edit
+
+    # Steps
+    live "/processes/:process_id/steps", StepLive.Index, :index
+    live "/processes/:process_id/steps/new", StepLive.Index, :new
+    live "/processes/:process_id/steps/:id/edit", StepLive.Index, :edit
+    live "/processes/:process_id/steps/:id/edit/new_page", StepLive.Index, :new_page
+    live "/processes/:process_id/steps/:id/edit_page/:page_id", StepLive.Index, :edit_page
+    live "/processes/:process_id/steps/:id/edit/new_element", StepLive.Index, :new_element
+    live "/processes/:process_id/steps/:id/edit_element/:element_id", StepLive.Index, :edit_element
+    live "/processes/:process_id/steps/:id/edit/new_annotation", StepLive.Index, :new_annotation
+    live "/processes/:process_id/steps/:id/edit_annotation/:annotation_id", StepLive.Index, :edit_annotation
+    live "/processes/:process_id/steps/:id/screenshot", StepLive.Index, :screenshot_workflow
+    live "/processes/:process_id/steps/:id/step_instance", StepLive.Index, :show_step_instance
+    live "/processes/:process_id/steps/process_instance", StepLive.Index, :show_process_instance
+  end
+
+  pipeline :images do
+    plug Plug.Static,
+      at: "/images", gzip: false,
+      from: UserdocsDesktop.Paths.image_repo_path()
+  end
+
+  scope "/images" do
+    pipe_through :images
+    get "/*path", ErrorController, :notfound
   end
 
   # Other scopes may use custom stacks.

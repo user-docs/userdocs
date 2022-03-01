@@ -1,0 +1,180 @@
+= f = form_for @changeset, "#",
+id: "step-form",
+phx_target: @myself.cid,
+phx_change: "validate",
+phx_submit: "save",
+class: "m-4"
+
+.grid.gap-2.grid-cols-2
+  .form-control
+    = label f, :process_id, class: "label"
+    = select f, :process_id, @select_lists.processes, class: "select select-bordered", selected: @process.id
+    = error_tag f, :process_id
+
+  .form-control
+    = label f, :step_type_id, class: "label"
+    = select f, :step_type_id, @select_lists.step_types, class: "select select-bordered"
+    = error_tag f, :step_type_id
+
+.grid.gap-2.grid-cols-4
+  = if "width" in @step_type.args do
+    .form-control
+      = label f, :width, class: "label"
+      = number_input f, :width, type: "text", class: "input input-bordered"
+      = error_tag f, :width
+
+  = if "height" in @step_type.args do
+    .form-control
+      = label f, :height, class: "label"
+      = number_input f, :height, type: "text", class: "input input-bordered"
+      = error_tag f, :height
+
+  = if "text" in @step_type.args do
+    .form-control
+      = label f, :text, class: "label"
+      = text_input f, :text, type: "text", class: "input input-bordered"
+      = error_tag f, :text
+
+  = if "margin_all" in @step_type.args do
+    .form-control
+      = label f, :margin_all, class: "label"
+      = number_input f, :margin_all, type: "text", class: "input input-bordered"
+      = error_tag f, :margin_all
+
+  = if "margin_left" in @step_type.args do
+    .form-control
+      = label f, :margin_left, class: "label"
+      = number_input f, :margin_left, type: "text", class: "input input-bordered"
+      = error_tag f, :margin_left
+
+  = if "margin_right" in @step_type.args do
+    .form-control
+      = label f, :margin_right, class: "label"
+      = number_input f, :margin_right, type: "text", class: "input input-bordered"
+      = error_tag f, :margin_right
+
+  = if "margin_top" in @step_type.args do
+    .form-control
+      = label f, :margin_top, class: "label"
+      = number_input f, :margin_top, type: "text", class: "input input-bordered"
+      = error_tag f, :margin_top
+
+  = if "margin_bottom" in @step_type.args do
+    .form-control
+      = label f, :margin_bottom, class: "label"
+      = number_input f, :margin_bottom, type: "text", class: "input input-bordered"
+      = error_tag f, :margin_bottom
+
+.grid.gap-2.grid-cols-3
+  .form-control
+    = label f, :page_id, class: "label" 
+    label.input-group
+      = if Ecto.Changeset.get_field(@changeset, :page_id, nil) do 
+        = link Icons.open([]), 
+          to: "#", phx_click: "navigate", class: "btn btn-primary btn-square",
+          phx_value_page_id: Ecto.Changeset.get_field(@changeset, :page_id, nil)
+
+      = select f, :page_id, @select_lists.pages, class: "select select-bordered rounded-none flex-1"
+      = case Ecto.Changeset.get_field(@changeset, :page_id, nil) do 
+        - nil -> 
+          = live_patch Icons.plus([]), class: "btn btn-primary btn-square",
+            to: Routes.step_index_path(@socket, :new_page, @process.id, @step.id, params: @changeset.params)
+            
+        - page_id -> 
+          = live_patch Icons.edit([]), class: "btn btn-primary btn-square",
+            to: Routes.step_index_path(@socket, :edit_page, @process.id, @step.id, page_id, params: @changeset.params)
+            
+    = error_tag f, :page_id
+
+  = if "element_id" in @step_type.args do
+    .form-control
+      = label f, :element_id, class: "label" 
+      label.input-group
+        = if Ecto.Changeset.get_field(@changeset, :element_id, nil) do 
+          = link Icons.search([]), 
+            to: "#", phx_click: "highlight", class: "btn btn-primary btn-square",
+            phx_value_element_id: Ecto.Changeset.get_field(@changeset, :element_id, nil)
+            
+        = select f, :element_id, @select_lists.elements, class: "select select-bordered rounded-none flex-1"
+        = case Ecto.Changeset.get_field(@changeset, :element_id, nil) do 
+          - nil -> 
+            = live_patch Icons.plus([]), class: "btn btn-primary btn-square",
+              to: Routes.step_index_path(@socket, :new_element, @process.id, @step.id, params: @changeset.params)
+              
+          - element_id -> 
+            = live_patch Icons.edit([]), class: "btn btn-primary btn-square",
+              to: Routes.step_index_path(@socket, :edit_element, @process.id, @step.id, element_id, params: @changeset.params)
+
+      = error_tag f, :element_id
+
+  = if "annotation_id" in @step_type.args do
+    div
+      .form-control
+        = label f, :annotation_id, class: "label" 
+        label.input-group
+          = if Ecto.Changeset.get_field(@changeset, :annotation_id, nil) do 
+            = link Icons.dialogue([]),
+              to: "#", phx_click: "apply_annotation", class: "btn btn-primary btn-square",
+              phx_value_annotation_id: Ecto.Changeset.get_field(@changeset, :annotation_id, nil)
+
+          = select f, :annotation_id, @select_lists.annotations, class: "select select-bordered rounded-none flex-1"
+          = case Ecto.Changeset.get_field(@changeset, :annotation_id, nil) do 
+            - nil -> 
+              = live_patch Icons.plus([]), class: "btn btn-primary btn-square",
+                to: Routes.step_index_path(@socket, :new_annotation, @process.id, @step.id, params: @changeset.params)
+                
+            - annotation_id -> 
+              = live_patch Icons.edit([]), class: "btn btn-primary btn-square",
+                to: Routes.step_index_path(@socket, :edit_annotation, @process.id, @step.id, annotation_id, params: @changeset.params)
+        = error_tag f, :annotation_id
+        
+      = if is_struct(@step.annotation, Annotation) do 
+        = for element_annotation <- @step.annotation.element_annotations do
+          .inline-flex
+            .btn-group.py-2.pr-2
+              = link Icons.search_tiny([]), 
+                to: "#", phx_click: "highlight", class: "btn btn-active btn-xs",
+                phx_value_element_id: element_annotation.element.id
+              button.btn.btn-xs.btn-disabled.text-black
+                = element_annotation.element.name
+              = live_patch Icons.edit_tiny([]), class: "btn btn-active btn-xs",
+                to: Routes.step_index_path(@socket, :edit_element, @process.id, @step.id, element_annotation.element.id)
+
+= submit "Save", phx_disable_with: "Saving...", class: "btn btn-success mt-4"
+
+</form>
+
+= if @action in [:edit_page, :new_page] do 
+  = LiveHelpers.live_modal @socket, 
+    UserdocsDesktopWeb.PageLive.FormComponent,
+    id: @form_data.page.id || :new,
+    title: @page_title,
+    action: @action |> Atom.to_string() |> String.replace("_page", "") |> String.to_atom(),
+    page: @form_data.page,
+    params: @params,
+    select_lists: @select_lists,
+    current_project: @current_user.selected_project,
+    return_to: Routes.step_index_path(@socket, :edit, @process.id, @step.id)
+
+= if @action in [:new_element, :edit_element] do
+  = LiveHelpers.live_modal @socket, 
+    UserdocsDesktopWeb.ElementLive.FormComponent,
+    id: @form_data.element.id || :new_element,
+    title: @page_title,
+    action: @action |> Atom.to_string() |> String.replace("_element", "") |> String.to_atom(),
+    page: @selected_page,
+    element: @form_data.element,
+    params: @params,
+    select_lists: @select_lists,
+    return_to: Routes.step_index_path(@socket, :edit, @process.id, @step.id)
+
+= if @action in [:new_annotation, :edit_annotation] do
+  = LiveHelpers.live_modal @socket, 
+    UserdocsDesktopWeb.AnnotationLive.FormComponent,
+    id: @form_data.annotation.id || :new,
+    title: @page_title,
+    page: @selected_page,
+    action: @action |> Atom.to_string() |> String.replace("_annotation", "") |> String.to_atom(),
+    annotation: @form_data.annotation,
+    select_lists: @select_lists,
+    return_to: Routes.step_index_path(@socket, :edit, @process.id, @step.id)

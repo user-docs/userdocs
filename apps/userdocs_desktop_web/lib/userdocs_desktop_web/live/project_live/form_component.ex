@@ -1,8 +1,7 @@
 defmodule UserdocsDesktopWeb.ProjectLive.FormComponent do
+  @moduledoc "Project form"
   use UserdocsDesktopWeb, :live_component
   alias Userdocs.Projects
-
-  def opts(token), do: %{access_token: token, context: %{repo: Client}}
 
   @impl true
   def update(%{project: project} = assigns, socket) do
@@ -34,8 +33,9 @@ defmodule UserdocsDesktopWeb.ProjectLive.FormComponent do
   end
 
   defp save_project(socket, :edit, project_params) do
-    case Projects.update_project(socket.assigns.project, project_params, opts(socket.assigns.access_token)) do
+    case Client.update_project(socket.assigns.project, project_params) do
       {:ok, _project} ->
+        IO.puts("Project updated successfully")
         {
           :noreply,
           socket
@@ -44,12 +44,13 @@ defmodule UserdocsDesktopWeb.ProjectLive.FormComponent do
         }
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        IO.puts("Project updated failed")
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
 
   defp save_project(socket, :new, project_params) do
-    case Projects.create_project(project_params, opts(socket.assigns.access_token)) do
+    case Client.create_project(project_params) do
       {:ok, _project} ->
         {
           :noreply,

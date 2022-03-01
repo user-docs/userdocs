@@ -1,0 +1,32 @@
+h2.title =@title
+= f = form_for @changeset, "#",
+  id: @id,
+  phx_target: @myself.cid,
+  phx_change: "validate",
+  phx_submit: "save",
+  class: "form-horizontal"
+
+  .form-control
+    = label f, :project_id, class: "label"
+    = select f, :project_id, @select_lists.projects, class: "select select-bordered", selected: @parent_id || ""
+    = error_tag f, :project_id 
+
+  .form-control
+    = label f, :order, class: "label"
+    = text_input f, :order, phx_debounce: "blur", type: "text", class: "input input-bordered" 
+    = error_tag f, :order 
+
+  .form-control
+    = label f, :name, class: "label"
+    = text_input f, :name, phx_debounce: "blur", type: "text", class: "input input-bordered" 
+    = error_tag f, :name 
+
+  .mt-4
+    = submit "Save", phx_disable_with: "Saving...", class: "btn btn-primary mr-2"
+    = content_tag :button, "Delete",
+      to: "#",
+      phx_click: "delete",
+      phx_value_id: @process.id,
+      data: [confirm: "Are you sure?"],
+      class: "btn btn-error"
+</form>

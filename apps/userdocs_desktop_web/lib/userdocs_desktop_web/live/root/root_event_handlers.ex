@@ -1,4 +1,5 @@
 defmodule UserdocsDesktopWeb.RootEventHandlers do
+  @moduledoc "handlers for events that are common to most or all views and are delegated to the root."
   require Logger
   alias UserdocsDesktopWeb.Router.Helpers, as: Routes
 

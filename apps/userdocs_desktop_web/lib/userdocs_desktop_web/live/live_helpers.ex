@@ -1,4 +1,5 @@
 defmodule UserdocsDesktopWeb.LiveHelpers do
+  @moduledoc "Generic live view helpers"
   import Phoenix.LiveView.Helpers
 
   @doc """
@@ -21,12 +22,12 @@ defmodule UserdocsDesktopWeb.LiveHelpers do
     live_component(UserdocsDesktopWeb.ModalComponent, modal_opts)
   end
 
-  def maybe_push_redirect(socket = %{assigns: %{return_to: return_to}}) do
+  def maybe_push_redirect(%{assigns: %{return_to: return_to}} = socket) do
     Phoenix.LiveView.push_redirect(socket, to: return_to)
   end
   def maybe_push_redirect(socket), do: socket
 
-  def maybe_push_patch(socket = %{assigns: %{return_to: return_to}}) do
+  def maybe_push_patch(%{assigns: %{return_to: return_to}} = socket) do
     Phoenix.LiveView.push_patch(socket, to: return_to)
   end
   def maybe_push_patch(socket), do: socket

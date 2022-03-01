@@ -6,13 +6,18 @@
         span.text-lg.font-bold.pl-4.hover_text-white
           | Userdocs
     .flex-none
-      = live_component(@socket, UserdocsDesktopWeb.ProjectPicker, 
-        [ id: "project-picker", current_user: @current_user, current_project: @current_user.selected_project])
+      = live_component @socket, UserdocsDesktopWeb.ProjectPicker, 
+        id: "project-picker", 
+        url: @url
     .flex-1.px-2.mx-2  
       .items-stretch.hidden.lg_flex
-        = if is_struct(@current_user.selected_project, Schemas.Projects.Project) do
+        = if is_struct(Client.current_project(), Schemas.Projects.Project) do
+          button.btn.btn-ghost.btn-sm 
+            = live_patch "Processes", to: Routes.process_index_path(@socket, :index), class: "hover_text-white"
           button.btn.btn-ghost.btn-sm 
             = live_patch "Pages", to: Routes.page_index_path(@socket, :index), class: "hover_text-white"
+          button.btn.btn-ghost.btn-sm 
+            = live_patch "Screenshots", to: Routes.screenshot_index_path(@socket, :index), class: "hover_text-white"
     .flex-none
       = live_component UserdocsDesktopWeb.BrowserControlsToggle, 
         id: "browser-controls-toggle",
@@ -41,10 +46,13 @@
             a phx-click="sign-out" Sign Out
                 
   main
-    p.alert.alert-info.mx-4 role="alert" phx-click="lv:clear-flash" phx-value-key="info"
+    .alert.alert-info.mx-4 role="alert" phx-click="lv:clear-flash" phx-value-key="info"
       = live_flash(@flash, :info)
 
-    p.alert.alert-danger.mx-4 role="alert" phx-click="lv:clear-flash" phx-value-key="error"
+    .alert.alert-warning.mx-4 role="alert" phx-click="lv:clear-flash" phx-value-key="info"
+      = live_flash(@flash, :warning)
+
+    .alert.alert-error.mx-4 role="alert" phx-click="lv:clear-flash" phx-value-key="error"
       = live_flash(@flash, :error)
 
     = if @live_action in [:local_options] do
@@ -53,9 +61,6 @@
         id: "local-options",
         title: "Local Options",
         action: :edit,
-        current_user: @current_user,
-        access_token: @access_token,
-        local_option: Userdocs.LocalOptions.get_local_options(),
         return_to: @url.path
 
     = if @live_action in [:edit_credentials] do 
@@ -75,9 +80,8 @@
         id: @current_user.id,
         title: "User Options",
         action: :edit,
-        user: @current_user,
-        access_token: @access_token,
-        select_lists: %{teams: Enum.map(@current_user.team_users, &{&1.team.name, &1.team.id})},
+        user: Client.current_user(),
+        select_lists: %{teams: Client.list_team_users(%{filters: %{user_id: Client.current_user_id()}, preloads: [:team]}) |> Enum.map(&{&1.team.name, &1.team.id})},
         return_to: @url.path
 
     = @inner_content

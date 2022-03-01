@@ -7,9 +7,6 @@ h1.text-2xl.font-bold.m-4 Show Page
     action: @live_action,
     page: @page,
     select_lists: @select_lists,
-    access_token: @access_token,
-    current_user: @current_user,
-    current_project: @current_user.selected_project,
     return_to: Routes.page_show_path(@socket, :show, @page)
 
 = if @live_action in [:edit_element, :new_element] do
@@ -18,8 +15,6 @@ h1.text-2xl.font-bold.m-4 Show Page
     title: @page_title,
     action: parse_element_live_action(@live_action),
     element: @element,
-    access_token: @access_token,
-    current_user: @current_user,
     select_lists: @select_lists,
     return_to: Routes.page_show_path(@socket, :show, @page)
     

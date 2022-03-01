@@ -8,7 +8,8 @@ defmodule UserdocsDesktopWeb.UserLive.LocalFormComponent do
   alias Schemas.Users.LocalOption
 
   @impl true
-  def update(%{local_option: local_option} = assigns, socket) do
+  def update(assigns, socket) do
+    local_option = Userdocs.LocalOptions.get_local_options()
     changeset = LocalOptions.change_local_options(local_option)
     {
       :ok, socket

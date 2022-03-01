@@ -8,7 +8,7 @@ h2.text-xl.font-bold = @title
 
   .form-control
     = label f, :page_id, class: "label"
-    = select f, :page_id, @select_lists.pages_select, class: "select select-bordered", selected: @page.id
+    = select f, :page_id, @select_lists.pages, class: "select select-bordered", selected: @page.id
     = error_tag f, :page_id
 
   .form-control

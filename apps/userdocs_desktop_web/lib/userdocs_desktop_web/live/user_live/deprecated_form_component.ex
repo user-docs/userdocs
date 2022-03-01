@@ -1,4 +1,5 @@
 defmodule UserdocsDesktopWeb.UserLive.FormComponent do
+  @moduledoc "The user credentials form"
   use UserdocsDesktopWeb, :live_component
 
   alias Schemas.Users.Override
@@ -7,7 +8,7 @@ defmodule UserdocsDesktopWeb.UserLive.FormComponent do
   def opts(token), do: %{access_token: token, context: %{repo: Client}}
 
   @impl true
-  def render(%{action: action} = assigns) when action in [ :new, :edit ] do
+  def render(%{action: action} = assigns) when action in [:new, :edit] do
     ~L"""
       <h2 class="title"><%= @title %></h2>
       <%= form_for @changeset, registration_path(@socket, action, @user), [
@@ -135,7 +136,7 @@ defmodule UserdocsDesktopWeb.UserLive.FormComponent do
   defp save_user(socket, :options, user_params) do
     #user_params = Map.put(user_params, "overrides", [])
     case Users.update_user_options(socket.assigns.user, user_params, opts(socket.assigns.access_token)) do
-      {:ok, user} ->
+      {:ok, _user} ->
         {
           :noreply,
           socket

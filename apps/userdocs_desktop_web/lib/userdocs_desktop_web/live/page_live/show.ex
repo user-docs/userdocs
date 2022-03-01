@@ -1,87 +1,62 @@
 defmodule UserdocsDesktopWeb.PageLive.Show do
+  @moduledoc "Shows a page, will eventually include element and annotation CRUD operations"
   use UserdocsDesktopWeb, :live_view
 
   alias Schemas.Elements.Element
-  alias Schemas.Projects.Project
-  alias Schemas.Pages.Page
 
   alias UserdocsDesktopWeb.Root
-  alias UserdocsDesktopWeb.Loaders
   alias UserdocsDesktopWeb.LiveHelpers
-
-  def opts(token), do: %{access_token: token, context: %{repo: Client}}
-
-  def data_types do
-    [
-      Schemas.Annotations.AnnotationType,
-      Schemas.Strategies.Strategy,
-      Schemas.Annotations.Annotation,
-      Schemas.Elements.Element,
-      Schemas.Pages.Page,
-      Schemas.Projects.Project
-   ]
-  end
+  alias UserdocsDesktopWeb.RootSubscriptionHandlers
 
   @impl true
   def mount(_params, session, socket) do
     {
       :ok,
       socket
-      |> Root.apply(session, data_types())
-      |> initialize()
+      |> Root.apply(session, [])
+      |> assign(:user, Client.current_user())
    }
   end
 
-  def initialize(%{assigns: %{auth_state: :not_logged_in}} = socket), do: socket
-  def initialize(socket) do
-    socket
-    |> Loaders.annotation_types()
-    |> Loaders.strategies()
-    |> Loaders.pages()
-    |> Loaders.annotations()
-    |> Loaders.elements()
-    |> Loaders.projects()
-  end
-
   @impl true
-  def handle_params(_, _, %{assigns: %{status: "connecting"}} = socket), do: {:noreply, socket}
-  def handle_params(params, url, %{assigns: %{status: "connected"}} = socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  def handle_params(params, url, socket) do
+    {
+      :noreply,
+      socket
+      |> assign(url: URI.parse(url))
+      |> apply_action(socket.assigns.live_action, params)
+    }
   end
 
   @impl true
   def handle_info(n, s), do: RootSubscriptionHandlers.handle_info(n, s)
 
   defp apply_action(socket, :show, %{"id" => id}) do
-    opts = socket.assigns.state_opts
     socket
     |> assign(:page_title, page_title(socket.assigns.live_action))
-    |> assign(:page, State.Pages.get_page!(id, socket, opts))
+    |> assign(:page, Client.get_page!(id))
     |> assign_select_lists
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
-    opts = socket.assigns.state_opts
     socket
     |> assign(:page_title, page_title(socket.assigns.live_action))
-    |> assign(:page, State.Pages.get_page!(id, socket, opts))
+    |> assign(:page, Client.get_page!(id))
     |> assign_select_lists
   end
 
   defp apply_action(socket, :edit_element, %{"page_id" => page_id, "element_id" => element_id}) do
-    opts = socket.assigns.state_opts
     socket
     |> assign(:page_title, page_title(socket.assigns.live_action))
-    |> assign(:page, State.Pages.get_page!(page_id, socket, opts))
-    |> assign(:element, State.Elements.get_element!(element_id, socket, opts))
+    |> assign(:page, Client.get_page!(page_id))
+    |> assign(:element, Client.get_element!(element_id))
     |> assign_select_lists
   end
 
   defp apply_action(socket, :new_element, %{"page_id" => page_id}) do
-    opts = socket.assigns.state_opts
     socket
     |> assign(:page_title, page_title(socket.assigns.live_action))
-    |> assign(:page, State.Pages.get_page!(page_id, socket, opts))
+    |> assign(:page, Client.get_page!(page_id))
     |> assign(:element, %Element{})
     |> assign_select_lists
 
@@ -97,12 +72,12 @@ defmodule UserdocsDesktopWeb.PageLive.Show do
 
   def assign_select_lists(socket) do
     assign(socket, :select_lists, %{
-      projects: projects_select(socket)
+      projects: projects_select()
     })
   end
 
-  defp projects_select(%{assigns: %{state_opts: state_opts}} = socket) do
-    State.Projects.list_projects(socket, state_opts)
+  defp projects_select() do
+    Client.list_projects()
     |> LiveHelpers.select_list(:name, :false)
   end
 end

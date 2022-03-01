@@ -1,0 +1,13 @@
+= case @process.process_instance do 
+  - %ProcessInstance{status: :started} ->
+    progress.progress.progress-success value="#{StepInstances.count_completed_step_instances(@process.process_instance.step_instances)}" max="#{Enum.count(@process.steps)}"
+       
+  - %ProcessInstance{status: :failed} ->
+    progress.progress.progress-error value="#{StepInstances.count_completed_step_instances(@process.process_instance.step_instances)}" max="#{Enum.count(@process.steps)}"
+       
+  - %ProcessInstance{status: :warning} ->
+    progress.progress.progress-warning value="#{StepInstances.count_completed_step_instances(@process.process_instance.step_instances)}" max="#{Enum.count(@process.steps)}"
+       
+  - _ -> 
+    progress.progress value="0" max="100"
+     

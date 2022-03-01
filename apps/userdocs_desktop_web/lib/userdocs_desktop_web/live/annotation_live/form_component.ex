@@ -133,7 +133,6 @@ defmodule UserdocsDesktopWeb.AnnotationLive.FormComponent do
         name in enabled_fields
     end
   end
-  def field_enabled?(_, _), do: false
 
   def assign_annotation_type(socket, nil), do: assign(socket, :annotation_type, %AnnotationType{args: []})
   def assign_annotation_type(socket, annotation_type_id) do

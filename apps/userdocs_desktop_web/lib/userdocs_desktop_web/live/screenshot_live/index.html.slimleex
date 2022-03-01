@@ -1,0 +1,32 @@
+h1.text-2xl.font-bold.m-4 Listing Screenshots
+= if @live_action in [:new, :edit] do
+  = live_modal @socket, UserdocsDesktopWeb.ScreenshotLive.FormComponent,
+    id: @screenshot.id || :new,
+    title: @page_title,
+    action: @live_action,
+    screenshot: @screenshot,
+    return_to: Routes.screenshot_index_path(@socket, :index)
+
+div.grid.grid-cols-4.gap-4.m-4
+  = for screenshot <- @screenshots do 
+    .indicator 
+      = if screenshot.status in [:difference, :size_difference] do
+        .indicator-item.badge.badge-error
+          = Icons.exclamation([])
+      .card.shadow-xl.image-full
+        figure
+          img src="images/#{screenshot.id}.png"
+        .justify-end.card-body
+          h2.card-title = screenshot.name
+          p = screenshot.file_name
+          .card-actions
+            = live_patch to: Routes.screenshot_show_path(@socket, :show, screenshot.id) do 
+              button.btn.btn-primary.btn-square = Icons.search([])
+            = live_patch to: Routes.screenshot_index_path(@socket, :edit, screenshot.id), id: "edit-screenshot-#{screenshot.id}" do 
+              button.btn.btn-primary.btn-square = Icons.edit([])
+            = link to: "#", phx_click: "delete", phx_value_id: screenshot.id, id: "delete-screenshot-#{screenshot.id}" do
+              button.btn.btn-error.btn-squsre = Icons.trash([])
+
+= live_patch to: Routes.screenshot_index_path(@socket, :new) do 
+  button.btn.btn-primary.m-4 New Screenshot
+

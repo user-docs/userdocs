@@ -1,19 +1,20 @@
 defmodule UserdocsDesktopWeb.PageLive.FormComponent do
+  @moduledoc "Page Form"
   use UserdocsDesktopWeb, :live_component
   require Logger
   alias Userdocs.Pages
   alias Schemas.Projects.Project
-
-  def opts(token), do: %{access_token: token, context: %{repo: Client}}
+  alias Schemas.Pages.Page
 
   @impl true
   def update(%{page: page} = assigns, socket) do
-    changeset = Pages.change_page(page)
-
+    params = Map.get(assigns, :params, %{})
+    changeset = Page.changeset(page, params)
     {
       :ok,
       socket
       |> assign(assigns)
+      |> assign(:user, Client.current_user())
       |> assign(:changeset, changeset)
     }
   end
@@ -33,7 +34,7 @@ defmodule UserdocsDesktopWeb.PageLive.FormComponent do
   end
 
   defp save_page(socket, :edit, page_params) do
-    case Pages.update_page(socket.assigns.page, page_params, opts(socket.assigns.access_token)) do
+    case Client.update_page(socket.assigns.page, page_params) do
       {:ok, _page} ->
         {
           :noreply,
@@ -48,7 +49,7 @@ defmodule UserdocsDesktopWeb.PageLive.FormComponent do
   end
 
   defp save_page(socket, :new, page_params) do
-    case Pages.create_page(page_params, opts(socket.assigns.access_token)) do
+    case Client.create_page(page_params) do
       {:ok, _page} ->
         Logger.debug("Page saved successfully, should redirect to #{socket.assigns.return_to}")
         {

@@ -1,4 +1,5 @@
 defmodule UserdocsDesktop do
+  @moduledoc "Used for controlling windows displayed in the application"
   alias Desktop.Window
   require Logger
   use GenServer
@@ -21,7 +22,6 @@ defmodule UserdocsDesktop do
 
   @impl true
   def init(_) do
-    Logger.info("Initializing Client")
     {:ok, browser_controls_pid} = Desktop.Window.start_link(UserdocsDesktop.Windows.browser_controls_opts())
     initial_state = %{
       browser_controls_pid: browser_controls_pid

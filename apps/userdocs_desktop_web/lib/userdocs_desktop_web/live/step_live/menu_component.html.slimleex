@@ -1,0 +1,74 @@
+div.flex.justify-between.m-4 
+  h1.text-2xl.font-bold
+    => @page_title
+    ' in 
+    = @process.name
+
+  ul.menu.border.bg-base-100.rounded-box
+    li.flex.flex-row 
+      = live_component ProcessInstanceLive.Status, process: @process
+      = if @browser_open? do
+        = case @run_state do
+          - status when status in [:pause, :stop] -> 
+            = link to: "#", phx_click: "queue-process", phx_value_id: @process.id, class: "" do
+              = Icons.play([])
+
+          - _ ->
+            a class="bg-secondary"
+              = Icons.spinner([])
+    li.p-2
+      = live_component ProcessInstanceLive.Progress, process: @process
+
+ul.py-3.shadow-lg.bg-base-100.rounded-box.m-4
+  li.px-5.py-2
+    h2.text-xl.font-bold Steps
+  = for {previous_step, step, next_step} <- step_frame(@steps) do 
+    = if @drag && @drag.id == step.id, do: ~L(<li class="flex ring-4 ring-accent-focus ring-offset-2 ring-offset-accent">), else: ~L(<li class="flex">)
+      div.flex.flex-col.px-5
+        = case {previous_step, step} do 
+          - {nil, %Step{}} ->
+            div.text-current.flex-1.inline-flex.align-top.flex-col.pt-2
+              div.flex-1.bg-accent.w-7 style="border-radius: 50% / 100% 100% 0% 0%;"
+
+          - {%Step{page_id: previous_page_id}, %Step{page_id: page_id}} when previous_page_id != page_id ->
+            div.text-current.flex-1.inline-flex.align-top.flex-col.pt-2
+              div.flex-1.bg-accent.w-7 style="border-radius: 50% / 100% 100% 0% 0%;"
+
+          - {%Step{page_id: previous_page_id}, %Step{page_id: page_id}} when previous_page_id == page_id ->
+            div.text-current.flex-1.inline-flex.align-top.flex-col
+              div.flex-1.bg-accent.w-7
+
+        = case {step, next_step} do 
+          - {%Step{}, nil} ->
+            div.text-current.flex-1.inline-flex.align-top.flex-col.pb-1.5
+              div.flex-1.bg-accent.w-7 style="border-radius: 50% / 0% 0% 100% 100%;"
+
+          - {%Step{page_id: page_id}, %Step{page_id: next_page_id}} when page_id != next_page_id ->
+            div.text-current.flex-1.inline-flex.align-top.flex-col.pb-1.5
+              div.flex-1.bg-accent.w-7 style="border-radius: 50% / 0% 0% 100% 100%;"
+
+          - {%Step{page_id: page_id}, %Step{page_id: next_page_id}} when page_id == next_page_id ->
+            div.text-current.flex-1.inline-flex.align-top.flex-col
+              div.flex-1.bg-accent.w-7
+        
+      a class="text-current px-2 py-2 hover_bg-base-content hover_bg-opacity-10 flex-1" phx-hook="dragDropReorder" step-id="#{step.id}" order="#{step.order}" id="step-#{step.id}-drag-handle" draggable="true" style="cursor: move;"
+        = "#{step.order}. " <> StepName.cast(step)
+      div.text-current.px-2.py-2.hover_bg-base-content.hover_bg-opacity-10.flex-0
+        = live_component StepInstanceLive.Status, step: step
+      = link to: "#", phx_click: "queue-step", phx_value_id: step.id, class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        = Icons.play([])
+      = live_patch to: Routes.step_index_path(@socket, :edit, @process, step.id, params: %{}), id: "edit-step-#{step.id}", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        = Icons.edit([])
+      = link to: "#", phx_click: "delete", phx_value_id: step.id, id: "delete-step-#{step.id}", 
+        data: [confirm: "Are you sure?"], 
+        class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+          = Icons.trash([])
+    </li>
+  
+  = for {previous_step, step} <- step_frame(@steps) do 
+
+= live_redirect to: Routes.process_index_path(@socket, :index, @project.id) do
+  button.btn.btn-primary.m-4 Back 
+
+= live_patch to: Routes.step_index_path(@socket, :new, @process.id, params: %{page_id: Steps.last_page_id(@steps)}) do
+  button.btn.btn-primary.m-4 New Step 

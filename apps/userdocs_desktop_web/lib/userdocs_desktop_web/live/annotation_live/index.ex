@@ -14,8 +14,6 @@ defmodule UserdocsDesktopWeb.AnnotationLive.Index do
   @preloads [:annotation_type, :element_annotations, [element_annotations: :element]]
   @order [%{field: :name, order: :asc}]
 
-  def opts(token), do: %{access_token: token, context: %{repo: Client}}
-
   @impl true
   def mount(_params, session, socket) do
     {

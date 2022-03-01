@@ -2,8 +2,6 @@ defmodule UserdocsDesktopWeb.ProjectPicker do
   @moduledoc false
   use UserdocsDesktopWeb, :live_component
   use Phoenix.HTML
-  alias Schemas.Projects.Project
-  alias Schemas.Users.User
 
   def dropdown_trigger(assigns, name, _highlight, do: block) do
     ~L"""
@@ -97,29 +95,35 @@ defmodule UserdocsDesktopWeb.ProjectPicker do
   end
 
   @impl true
-  def update(%{current_user: _current_user} = assigns, socket) do
-    selected_project_name =
-      case assigns.current_user do
-        %User{selected_project: %Project{ name: name }} -> name
-        _ -> "None Selected"
-      end
+  def update(assigns, socket) do
+    user = Client.current_user()
+    project = Client.current_project()
+    selected_project_name = project |> Map.get(:name, "None Selected")
     {
       :ok,
       socket
       |> assign(assigns)
       |> assign(:selected_project_name, selected_project_name)
+      |> assign(:current_user, user)
     }
   end
 
   @impl true
-  def handle_event("select-project", %{"project-id" => project_id, "team-id" => team_id}, %{assigns: %{current_user: current_user}} = socket) do
+  def handle_event("select-project", %{"project-id" => project_id, "team-id" => team_id}, %{assigns: %{url: url}} = socket) do
     changes = %{
-      selected_team_id: String.to_integer(team_id),
-      selected_project_id: String.to_integer(project_id)
+      selected_team_id: team_id,
+      selected_project_id: project_id
     }
-    #{:ok, user} = Users.update_user_selections(socket.assigns.current_user, changes)
-    Userdocs.Users.update_user_selections(current_user, changes, %{context: %{repo: Client}})
-    {:noreply, socket}
+    IO.inspect("Pre load it's #{Client.current_user().selected_project_id}")
+    Client.update_user_selections(Client.current_user(), changes)
+    IO.inspect("Post update it's #{Client.current_user().selected_project_id}")
+    Client.load()
+    IO.inspect("Post load it's #{Client.current_user().selected_project_id}")
+    {
+      :noreply,
+      socket
+      |> push_redirect(to: url.path)
+    }
   end
 
   def is_active(id1, id2) do

@@ -1,0 +1,21 @@
+h1.text-2xl.font-bold.m-4 = @page_title <> " " <> @screenshot.name
+
+= if @live_action in [:edit] do
+  = live_modal @socket, UserdocsDesktopWeb.ScreenshotLive.FormComponent,
+    id: @screenshot.id,
+    title: @page_title,
+    action: @live_action,
+    screenshot: @screenshot,
+    return_to: Routes.screenshot_show_path(@socket, :show, @screenshot) 
+    
+= live_patch to: Routes.screenshot_show_path(@socket, :edit, @screenshot) do
+  button.btn.btn-primary.my-4.mr-2.ml-4 Edit   
+= live_patch to: Routes.screenshot_index_path(@socket, :index) do
+  button.btn.btn-primary.my-4 Back  
+
+.card.bordered.m-4.shadow-xl.bg-base-100
+  .card-body
+    = live_component @socket, UserdocsDesktopWeb.ScreenshotLive.ReviewComponent, 
+        id: "review-component", 
+        screenshot: @screenshot
+

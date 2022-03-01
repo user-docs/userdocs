@@ -1,0 +1,37 @@
+= case @live_action do
+  - action when action in [:index, :show_step_instance, :show_process_instance] ->
+    = live_component MenuComponent, 
+      browser_open?: @browser_open?,
+      drag: @drag,
+      id: "step-menu", 
+      steps: @steps, 
+      project: @project,
+      process: @process, 
+      page_title: @page_title, 
+      run_state: @run_state,
+      step: @step
+
+    = if action == :show_step_instance do 
+      = LiveHelpers.live_modal @socket, 
+        UserdocsDesktopWeb.StepInstanceLive.Show,
+        step_instance: @step.step_instance, 
+        return_to: Routes.step_index_path(@socket, :index, @process.id)
+
+
+  - action when action in [:edit, :new, :edit_page, :new_page, :edit_element, :new_element, :edit_annotation, :new_annotation] ->
+    ul.py-3.shadow-lg.bg-base-100.rounded-box.m-4
+      li.px-5.py-2
+        h2.text-xl.font-bold 
+          = @page_title
+        = live_component FormComponent, 
+          action: @live_action,
+          form_data: @form_data,
+          id: @step.id || :new,
+          page_title: @page_title, 
+          params: @params,
+          process: @process, 
+          return_to: Routes.step_index_path(@socket, :index, @process.id),
+          step: @step
+
+    = live_patch to: Routes.step_index_path(@socket, :index, @process.id) do
+      button.btn.btn-primary.m-4 Back 

@@ -1,4 +1,5 @@
 defmodule UserdocsDesktopWeb.Defaults do
+  @moduledoc "Default values for desktop application"
   def opts(%{assigns: _} = socket, types \\ []) do
     [
       data_type: :list,

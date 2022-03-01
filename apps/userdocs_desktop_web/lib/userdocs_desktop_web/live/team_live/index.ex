@@ -12,8 +12,6 @@ defmodule UserdocsDesktopWeb.TeamLive.Index do
 
   @preloads [:projects, :team_users, [team_users: :user]]
 
-  def opts(token), do: %{access_token: token, context: %{repo: Client}}
-
   @impl true
   def mount(_params, session, socket) do
     {

@@ -1,4 +1,5 @@
 defmodule UserdocsDesktop.Windows do
+  @moduledoc false
   def browser_controls_opts() do
     [
       app: :userdocs_desktop_web,

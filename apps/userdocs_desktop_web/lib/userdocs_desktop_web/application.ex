@@ -20,6 +20,7 @@ defmodule UserdocsDesktopWeb.Application do
       UserdocsDesktopWeb.Endpoint,
       {Desktop.Window, desktop_opts},
       UserdocsDesktop,
+      {UserdocsDesktop.BrowserState, nil},
       UserdocsDesktop.BrowserController
     ]
     opts = [strategy: :one_for_one]
@@ -32,5 +33,9 @@ defmodule UserdocsDesktopWeb.Application do
   def config_change(changed, _new, removed) do
     UserdocsDesktopWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  def kill_browser_controller() do
+    UserdocsDesktop.BrowserController.quit()
   end
 end

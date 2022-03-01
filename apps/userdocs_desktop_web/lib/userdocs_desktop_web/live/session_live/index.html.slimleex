@@ -6,7 +6,7 @@
         h2.mt-6.text-center.text-3xl.font-extrabold.text-gray-900
           | Sign in to your account
         = if @live_action in [:new] do 
-          = live_component @socket,UserdocsDesktopWeb.SessionLive.FormComponent,
+          = live_component @socket, UserdocsDesktopWeb.SessionLive.FormComponent,
             id: "signin",
             title: @page_title,
             action: @live_action,

@@ -1,4 +1,5 @@
 defmodule UserdocsDesktopWeb.BrowserControlsToggle do
+  @moduledoc "A component for opening and closing the browser"
   use UserdocsDesktopWeb, :live_component
   require Logger
 

@@ -5,8 +5,6 @@ defmodule UserdocsDesktopWeb.TeamLive.InvitationFormComponent do
   alias Schemas.Users.User
   alias UserdocsDesktopWeb.Icons
 
-  def opts(token), do: %{access_token: token, context: %{repo: Client}}
-
   @impl true
   def update(assigns, socket) do
     user = Client.current_user()

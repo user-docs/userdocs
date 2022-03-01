@@ -1,9 +1,9 @@
 defmodule UserdocsDesktopWeb.ElementLive.FormComponent do
+  @moduledoc "Element form"
   use UserdocsDesktopWeb, :live_component
   require Logger
   alias Schemas.Elements.Element
   alias Userdocs.Elements
-  def opts(token), do: %{access_token: token, context: %{repo: Client}}
 
   @impl true
   def update(%{element: element} = assigns, socket) do
@@ -24,7 +24,7 @@ defmodule UserdocsDesktopWeb.ElementLive.FormComponent do
       |> Elements.change_element(element_params)
       |> Map.put(:action, :validate)
 
-    { :noreply, assign(socket, :changeset, changeset) }
+    {:noreply, assign(socket, :changeset, changeset)}
   end
 
   def handle_event("save", %{"element" => element_params}, socket) do
@@ -32,7 +32,7 @@ defmodule UserdocsDesktopWeb.ElementLive.FormComponent do
   end
 
   defp save_element(socket, :edit, element_params) do
-    case Elements.update_element(socket.assigns.element, element_params, opts(socket.assigns.access_token)) do
+    case Client.update_element(socket.assigns.element, element_params) do
       {:ok, _element} ->
         {
           :noreply,
@@ -47,7 +47,7 @@ defmodule UserdocsDesktopWeb.ElementLive.FormComponent do
   end
 
   defp save_element(socket, :new, element_params) do
-    case Elements.create_element(element_params, opts(socket.assigns.access_token)) do
+    case Client.create_element(element_params) do
       {:ok, _element} ->
         {
           :noreply,
@@ -57,6 +57,7 @@ defmodule UserdocsDesktopWeb.ElementLive.FormComponent do
         }
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        IO.puts("Failed")
         {:noreply, assign(socket, changeset: changeset)}
     end
   end

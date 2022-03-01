@@ -1,0 +1,25 @@
+
+= case @process.process_instance do 
+  - %ProcessInstance{status: :not_started} ->
+    a
+      = Icons.dots_horizontal([]) 
+       
+  - %ProcessInstance{status: :started} ->
+    a
+      = Icons.refresh([]) 
+       
+  - %ProcessInstance{status: :succeeded} ->
+    a
+      = Icons.check([]) 
+       
+  - %ProcessInstance{status: :warning} ->
+    = live_patch to: Routes.step_index_path(@socket, :show_process_instance, @process.id) do
+      = Icons.exclamation([]) 
+       
+  - %ProcessInstance{status: :failed} ->
+    a
+      = Icons.x([]) 
+
+  - _ -> 
+    a
+      = Icons.minus_circle([]) 

@@ -11,7 +11,7 @@
       = label form, :project_id, class: "label" 
       = select form, :project_id, @select_lists.projects,
         class: "select select-sm select-bordered",
-        selected: @current_user.selected_project_id || "" 
+        selected: @user.selected_project_id || "" 
       = error_tag form, :project_id 
     .form-control.col-span-2
       = label form, :name, class: "label" 
@@ -22,10 +22,10 @@
       = label form, :url, class: "label" 
       .flex
         .rounded-r-none.rounded-l-lg.flex-shrink.bg-grey.bg-base-300.px-2.py-1
-          = url_prefix(form.data.project, @current_user) 
+          = url_prefix(form.data.project, @user) 
         = text_input form, :url, type: "text", class: "input input-sm input-bordered rounded-l-none flex-grow" 
       = error_tag form, :url 
-  else 
+  - else 
     .form-control
       = label form, :url, class: "label" 
       = text_input form, :url, type: "text", class: "input input-sm input-bordered flex-grow" 

@@ -25,7 +25,7 @@ defmodule UserdocsDesktopWeb.MixProject do
       if Mix.env in [:test] do
         [
           mod: {UserdocsDesktopWeb.Application, []},
-          extra_applications: [:logger, :runtime_tools, :userdocs, :client]
+          extra_applications: [:logger, :runtime_tools, :userdocs]
         ]
       else
         [
@@ -61,11 +61,12 @@ defmodule UserdocsDesktopWeb.MixProject do
       {:desktop, "~> 1.3.0"},
       {:download, "~> 0.0.4"},
       {:chrome_remote_interface, "~> 0.4.1"},
+      {:phoenix_client, "~> 0.3"},
+      {:inflex, "~> 2.1"},
       {:state, in_umbrella: true},
-      {:userdocs, in_umbrella: true, runtime: false},
+      {:userdocs_client, in_umbrella: true},
+      {:userdocs, in_umbrella: true},
       {:state_handlers, in_umbrella: true},
-      {:client, in_umbrella: true, runtime: false},
-      {:session, in_umbrella: true, runtime: false},
       {:userdocs_web, in_umbrella: true, only: [:test], runtime: false},
     ]
   end

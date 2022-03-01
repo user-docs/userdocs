@@ -9,7 +9,6 @@ h1.text-2xl.font-bold.m-4
     id: @element.id || :new_element,
     title: @page_title,
     action: @live_action,
-    access_token: @access_token,
     page: @page,
     element: @element,
     params: @params,

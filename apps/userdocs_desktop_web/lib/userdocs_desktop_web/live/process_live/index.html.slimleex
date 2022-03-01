@@ -1,0 +1,29 @@
+div.flex.justify-between.m-4
+  h1.text-2xl.font-bold Listing Processes
+
+= if @live_action in [:edit, :new] do
+  = LiveHelpers.live_modal @socket, UserdocsDesktopWeb.ProcessLive.FormComponent,
+    id: "process-form",
+    parent_id: @current_user.selected_project.id,
+    title: @page_title,
+    action: @live_action,
+    process: @process,
+    select_lists: @select_lists,
+    return_to: Routes.process_index_path(@socket, :index)
+
+ul.py-3.shadow-lg.bg-base-100.rounded-box.m-4
+  li.px-5.py-2
+    h2.text-xl.font-bold Processes
+  = for process <- @processes do
+    li.flex 
+      = link to: Routes.step_index_path(@socket, :index, process), class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-1" do
+        = process.name
+      = live_patch to: Routes.process_index_path(@socket, :edit, process.id), id: "edit-process-#{process.id}", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        span
+          = Icons.edit([])
+      = link to: "#", phx_click: "delete", phx_value_id: process.id, id: "delete-process-#{process.id}", data: [confirm: "Are you sure?"], class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
+        span 
+          = Icons.trash([])
+
+= live_patch to: Routes.process_index_path(@socket, :new) do
+  button.btn.btn-primary.mt-4 New Process

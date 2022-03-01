@@ -1,118 +1,190 @@
 defmodule UserdocsDesktopWeb.PageLive.Index do
+  @moduledoc "Primary page live view"
   use UserdocsDesktopWeb, :live_view
+  require Logger
 
   alias Userdocs.Pages
   alias Schemas.Pages.Page
+  alias Schemas.Screenshots.Screenshot
   alias UserdocsDesktop.BrowserController
   alias UserdocsDesktopWeb.Root
-  alias UserdocsDesktopWeb.Loaders
   alias UserdocsDesktopWeb.LiveHelpers
   alias UserdocsDesktopWeb.RootSubscriptionHandlers
   alias UserdocsDesktopWeb.RootEventHandlers
   alias UserdocsDesktopWeb.Icons
-
-  def opts(token), do: %{access_token: token, context: %{repo: Client}}
-
-  def data_types do
-    [
-      Schemas.Pages.Page,
-      Schemas.Projects.Project
-    ]
-  end
+  alias UserdocsDesktopWeb.ExtensionMessages
+  @preloads [:project, :screenshots]
 
   @impl true
   def mount(_params, session, socket) do
+    Client.list_pages(%{})
+    UserdocsDesktopWeb.Endpoint.subscribe("extension")
     {
       :ok,
       socket
-      |> Root.apply(session, data_types())
-      |> initialize()
+      |> Root.apply(session, [])
+      |> assign(:user, Client.current_user())
+      |> assign(:params, %{})
     }
   end
 
-  def initialize(%{assigns: %{status: "connecting"}} = socket), do: socket
-  def initialize(%{assigns: %{status: "connected"}} = socket) do
-    socket
-    |> Loaders.pages()
-    |> Loaders.projects()
-  end
-
   @impl true
-  def handle_params(_, _, %{assigns: %{status: "connecting"}} = socket), do: {:noreply, socket}
-  def handle_params(params, url, %{assigns: %{status: "connected"}} = socket) do
+  def handle_params(params, url, socket) do
     {
       :noreply,
       socket
       |> assign(url: URI.parse(url))
       |> apply_action(socket.assigns.live_action, params)
-
     }
   end
 
-  defp apply_action(%{assigns: %{state_opts: opts, current_user: %{selected_project_id: project_id}}} = socket, :edit, %{"id" => id}) do
+  defp apply_action(socket, :edit, %{"id" => page_id} = params) do
+    user = Client.current_user()
     socket
     |> assign(:page_title, "Edit Page")
-    |> assign(:page, State.Pages.get_page!(id, socket, opts))
-    |> prepare_pages(project_id)
+    |> assign(:page, prepare_page(page_id))
+    |> assign(:params, Map.get(params, "params", %{}))
+    |> assign(:pages, prepare_pages(user.selected_project_id))
     |> assign_select_lists()
   end
 
-  defp apply_action(socket, :new, _params) do
+  defp apply_action(socket, :review_screenshot, %{"id" => page_id}) do
+    user = Client.current_user()
+    socket
+    |> assign(:page_title, "Review Screenshot")
+    |> assign(:page, prepare_page(page_id))
+    |> assign(:pages, prepare_pages(user.selected_project_id))
+    |> assign_select_lists()
+  end
+
+  defp apply_action(socket, :new, params) do
+    user = Client.current_user()
+    project = Client.current_project()
     socket
     |> assign(:page_title, "New Page")
-    |> assign(:page, %Page{})
-    |> prepare_pages(socket.assigns.current_user.selected_project.id)
+    |> assign(:page, %Page{project: project})
+    |> assign(:params, Map.get(params, "params", %{}))
+    |> assign(:pages, prepare_pages(user.selected_project.id))
     |> assign_select_lists()
   end
 
   defp apply_action(socket, :index, _params) do
+    user = Client.current_user()
     socket
     |> assign(:page_title, "Listing Pages")
     |> assign(:page, nil)
-    |> prepare_pages(socket.assigns.current_user.selected_project.id)
+    |> assign(:pages, prepare_pages(user.selected_project.id))
     |> assign_select_lists()
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    Pages.delete_page(id, opts(socket.assigns.access_token))
+    Client.delete_page(id, %{})
     {:noreply, socket}
   end
-
-  def handle_event("navigate", %{"id" => id}, %{assigns: %{state_opts: opts,  current_user: %{selected_project: project} = user}} = socket) do
-    page = State.Pages.get_page!(String.to_integer(id), socket, opts)
+  def handle_event("navigate", %{"id" => id}, socket) do
+    user = Client.current_user()
+    project = Client.get_project!(user.selected_project_id, %{})
+    page = Client.get_page!(id, %{})
     url = Pages.effective_url(page, project, user)
     BrowserController.execute({:navigate, %{url: url}})
     {:noreply, socket}
   end
-
+  def handle_event("screenshot-all", _payload, socket) do
+    user = Client.current_user()
+    project = Client.get_project!(user.selected_project_id, %{})
+    outer_acc = [{:set_size, %{width: project.default_width, height: project.default_height}}]
+    Enum.reduce(socket.assigns.pages, outer_acc, fn(page, acc) ->
+      acc ++ screenshot_command(page, project)
+    end)
+    |> BrowserController.enqueue()
+    {:noreply, socket}
+  end
+  def handle_event("screenshot", %{"id" => page_id}, socket) do
+    user = Client.current_user()
+    project = Client.get_project!(user.selected_project_id, %{})
+    page = prepare_page(page_id)
+    screenshot_command(page, project)
+    |> BrowserController.enqueue()
+    BrowserController.play()
+    {:noreply, socket}
+  end
   def handle_event(n, p, s), do: RootEventHandlers.handle_event(n, p, s)
 
   @impl true
-  def handle_info(%{topic: _, event: _, payload: %Page{}} = sub_data,
-  %{assigns: %{current_user: %{selected_project_id: project_id}}} = socket) do
+  def handle_info(%{topic: "extension", event: "browser_interaction", payload: %{action: "navigate"} = payload},
+  %{assigns: %{live_action: live_action}} = socket) do
+    user = Client.current_user()
+    project = Client.get_project!(user.selected_project_id, %{})
+    page = Client.find_page_by_path(payload.href, %{})
+    params = ExtensionMessages.page_params(payload, user, project)
+    case live_action do
+      :index ->
+        flash_message =
+          ExtensionMessages.maybe_create_page_flash("", socket, page, params, :patch)
+          |> ExtensionMessages.maybe_update_page_flash(socket, page, params, :patch)
+
+        {:noreply, socket |> put_flash(:info, flash_message)}
+      :new -> {:noreply, assign(socket, :params, params)}
+      :edit -> {:noreply, assign(socket, :params, params)}
+      :review_screenshot -> {:noreply, assign(socket, :params, params)}
+    end
+  end
+  def handle_info(%{topic: "extension", event: "browser_interaction", payload: %{action: action}}, socket) do
+    Logger.warning("#{__MODULE__} received an unsupported action #{action}")
+    {:noreply, socket}
+  end
+  def handle_info(%{topic: _, event: _, payload: %Page{}} = sub_data, socket) do
+    user = Client.current_user()
     {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
-    {:noreply, prepare_pages(socket, project_id)}
+    {:noreply, assign(socket, :pages, prepare_pages(user.selected_project_id))}
+  end
+  def handle_info(%{topic: _, event: _, payload: %Screenshot{}} = sub_data, socket) do
+    user = Client.current_user()
+    {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
+    {:noreply, assign(socket, :pages, prepare_pages(user.selected_project_id))}
   end
   def handle_info(n, s), do: RootSubscriptionHandlers.handle_info(n, s)
 
-  defp prepare_pages(socket, project_id) do
-     opts =
-       socket.assigns.state_opts
-       |> Keyword.put(:order, [%{field: :name, order: :asc}])
-       |> Keyword.put(:filter, {:project_id, project_id})
-
-    assign(socket, :pages, State.Pages.list_pages(socket, opts))
+  defp prepare_page(page_id) do
+    opts = [preloads: @preloads]
+    Client.get_page!(page_id, opts)
   end
 
-  def assign_select_lists(socket) do
+  defp prepare_pages(project_id) do
+    [
+      preloads: @preloads,
+      order: [%{field: :name, order: :asc}],
+      filter: {:project_id, project_id}
+    ]
+    |> Client.list_pages()
+  end
+
+  defp assign_select_lists(socket) do
     assign(socket, :select_lists, %{
-      projects: projects_select(socket)
+      projects: projects_select()
     })
   end
 
-  def projects_select(%{assigns: %{state_opts: state_opts}} = socket) do
-    State.Projects.list_projects(socket, state_opts)
+  defp projects_select() do
+    user = Client.current_user()
+    opts = [filter: {:team_id, user.selected_team_id}]
+    Client.list_projects(opts)
     |> LiveHelpers.select_list(:name, :true)
+  end
+
+  defp page_screenshot(page), do: Pages.page_screenshot(page)
+
+  defp effective_url(nil, _project, _user), do: ""
+  defp effective_url(page, project, user), do: Pages.effective_url(page, project, user)
+
+  defp screenshot_command(page, project) do
+    width = page.default_width || project.default_width
+    height = page.default_height || project.default_height
+    [
+      {:navigate, %{url: page.url}},
+      {:set_size, %{width: width, height: height}},
+      {:full_document_screenshot, %{width: width, page_id: page.id}}
+    ]
   end
 end

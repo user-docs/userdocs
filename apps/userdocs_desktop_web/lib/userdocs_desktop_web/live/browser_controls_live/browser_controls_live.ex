@@ -1,4 +1,5 @@
 defmodule UserdocsDesktopWeb.BrowserControlsLive do
+  @moduledoc "The primary live view for controlling the automated browser"
   use UserdocsDesktopWeb, :live_view
   require Logger
 
@@ -16,7 +17,9 @@ defmodule UserdocsDesktopWeb.BrowserControlsLive do
       :ok,
       socket
       |> assign(:user_opened_browser?, BrowserController.browser_open?())
-      |> assign(:browser_open?, BrowserController.browser_open?()),
+      |> assign(:browser_open?, BrowserController.browser_open?())
+      |> assign(:run_state, BrowserController.run_state())
+      |> assign(:queue, BrowserController.queue()),
       layout: {UserdocsDesktopWeb.LayoutView, "widget.html"}
     }
   end
@@ -40,21 +43,29 @@ defmodule UserdocsDesktopWeb.BrowserControlsLive do
     }
   end
   def handle_event("open-browser", _, socket) do
-    {:ok, current_user} = Session.current_user()
-    BrowserController.open_browser(current_user.selected_team.css)
+    current_user = Client.current_user()
+    Task.start(fn -> BrowserController.open_browser(current_user.selected_team.css) end)
     {:noreply, socket |> assign(:user_opened_browser?, true)}
   end
   def handle_event("close-browser", _, socket) do
-    BrowserController.close_browser()
+    Task.start(fn -> BrowserController.close_browser() end)
     {:noreply, socket |> assign(:user_opened_browser?, false)}
   end
   def handle_event("play", _, socket) do
     BrowserController.play()
-    {:noreply, socket |> assign(:user_opened_browser?, false)}
+    {:noreply, socket}
   end
   def handle_event("pause", _, socket) do
     BrowserController.pause()
-    {:noreply, socket |> assign(:user_opened_browser?, false)}
+    {:noreply, socket}
+  end
+  def handle_event("stop", _, socket) do
+    BrowserController.stop()
+    {:noreply, socket}
+  end
+  def handle_event("clear-queue", _, socket) do
+    BrowserController.clear_queue()
+    {:noreply, socket}
   end
 
   @impl true
@@ -66,6 +77,16 @@ defmodule UserdocsDesktopWeb.BrowserControlsLive do
     Logger.debug("Browser closed event")
     {:noreply, socket |> assign(:browser_open?, false)}
   end
+  def handle_info(%{topic: "browser", event: "run_state_updated", payload: %{run_state: run_state}}, socket) do
+    Logger.debug("#{__MODULE__} handling run_state_updated event")
+    {:noreply, socket |> assign(:run_state, run_state)}
+  end
+  def handle_info(%{topic: "browser", event: "queue_updated", payload: %{queue: queue}}, socket) do
+    Logger.debug("#{__MODULE__} handling queue_updated event")
+    {:noreply, socket |> assign(:queue, queue)}
+  end
+  def handle_info(%{topic: "browser", event: "execution_warning", payload: _}, socket), do: {:noreply, socket}
+  def handle_info(%{topic: "browser", event: "execution_error", payload: _}, socket), do: {:noreply, socket}
 
   def chromium_exists? do
     case File.stat(Paths.chromium_executable_path()) do
@@ -74,4 +95,7 @@ defmodule UserdocsDesktopWeb.BrowserControlsLive do
     {:error, reason} -> Logger.error("Unhandled path error #{reason}")
     end
   end
+
+  def maybe_btn_active(true), do: "btn-active"
+  def maybe_btn_active(false), do: ""
 end

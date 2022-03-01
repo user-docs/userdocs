@@ -20,7 +20,7 @@ defmodule UserdocsDesktopWeb.ExtensionChannel do
   end
   def handle_in("event:context_menu_interaction", payload, socket) do
     Logger.debug("Received context_menu_interaction")
-    broadcast!(socket, "browser_interaction", payload)
+    broadcast!(socket, "context_menu_interaction", payload)
     {:noreply, socket}
   end
   def handle_in("browser_interaction", payload, socket) do

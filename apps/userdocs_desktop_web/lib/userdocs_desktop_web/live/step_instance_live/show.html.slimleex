@@ -1,0 +1,13 @@
+= case @step_instance do 
+  - %StepInstance{status: :failed = status, error: %{message: message}} = step_instance->
+    h3.text-lg.font-bold = status |> Atom.to_string() |> Macro.camelize()
+    h4.font-bold Message 
+    p = message
+
+  - %StepInstance{status: :warning = status, warning: %{message: message}} = step_instance->
+    h3.text-lg.font-bold = status |> Atom.to_string() |> Macro.camelize()
+    h4.font-bold Message 
+    p = message
+
+  - _ -> 
+    p There is a problem with this step instance.
