@@ -8,20 +8,10 @@ defmodule Userdocs.Pages do
   alias Schemas.Projects.Project
   alias Schemas.Users.User
   alias Schemas.Teams.Team
-  alias Schemas.Screenshots.Screenshot
   alias Userdocs.Teams
-  alias Userdocs.Screenshots
   alias Userdocs.RepoHandler
-  alias Userdocs.Requests
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/pages"
 
   @doc "Returns the list of pages."
-  def list_pages(%{access_token: access_token, context: %{repo: Client}} = opts) do
-    params =  Map.take(opts, [:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => pages_attrs}} = Requests.send(request_fun, access_token, params)
-    create_page_structs(pages_attrs)
-  end
   def list_pages(opts) do
     filters = Map.get(opts, :filters, [])
     base_pages_query()
@@ -52,12 +42,6 @@ defmodule Userdocs.Pages do
 
   @doc "Creates a page."
   def create_page(attrs \\ %{}, opts)
-  def create_page(attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    params = %{page: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => page_attrs}} = Requests.send(request_fun, access_token, params)
-    create_page_struct(page_attrs)
-  end
   def create_page(attrs, opts) do
     %Page{}
     |> Page.changeset(attrs)
@@ -82,11 +66,6 @@ defmodule Userdocs.Pages do
   end
 
   @doc "Updates a page."
-  def update_page(%Page{} = page, attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    request_fun = Requests.build_update(@url, page.id)
-    {:ok, %{"data" => page_attrs}} = Requests.send(request_fun, access_token, %{page: attrs})
-    create_page_struct(page_attrs)
-  end
   def update_page(%Page{} = page, attrs, opts) do
     page
     |> Page.changeset(attrs)
@@ -95,10 +74,6 @@ defmodule Userdocs.Pages do
   end
 
   @doc "Deletes a page."
-  def delete_page(id, %{access_token: access_token, context: %{repo: Client}}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
-  end
   def delete_page(%Page{} = page, opts) do
     channel = channel(page, opts[:broadcast])
     RepoHandler.delete(page, opts)
@@ -150,34 +125,19 @@ defmodule Userdocs.Pages do
 
   def create_page_screenshot_attrs(page, base64) do
     %{
-      id: Ecto.UUID.generate(),
-      page_id: page.id,
-      project_id: page.project_id,
-      name: page.name <> " screenshot",
-      status: :ok,
-      base64: base64
+      "id" => Ecto.UUID.generate(),
+      "page_id" => page.id,
+      "project_id" => page.project_id,
+      "name" => page.name <> " screenshot",
+      "status" => :ok,
+      "base64" => base64
     }
   end
 
-  def upsert_page_screenshot_callback(%Page{screenshots: []} = page, %Team{} = team, opts) do
-    fn(inner_base64) ->
-      attrs = %{
-        "id" => UUID.uuid4(),
-        "page_id" => page.id,
-        "name" => page.name <> " screenshot",
-        "status" => "ok",
-        "base64" => inner_base64
-      }
-      Screenshots.create_screenshot(attrs, opts)
-    end
-  end
-  def upsert_page_screenshot_callback(%Page{screenshots: [%Screenshot{} = screenshot]} = page, %Team{}, opts) do
-    fn(inner_base64) ->
-      attrs = %{
-        "page_id" => page.id,
-        "base64" => inner_base64
-      }
-      Screenshots.update_screenshot(screenshot, attrs, opts)
-    end
+  def update_page_screenshot_attrs(page, base64) do
+    %{
+      "page_id" => page.id,
+      "base64" => base64
+    }
   end
 end

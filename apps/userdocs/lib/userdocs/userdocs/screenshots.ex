@@ -193,7 +193,6 @@
   end
 
   def prepare_local_images(screenshot, path, base64, bucket \\ "userdocs-screenshots") do
-    IO.puts("Path #{path}")
     local_image_path = Path.join(path, "#{screenshot.id}.png")
     ExAws.S3.download_file(bucket, "screenshots/#{screenshot.id}.png", local_image_path)
     |> ExAws.request!()
@@ -203,7 +202,7 @@
     |> File.write(local_image)
   end
 
-  def approve(screenshot, repo_path, opts) do
+  def approve_screenshot(screenshot, %{repo_path: repo_path} = opts) do
     provisional_path = provisional_path(screenshot, repo_path)
     :ok = File.cp(provisional_path, original_path(screenshot, repo_path))
     screenshot.presigned_urls.aws_screenshot.put

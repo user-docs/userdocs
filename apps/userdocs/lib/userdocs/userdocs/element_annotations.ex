@@ -5,17 +5,8 @@ defmodule Userdocs.ElementAnnotations do
   require Logger
   import Ecto.Query, warn: false
   alias Userdocs.RepoHandler
-  alias Userdocs.Requests
   alias Schemas.Elements.ElementAnnotation
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/element_annotations"
 
-
-  def list_element_annotations(%{access_token: access_token, context: %{repo: Client}} = opts) do
-    params = opts |> Map.take([:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => element_annotation_attrs}} = Requests.send(request_fun, access_token, params)
-    create_element_annotation_structs(element_annotation_attrs)
-  end
   def list_element_annotations(opts) do
     filters = Map.get(opts, :filters, [])
     base_element_annotations_query()

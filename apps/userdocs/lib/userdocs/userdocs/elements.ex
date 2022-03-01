@@ -6,16 +6,8 @@ defmodule Userdocs.Elements do
   import Ecto.Query, warn: false
   alias Userdocs.RepoHandler
   alias Userdocs.Teams
-  alias Userdocs.Requests
   alias Schemas.Elements.Element
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/elements"
 
-  def list_elements(%{access_token: access_token, context: %{repo: Client}} = opts) do
-    params = opts |> Map.take([:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => element_attrs}} = Requests.send(request_fun, access_token, params)
-    create_element_structs(element_attrs)
-  end
   def list_elements(opts) do
     filters = Map.get(opts, :filters, nil)
     base_elements_query()
@@ -46,12 +38,6 @@ defmodule Userdocs.Elements do
   end
 
   def create_element(attrs \\ %{}, opts)
-  def create_element(attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    params = %{element: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => element_attrs}} = Requests.send(request_fun, access_token, params)
-    create_element_struct(element_attrs)
-  end
   def create_element(attrs, opts) do
     %Element{}
     |> Element.changeset(attrs)
@@ -76,11 +62,6 @@ defmodule Userdocs.Elements do
   end
 
   @doc "Updates an Element"
-  def update_element(%Element{} = element, attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    request_fun = Requests.build_update(@url, element.id)
-    {:ok, %{"data" => element_attrs}} = Requests.send(request_fun, access_token, %{element: attrs})
-    create_element_struct(element_attrs)
-  end
   def update_element(%Element{} = element, attrs, opts) do
     element
     |> Element.changeset(attrs)
@@ -89,10 +70,6 @@ defmodule Userdocs.Elements do
   end
 
   @doc "Deletes an element"
-  def delete_element(id, %{access_token: access_token, context: %{repo: Client}}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
-  end
   def delete_element(%Element{} = element, opts) do
     channel = element_channel(element, opts)
     RepoHandler.delete(element, opts)

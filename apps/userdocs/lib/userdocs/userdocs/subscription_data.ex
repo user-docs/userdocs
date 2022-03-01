@@ -73,6 +73,6 @@ defmodule Userdocs.SubscriptionData do
   end
 
   def broadcast(object, action) do
-    UserdocsDesktopWeb.Endpoint.broadcast("data", action, object)
+    Phoenix.PubSub.broadcast(Userdocs.PubSub, "data", {action, object})
   end
 end

@@ -59,12 +59,13 @@ defmodule Userdocs.UsersTest do
       result =
         Users.get_user!(user.id, @opts)
         |> Map.delete(:password)
+
       assert result == Map.delete(user, :password)
     end
 
     test "delete_user/1 deletes the user" do
       user = UsersFixtures.user()
-      assert {:ok, %User{}} = Users.delete_user(user)
+      assert {:ok, %User{}} = Users.delete_user(user, %{})
       assert_raise Ecto.NoResultsError, fn -> Users.get_user!(user.id, @opts) end
     end
 

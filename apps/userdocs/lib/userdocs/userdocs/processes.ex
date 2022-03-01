@@ -7,18 +7,10 @@ defmodule Userdocs.Processes do
   import Ecto.Query, warn: false
   alias Userdocs.RepoHandler
   alias Schemas.Processes.Process
-  alias Userdocs.Requests
   alias Userdocs.Teams
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/processes"
 
 
   @doc "Returns the list of processes."
-  def list_processes(%{access_token: access_token, context: %{repo: Client}} = opts) do
-    params =  Map.take(opts, [:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => processes_attrs}} = Requests.send(request_fun, access_token, params)
-    create_process_structs(processes_attrs)
-  end
   def list_processes(opts) do
     filters = Map.get(opts, :filters, [])
     base_processes_query()
@@ -63,12 +55,6 @@ defmodule Userdocs.Processes do
 
   @doc "Creates a process."
   def create_process(attrs \\ %{}, opts)
-  def create_process(attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    params = %{process: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => process_attrs}} = Requests.send(request_fun, access_token, params)
-    create_process_struct(process_attrs)
-  end
   def create_process(attrs, opts) do
     %Process{}
     |> Process.changeset(attrs)
@@ -93,11 +79,6 @@ defmodule Userdocs.Processes do
   end
 
   @doc "Updates a process."
-  def update_process(%Process{} = process, attrs, %{access_token: access_token, context: %{repo: Client}}) do
-    request_fun = Requests.build_update(@url, process.id)
-    {:ok, %{"data" => process_attrs}} = Requests.send(request_fun, access_token, %{process: attrs})
-    create_process_struct(process_attrs)
-  end
   def update_process(%Process{} = process, attrs, opts) do
     process
     |> Process.changeset(attrs)
@@ -106,10 +87,6 @@ defmodule Userdocs.Processes do
   end
 
   @doc "Deletes a process."
-  def delete_process(id, %{access_token: access_token, context: %{repo: Client}}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
-  end
   def delete_process(%Process{} = process, opts) do
     channel = channel(process, opts[:broadcast])
     RepoHandler.delete(process, opts)

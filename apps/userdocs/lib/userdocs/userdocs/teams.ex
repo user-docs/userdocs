@@ -8,9 +8,7 @@ defmodule Userdocs.Teams do
   alias Userdocs.RepoHandler
   alias Userdocs.Repo
   alias Userdocs.RepoHandler
-  alias Userdocs.Requests
   alias Schemas.Teams.Team
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/teams"
 
   @doc "Returns the list of teams."
   def list_teams(opts) do

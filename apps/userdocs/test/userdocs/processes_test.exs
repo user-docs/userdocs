@@ -33,48 +33,48 @@ defmodule Userdocs.ProcessesTest do
     ]
 
     test "list_processes/0 returns all processes", %{project: project} do
-      process = AutomationFixtures.process(project.id)
-      assert Processes.list_processes() == [process]
+      process = AutomationFixtures.process(project.id, @opts)
+      assert Processes.list_processes(@opts) == [process]
     end
 
     test "get_process!/1 returns the process with given id", %{project: project} do
-      process = AutomationFixtures.process(project.id)
-      assert Processes.get_process!(process.id) == process
+      process = AutomationFixtures.process(project.id, @opts)
+      assert Processes.get_process!(process.id, @opts) == process
     end
 
     test "create_process/1 with valid data creates a process", %{project: project} do
       attrs = AutomationFixtures.process_attrs(:valid, project.id)
-      assert {:ok, %Process{} = process} = Processes.create_process(attrs)
+      assert {:ok, %Process{} = process} = Processes.create_process(attrs, @opts)
       assert process.name == attrs.name
     end
 
     test "create_process/1 with invalid data returns error changeset", %{project: project} do
       attrs = AutomationFixtures.process_attrs(:invalid, project.id)
-      assert {:error, %Ecto.Changeset{}} = Processes.create_process(attrs)
+      assert {:error, %Ecto.Changeset{}} = Processes.create_process(attrs, @opts)
     end
 
     test "update_process/2 with valid data updates the process", %{project: project} do
-      process = AutomationFixtures.process(project.id)
+      process = AutomationFixtures.process(project.id, @opts)
       attrs = AutomationFixtures.process_attrs(:valid, project.id)
-      assert {:ok, %Process{} = process} = Processes.update_process(process, attrs)
+      assert {:ok, %Process{} = process} = Processes.update_process(process, attrs, @opts)
       assert process.name == attrs.name
     end
 
     test "update_process/2 with invalid data returns error changeset", %{project: project} do
-      process = AutomationFixtures.process(project.id)
+      process = AutomationFixtures.process(project.id, @opts)
       attrs = AutomationFixtures.process_attrs(:invalid, project.id)
-      assert {:error, %Ecto.Changeset{}} = Processes.update_process(process, attrs)
-      assert process == Processes.get_process!(process.id)
+      assert {:error, %Ecto.Changeset{}} = Processes.update_process(process, attrs, @opts)
+      assert process == Processes.get_process!(process.id, @opts)
     end
 
     test "delete_process/1 deletes the process", %{project: project} do
-      process = AutomationFixtures.process(project.id)
-      assert {:ok, %Process{}} = Processes.delete_process(process)
-      assert_raise Ecto.NoResultsError, fn -> Processes.get_process!(process.id) end
+      process = AutomationFixtures.process(project.id, @opts)
+      assert {:ok, %Process{}} = Processes.delete_process(process, @opts)
+      assert_raise Ecto.NoResultsError, fn -> Processes.get_process!(process.id, @opts) end
     end
 
     test "change_process/1 returns a process changeset", %{project: project} do
-      process = AutomationFixtures.process(project.id)
+      process = AutomationFixtures.process(project.id, @opts)
       assert %Ecto.Changeset{} = Processes.change_process(process)
     end
   end

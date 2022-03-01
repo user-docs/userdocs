@@ -7,8 +7,6 @@ defmodule Userdocs.Annotations do
   alias Schemas.Annotations.Annotation
   alias Schemas.Elements.ElementAnnotation
   alias Userdocs.Teams
-  alias Userdocs.Requests
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/annotations"
 
   def list_annotations(opts)  do
     filters = Map.get(opts, :filters, [])

@@ -1,4 +1,4 @@
-defmodule Userdocs.AutomationTest do
+defmodule Userdocs.StepTypesTest do
   use Userdocs.DataCase
 
   alias Userdocs.AutomationFixtures
