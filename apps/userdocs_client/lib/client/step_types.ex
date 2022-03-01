@@ -1,6 +1,6 @@
 defmodule Client.StepTypes do
   require Logger
-  alias Userdocs.Requests
+  alias Client.Requests
   alias Userdocs.StepTypes
   @url "http://localhost:4000/api/step_types"
 

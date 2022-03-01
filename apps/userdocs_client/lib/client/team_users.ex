@@ -1,7 +1,7 @@
 defmodule Client.TeamUsers do
   @moduledoc "The Team Users Context"
   require Logger
-  alias Userdocs.Requests
+  alias Client.Requests
   alias Userdocs.TeamUsers
   #alias Schemas.Teams.TeamUser
   @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/team_users"

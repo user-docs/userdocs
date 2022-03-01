@@ -3,7 +3,7 @@ defmodule Client.Steps do
   The Steps context.
   """
   require Logger
-  alias Userdocs.Requests
+  alias Client.Requests
   alias Userdocs.Steps
   alias Schemas.Steps.Step
   @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/steps"

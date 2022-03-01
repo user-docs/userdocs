@@ -6,7 +6,7 @@ defmodule Client.Pages do
   alias Schemas.Pages.Page
   alias Schemas.Screenshots.Screenshot
   alias Userdocs.Pages
-  alias Userdocs.Requests
+  alias Client.Requests
   @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/pages"
 
   @doc "Returns the list of pages."

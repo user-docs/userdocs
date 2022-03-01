@@ -6,8 +6,11 @@ defmodule ClientTest.Screenshots do
   alias Userdocs.TeamsFixtures
   alias Userdocs.WebFixtures
   alias Userdocs.ScreenshotFixtures
+  alias Userdocs.ImageComparison
   alias Schemas.Screenshots.Screenshot
+  alias Client.Screenshots
 
+  @local_path Path.join(:code.priv_dir(:userdocs), "screenshots")
   @opts %{context: %{repo: Userdocs.Repo}}
 
   defp create_password(_), do: %{password: UUID.uuid4()}
@@ -36,6 +39,18 @@ defmodule ClientTest.Screenshots do
   defp init_state(_) do
     Client.init_state()
     %{}
+  end
+
+  defp clean_local_files() do
+    File.ls!(@local_path)
+    |> Enum.each(fn(file) ->
+      Path.expand(file, @local_path) |> File.rm_rf()
+    end)
+  end
+  defp different_placeholder() do
+    Path.join([:code.priv_dir(:userdocs), "static", "images", "userdocs_placeholder_different.png"])
+    |> File.read!()
+    |> Base.encode64()
   end
 
   describe "Screenshots" do
@@ -96,6 +111,33 @@ defmodule ClientTest.Screenshots do
       assert result.id == new_id
       Phoenix.PubSub.unsubscribe(Userdocs.PubSub, "data")
       Client.disconnect()
+    end
+
+    test "prepare_local_images does the things", %{project: project} do
+      screenshot = ScreenshotFixtures.screenshot(%{project_id: project.id}, @opts)
+      base64 = different_placeholder()
+      Screenshots.prepare_local_images(screenshot, @local_path, base64)
+      assert File.exists?(Path.join(@local_path, to_string(screenshot.id) <> ".png")) == true
+      assert File.exists?(Path.join(@local_path, to_string(screenshot.id) <> "-provisional.png")) == true
+      clean_local_files()
+    end
+
+    test "compare does the things", %{project: project} do
+      screenshot = ScreenshotFixtures.screenshot(%{project_id: project.id}, @opts)
+      base64 = different_placeholder()
+      magick_path = "C:\\Users\\johns10\\userdocs\\image_magick\\magick"
+      Screenshots.prepare_local_images(screenshot, @local_path, base64)
+      #assert ImageComparison.compare(screenshot, @local_path, magick_path) == {:ok, %{h: 275, result_code: :image_difference, score: 0.050239234449760764, w: 342}}
+    end
+
+    test "create_local_files/1 does the things" do
+      id = "test"
+      base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAFiUAABYlAUlSJPAAAAAMSURBVBhXY/j//z8ABf4C/qc1gYQAAAAASUVORK5CYII="
+      Screenshots.create_local_files(id, @local_path, base64)
+      assert File.exists?(Path.join(@local_path, to_string(id) <> ".png")) == true
+      assert File.exists?(Path.join(@local_path, to_string(id) <> "-provisional.png")) == true
+      assert File.exists?(Path.join(@local_path, to_string(id) <> "-diff.png")) == true
+      clean_local_files()
     end
   end
 end

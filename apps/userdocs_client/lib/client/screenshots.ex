@@ -1,7 +1,7 @@
 defmodule Client.Screenshots do
   @moduledoc "The Step Types context."
   require Logger
-  alias Userdocs.Requests
+  alias Client.Requests
   alias Schemas.Screenshots.Screenshot
   alias Schemas.Screenshots.PresignedURLs
   alias Userdocs.ImageComparison

@@ -3,7 +3,7 @@ defmodule Client.Projects do
   The Projects context.
   """
   require Logger
-  alias Userdocs.Requests
+  alias Client.Requests
   alias Userdocs.Projects
   alias Schemas.Projects.Project
   @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/projects"

@@ -2,7 +2,7 @@ defmodule Client.ElementAnnotations do
   @moduledoc """
   The Elements context.
   """
-  alias Userdocs.Requests
+  alias Client.Requests
   alias Userdocs.ElementAnnotations
   @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/element_annotations"
 

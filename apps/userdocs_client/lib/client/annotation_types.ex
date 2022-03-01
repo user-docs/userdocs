@@ -1,6 +1,6 @@
 defmodule Client.AnnotationTypes do
   require Logger
-  alias Userdocs.Requests
+  alias Client.Requests
   alias Userdocs.AnnotationTypes
   @url "http://localhost:4000/api/annotation_types"
 

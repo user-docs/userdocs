@@ -1,7 +1,7 @@
 defmodule Client.Strategies do
   @moduledoc "The Strategies context."
 
-  alias Userdocs.Requests
+  alias Client.Requests
   alias Userdocs.Strategies
   @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/strategies"
 

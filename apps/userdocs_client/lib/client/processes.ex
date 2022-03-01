@@ -1,7 +1,7 @@
 defmodule Client.Processes do
   require Logger
   alias Schemas.Processes.Process
-  alias Userdocs.Requests
+  alias Client.Requests
   alias Userdocs.Processes
   @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/processes"
 

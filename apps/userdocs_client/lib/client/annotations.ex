@@ -2,7 +2,7 @@ defmodule Client.Annotations do
   @moduledoc "The Annotations context."
   require Logger
   alias Schemas.Annotations.Annotation
-  alias Userdocs.Requests
+  alias Client.Requests
   alias Userdocs.Annotations
   @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/annotations"
 

@@ -2,7 +2,7 @@ defmodule Client.Elements do
   @moduledoc """
   The Elements context.
   """
-  alias Userdocs.Requests
+  alias Client.Requests
   alias Userdocs.Elements
   alias Schemas.Elements.Element
   @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/elements"
