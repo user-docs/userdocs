@@ -148,8 +148,7 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
       |> form("#page-form", page: valid_attrs)
       |> render_submit()
 
-      :timer.sleep(@receive_timeout)
-      assert_receive(%{event: "create", topic: "data"})
+      assert_receive(%{event: "create", topic: "data"}, @receive_timeout)
       assert_patched(index_live, Routes.page_index_path(conn, :index))
       assert render(index_live) =~ "Page created successfully"
       assert render(index_live) =~ valid_attrs.name

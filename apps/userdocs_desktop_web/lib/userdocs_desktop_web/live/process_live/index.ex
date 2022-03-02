@@ -17,6 +17,7 @@ defmodule UserdocsDesktopWeb.ProcessLive.Index do
       :ok,
       socket
       |> Root.apply(session, [])
+      |> assign(:current_project, Client.current_project())
       |> assign(:select_lists, %{})
     }
   end

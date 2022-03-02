@@ -4,7 +4,7 @@ defmodule UserdocsWeb.API.TeamUserController do
   alias Userdocs.TeamUsers
   alias UserdocsWeb.API.Helpers
   action_fallback UserdocsWeb.FallbackController
-  @opts %{context: %{repo: Userdocs.Repo}}
+  @opts %{context: %{repo: Userdocs.Repo}, broadcast: true}
 
   def index(conn, params) do
     opts = Helpers.parse_params(params, @opts)
@@ -16,7 +16,6 @@ defmodule UserdocsWeb.API.TeamUserController do
     team_user = TeamUsers.get_team_user!(id, @opts)
 
     with {:ok, %TeamUser{}} <- TeamUsers.delete_team_user(team_user, @opts) do
-      payload = %{type: "Schemas.Teams.TeamUser", attrs: team_user}
       send_resp(conn, :no_content, "")
     end
   end

@@ -41,7 +41,6 @@ defmodule Userdocs.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:ecto_sqlite3, "~> 0.7.1"},
       {:jason, "~> 1.0"},
-      {:cloak_ecto, "~> 1.2.0"},
       {:uuid, "~> 1.1"},
       {:pow, "~> 1.0.21"},
       {:bodyguard, "~> 2.4"},

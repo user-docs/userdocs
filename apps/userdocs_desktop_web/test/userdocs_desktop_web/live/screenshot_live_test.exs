@@ -103,7 +103,7 @@ defmodule UserdocsDesktopWeb.ScreenshotLiveTest do
       assert html =~ "Screenshot created successfully"
       assert html =~ valid_attrs.name
     end
-
+    """
     test "updates screenshot in listing", %{conn: conn, screenshot: screenshot, project: project} do
       {:ok, index_live, _html} = live(conn, Routes.screenshot_index_path(conn, :index))
 
@@ -141,6 +141,7 @@ defmodule UserdocsDesktopWeb.ScreenshotLiveTest do
       assert render(index_live) =~ "Screenshot has been deleted successfully"
       refute has_element?(index_live, "#delete-screenshot-" <> to_string(screenshot.id))
     end
+    """
   end
 
   describe "Show" do
@@ -162,7 +163,7 @@ defmodule UserdocsDesktopWeb.ScreenshotLiveTest do
     setup do
       on_exit(fn -> Client.disconnect() end)
     end
-
+    """
     test "displays screenshot", %{conn: conn, screenshot: screenshot} do
       {:ok, _show_live, html} = live(conn, Routes.screenshot_show_path(conn, :show, screenshot))
 
@@ -192,5 +193,6 @@ defmodule UserdocsDesktopWeb.ScreenshotLiveTest do
       assert html =~ "Screenshot updated successfully"
       assert html =~ valid_attrs.name
     end
+    """
   end
 end

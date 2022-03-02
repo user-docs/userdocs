@@ -8,7 +8,8 @@ esbuild
       "./src/recorder.ts",
       "./src/background.ts",
       "./src/content.ts",
-      "./src/parser.ts"
+      "./src/parser.ts",
+      "./src/devtools.ts"
     ],
     bundle: true,
     //minify: true,

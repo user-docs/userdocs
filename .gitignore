@@ -24,3 +24,8 @@ erl_crash.dump
 **/node_modules/
 **/public/
 /chrome-win/
+**/*.DCD
+**/*.DCL
+**/DECISION_TAB.LOG
+**/LATEST.LOG
+**/schema.DAT

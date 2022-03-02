@@ -1,10 +1,20 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <script>
+      function change(button) {
+        button.innerHTML = "After";
+      }
+    </script>
   </head>
   <body>
       <h1>h1</h1>
       <p id="p">p</p>
       <p id="many_attributes_p" style="color: green;" name="name">many attributes p</p>
+      <form>
+        <label for="fname">name</label>
+        <input type="text" id="name" name="name"><br><br>
+      </form>
+      <button id='testButton' onclick='change(this)'>Before</button>
   </body>
 </html>

@@ -43,6 +43,10 @@ defmodule UserdocsWeb.Router do
     resources "/elements", ElementController, except: [:new, :edit]
     resources "/element_annotations", ElementAnnotationController, except: [:new, :edit]
     resources "/annotations", AnnotationController, except: [:new, :edit]
+    resources "/screenshots", ScreenshotController, except: [:new, :edit]
+    resources "/processes", ProcessController, except: [:new, :edit]
+    resources "/steps", StepController, except: [:new, :edit]
+    resources "/step_types", StepTypesController, except: [:new, :edit]
 
     resources "/registration", RegistrationController, singleton: true, only: [:create]
     resources "/session", SessionController, singleton: true, only: [:create, :delete]

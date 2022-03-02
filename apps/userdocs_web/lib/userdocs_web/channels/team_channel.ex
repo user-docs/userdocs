@@ -17,11 +17,13 @@ defmodule UserdocsWeb.TeamChannel do
     {:reply, {:ok, payload}, socket}
   end
   def handle_in("create", payload, socket) do
-    IO.puts("Create subscription message")
+    IO.puts("#{__MODULE__}.create subscription message")
+    broadcast!(socket, "create", payload)
     {:reply, {:ok, payload}, socket}
   end
   def handle_in("update", payload, socket) do
-    IO.puts("update subscription message")
+    IO.puts("#{__MODULE__}.update subscription message")
+    broadcast!(socket, "update", payload)
     {:reply, {:ok, payload}, socket}
   end
 

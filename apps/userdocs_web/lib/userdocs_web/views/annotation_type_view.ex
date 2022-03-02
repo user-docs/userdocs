@@ -14,7 +14,8 @@ defmodule UserdocsWeb.API.AnnotationTypeView do
     %{
       id: annotation_type.id,
       name: annotation_type.name,
-      args: annotation_type.args
+      args: annotation_type.args,
+      max_elements: annotation_type.max_elements
     }
   end
 end

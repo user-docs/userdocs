@@ -1,4 +1,5 @@
 defmodule UserdocsWeb.API.Auth.ErrorHandler do
+  @moduledoc false
   use UserdocsWeb, :controller
   alias Plug.Conn
 

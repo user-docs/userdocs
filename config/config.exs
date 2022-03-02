@@ -54,14 +54,14 @@ config :userdocs_desktop, UserdocsDesktopWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "F/xqDA4Pr4dG148EafYzXGOiVL4CmUdj7k6+MN5Zx+OkahJbqGpcbopuD0guEVP9",
   render_errors: [view: UserdocsDesktopWeb.ErrorView, accepts: ~w(html json), layout: false],
-  pubsub_server: UserdocsDesktop.PubSub,
+  pubsub_server: Userdocs.PubSub,
   live_view: [signing_salt: "Gs36ZG/k"]
 
 config :userdocs_desktop_web, UserdocsDesktopWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "F/xqDA4Pr4dG148EafYzXGOiVL4CmUdj7k6+MN5Zx+OkahJbqGpcbopuD0guEVP9",
   render_errors: [view: UserdocsDesktopWeb.ErrorView, accepts: ~w(html json), layout: false],
-  pubsub_server: UserdocsDesktop.PubSub,
+  pubsub_server: Userdocs.PubSub,
   live_view: [signing_salt: "Gs36ZG/k"]
 
 # Use Jason for JSON parsing in Phoenix
@@ -102,6 +102,10 @@ config :userdocs_desktop,
   host_url: if(Mix.env() in [:dev, :test], do: "http://dev.user-docs.com:4000", else: "https://app.user-docs.com"),
   channels_url: if Mix.env() in [:dev, :test], do: "ws://dev.user-docs.com:4000/socket/websocket", else: "wss://app.user-docs.com/socket/websocket"
 
+config :ex_aws,
+  json_codec: Jason,
+  region: "us-east-2"
+
 config :userdocs, Userdocs.Mailer,
   adapter: Bamboo.SendGridAdapter,
   api_key: "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"
@@ -117,7 +121,12 @@ defmodule InitUADB do
     Application.put_env(:ua_inspector, :database_path, priv_dir)
     ua_readme_path = priv_dir |> Path.join("ua_inspector.readme.md")
     if not File.exists?(ua_readme_path) do
-      UAInspector.Downloader.download()
+      try do
+        UAInspector.Downloader.download()
+      rescue
+        e -> IO.puts("Was not able to download UADB because #{inspect(e)}")
+      end
+
     end
     Application.put_env(:ua_inspector, :database_path, priv_dir)
   end

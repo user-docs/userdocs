@@ -1,4 +1,5 @@
 defmodule UserdocsWeb.API.Helpers do
+  @moduledoc false
   def parse_params(params, opts) do
     params
     |> Jason.encode!()

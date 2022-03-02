@@ -6,7 +6,7 @@ defmodule UserdocsWeb.TokenToSessionController do
   def new(conn, _) do
     user = conn.assigns[:current_user]
     if user do # passing Bearer token
-      user = Users.get_user!(user.id)
+      user = Users.get_user!(user.id, %{context: %{repo: Userdocs.Repo}})
       config = Pow.Plug.fetch_config(conn)
       {conn, user} = Pow.Plug.Session.create(conn, user, config)
       conn

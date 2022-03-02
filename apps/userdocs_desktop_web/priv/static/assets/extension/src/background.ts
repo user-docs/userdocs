@@ -3,8 +3,10 @@ import { actions } from './actions'
 
 function menuHandler(channel) {
   function apply(info, tab) {
-    //console.log(`Menu Interaction with ${JSON.stringify(info)}`)
+    console.log(`Menu Interaction with ${JSON.stringify(info)}`)
     chrome.tabs.sendMessage(tab.id, "get_clicked_element", {frameId: info.frameId}, data => {
+      data.action = info.menuItemId
+      console.log(data)
       channel.push("event:context_menu_interaction", data)
     });
   }
@@ -47,6 +49,11 @@ chrome.contextMenus.create({
   title: 'Badge + Blur Element',
   contexts: ['all']
 })  
+chrome.contextMenus.create({
+  id: actions.SVG,
+  title: 'SVG',
+  contexts: ['all']
+})
 
 const socket = new Socket("ws://localhost:4001/socket")
 socket.connect()
@@ -65,6 +72,23 @@ chrome.runtime.onMessage.addListener(message => {
       if(result.subscribed == true) {
         channel.push("browser_interaction", message)
       }
+    })
+  }
+})
+
+var DEVTOOLS_PORT: chrome.runtime.Port
+
+chrome.runtime.onConnect.addListener(function(port) {
+  if (port.name === 'devtools') {
+    DEVTOOLS_PORT = port
+    port.onMessage.addListener(function(message) {
+      console.log(`Background received devtools ${message.action} message`)
+      chrome.storage.local.get(['subscribed'], (result) => {
+        if (message.action === actions.ITEM_SELECTED) {
+          console.log(`sending ${message.action} message`)
+          channel.push("browser_interaction", message)
+        }
+      })
     })
   }
 })

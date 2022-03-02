@@ -19,9 +19,7 @@ defmodule UserdocsDesktopWeb.Application do
       {Phoenix.PubSub, name: UserdocsDesktop.PubSub},
       UserdocsDesktopWeb.Endpoint,
       {Desktop.Window, desktop_opts},
-      UserdocsDesktop,
-      {UserdocsDesktop.BrowserState, nil},
-      UserdocsDesktop.BrowserController
+      UserdocsDesktop
     ]
     opts = [strategy: :one_for_one]
     Supervisor.start_link(children, opts)
@@ -33,9 +31,5 @@ defmodule UserdocsDesktopWeb.Application do
   def config_change(changed, _new, removed) do
     UserdocsDesktopWeb.Endpoint.config_change(changed, removed)
     :ok
-  end
-
-  def kill_browser_controller() do
-    UserdocsDesktop.BrowserController.quit()
   end
 end

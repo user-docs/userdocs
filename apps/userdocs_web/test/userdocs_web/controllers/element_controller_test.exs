@@ -2,8 +2,6 @@ defmodule UserdocsWeb.ElementControllerTest do
   use UserdocsWeb.ConnCase
 
   alias Schemas.Elements.Element
-  alias Userdocs.Elements
-  alias Userdocs.Pages
   alias Userdocs.ProjectsFixtures
   alias Userdocs.UsersFixtures
   alias Userdocs.TeamsFixtures
@@ -18,7 +16,7 @@ defmodule UserdocsWeb.ElementControllerTest do
   defp create_team_user(%{user: user, team: team}), do: %{team_user: TeamsFixtures.team_user(user.id, team.id, @opts)}
   defp create_strategy(_), do: %{strategy: WebFixtures.strategy(@opts)}
   defp create_project(%{team: team, strategy: strategy}), do: %{project: ProjectsFixtures.project(team.id, strategy.id, @opts)}
-  defp create_page(%{project: project}), do: %{page: WebFixtures.page(project.id)}
+  defp create_page(%{project: project}), do: %{page: WebFixtures.page(project.id, @opts)}
   defp create_element(%{page: page, strategy: strategy}), do: %{element: WebFixtures.element(page.id, strategy.id, @opts)}
 
   setup [

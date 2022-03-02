@@ -1,7 +1,7 @@
 export const actions = {
     click: "click",
     load: "navigate",
-    keypress: "fill_field",
+    keypress: "keypress",
     CREATE_ANNOTATION: 'apply_annotation',
     ELEMENT_SCREENSHOT: 'element_screenshot',
     FULL_SCREEN_SCREENSHOT: "full_screen_screenshot",
@@ -12,6 +12,7 @@ export const actions = {
     BADGE_BLUR: 'badge_blur',
     SUBSCRIBE: 'subscribe',
     UNSUBSCRIBE: 'unsubscribe',
+    SVG: 'SVG',
 
     TEST_SELECTOR: 'TEST_SELECTOR',
     ITEM_SELECTED: 'ITEM_SELECTED',

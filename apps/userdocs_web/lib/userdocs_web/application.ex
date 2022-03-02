@@ -8,7 +8,6 @@ defmodule UserdocsWeb.Application do
     Logger.info("Starting #{__MODULE__}")
     children = [
       UserdocsWeb.Telemetry,
-      {Phoenix.PubSub, name: Userdocs.PubSub},
       UserdocsWeb.Presence,
       Pow.Store.Backend.MnesiaCache,
       UserdocsWeb.Endpoint

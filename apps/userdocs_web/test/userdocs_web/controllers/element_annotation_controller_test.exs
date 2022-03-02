@@ -1,22 +1,6 @@
 defmodule UserdocsWeb.ElementAnnotationControllerTest do
   use UserdocsWeb.ConnCase
 
-  alias Userdocs.ElementAnnotations
-  alias Userdocs.ElementAnnotations.ElementAnnotation
-
-  @create_attrs %{
-    id: 42
-  }
-  @update_attrs %{
-    id: 43
-  }
-  @invalid_attrs %{id: nil}
-
-  def fixture(:element_annotation) do
-    {:ok, element_annotation} = ElementAnnotations.create_element_annotation(@create_attrs)
-    element_annotation
-  end
-
   setup %{conn: conn} do
     {:ok, conn: put_req_header(conn, "accept", "application/json")}
   end

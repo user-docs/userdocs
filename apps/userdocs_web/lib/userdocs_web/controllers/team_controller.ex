@@ -5,7 +5,7 @@ defmodule UserdocsWeb.API.TeamController do
   alias Schemas.Teams.Team
   alias UserdocsWeb.API.Helpers
   action_fallback UserdocsWeb.FallbackController
-  @opts %{context: %{repo: Userdocs.Repo}}
+  @opts %{broadcast: true, context: %{repo: Userdocs.Repo}}
 
   def index(conn, params) do
     opts = Helpers.parse_params(params, @opts)

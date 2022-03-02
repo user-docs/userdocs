@@ -114,11 +114,8 @@ defmodule UserdocsDesktopWeb.ProjectPicker do
       selected_team_id: team_id,
       selected_project_id: project_id
     }
-    IO.inspect("Pre load it's #{Client.current_user().selected_project_id}")
     Client.update_user_selections(Client.current_user(), changes)
-    IO.inspect("Post update it's #{Client.current_user().selected_project_id}")
     Client.load()
-    IO.inspect("Post load it's #{Client.current_user().selected_project_id}")
     {
       :noreply,
       socket

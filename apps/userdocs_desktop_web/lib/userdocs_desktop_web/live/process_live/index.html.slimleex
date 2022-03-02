@@ -4,7 +4,7 @@ div.flex.justify-between.m-4
 = if @live_action in [:edit, :new] do
   = LiveHelpers.live_modal @socket, UserdocsDesktopWeb.ProcessLive.FormComponent,
     id: "process-form",
-    parent_id: @current_user.selected_project.id,
+    parent_id: @current_project.id,
     title: @page_title,
     action: @live_action,
     process: @process,

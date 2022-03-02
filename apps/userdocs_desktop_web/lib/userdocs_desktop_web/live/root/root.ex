@@ -16,7 +16,6 @@ defmodule UserdocsDesktopWeb.Root do
 
   def do_authentication(%{assigns: %{status: "connected"}} = socket, session, types) do
     socket
-    #|> put_access_token()
     #|> assign_current_user()
     |> continue_apply(session, types)
   end
@@ -42,11 +41,6 @@ defmodule UserdocsDesktopWeb.Root do
     end
     """
     assign(socket, status: "connected")
-  end
-
-  def put_access_token(socket) do
-    {:ok, %{access_token: access_token}} = Session.tokens()
-    assign(socket, :access_token, access_token)
   end
 
   # This will go, eventually

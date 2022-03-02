@@ -6,6 +6,7 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
   alias Userdocs.WebFixtures
   alias Userdocs.ProjectsFixtures
   @opts %{context: %{repo: Userdocs.Repo}}
+  @receive_timeout 250
 
   defp create_password(_), do: %{password: UUID.uuid4()}
   defp create_user(%{password: password}), do: %{user: UsersFixtures.confirmed_user(password)}
@@ -72,6 +73,7 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
         |> form("#project-form", project: valid_attrs)
         |> render_submit()
 
+      :timer.sleep(@receive_timeout)
       assert_receive(%{event: "create", topic: "data"})
       assert render(index_live) =~ "Project created successfully"
       assert_patched(index_live, Routes.project_index_path(conn, :index, team.id))
@@ -95,6 +97,7 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
       |> form("#project-form", project: valid_attrs)
       |> render_submit()
 
+      :timer.sleep(@receive_timeout)
       assert_receive(%{event: "update", topic: "data"})
       assert_patched(index_live, Routes.project_index_path(conn, :index, team.id))
       assert render(index_live) =~ "Project updated successfully"

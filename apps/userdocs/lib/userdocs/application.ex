@@ -12,12 +12,12 @@ defmodule Userdocs.Application do
       {Phoenix.PubSub, name: Userdocs.PubSub},
       Userdocs.LocalRepo,
       Userdocs.Repo,
-      Userdocs.Vault
+      Schemas.Vault
     ] # when in dev, we need to start both
     """
       case environment do
-        :desktop -> [Userdocs.LocalRepo, Userdocs.Vault]
-        _ -> [Userdocs.Repo, Userdocs.Vault]
+        :desktop -> [Userdocs.LocalRepo, Schemas.Vault]
+        _ -> [Userdocs.Repo, Schemas.Vault]
       end
     """
     Supervisor.start_link(children, opts)

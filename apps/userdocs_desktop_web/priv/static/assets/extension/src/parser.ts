@@ -60,6 +60,7 @@ export function parseElementMessage(element) {
   return {
     generatedSelector: getSelector(element),
     elementName: getName(element),
+    directSelector: getPathTo(element),
     tagName: element.tagName,
     href: getElementLocation(element),
     pageTitle: getPageTitle()

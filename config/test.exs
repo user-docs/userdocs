@@ -12,6 +12,9 @@ config :userdocs, Userdocs.Repo,
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
 
+config :userdocs, Userdocs.LocalRepo,
+  pool: Ecto.Adapters.SQL.Sandbox
+
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :userdocs_web, UserdocsWeb.Endpoint,
@@ -28,13 +31,13 @@ config :userdocs_web, UserdocsWeb.Endpoint,
   secret_key_base: "sWKBZ7zc4IamA4LR5c0gE06HE6ve9zqWpF6RPj0KDfjXwjVv2OMwRnSO9cQMI6jE"
 
 config :userdocs_desktop_web, UserdocsDesktopWeb.Endpoint,
-  pubsub_server: UserdocsDesktop.PubSub,
+  pubsub_server: Userdocs.PubSub,
   http: [port: 5002],
   server: true,
   secret_key_base: "sWKBZ7zc4IamA4LR5c0gE06HE6ve9zqWpF6RPj0KDfjXwjVv2OMwRnSO9cQMI6jE"
 
 # Print only warnings and errors during test
-config :logger, level: :debug
+config :logger, level: :warning
 
 config :userdocs, Userdocs.Mailer,
   adapter: Bamboo.TestAdapter

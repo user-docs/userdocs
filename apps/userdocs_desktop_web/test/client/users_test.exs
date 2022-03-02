@@ -1,4 +1,5 @@
 defmodule ClientTest.UsersTest do
+  use ExUnit.Case
   use UserdocsDesktopWeb.ConnCase
   use UserdocsDesktopWeb.ChannelCase
   alias Userdocs.UsersFixtures

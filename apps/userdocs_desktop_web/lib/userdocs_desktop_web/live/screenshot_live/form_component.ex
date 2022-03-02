@@ -1,7 +1,6 @@
 defmodule UserdocsDesktopWeb.ScreenshotLive.FormComponent do
   use UserdocsDesktopWeb, :live_component
 
-  alias UserdocsDesktop.Paths
   alias Userdocs.Screenshots
 
   @impl true

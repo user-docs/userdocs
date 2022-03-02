@@ -15,6 +15,9 @@ defmodule UserdocsWeb.API.ProjectView do
       id: project.id,
       base_url: project.base_url,
       name: project.name,
+      thresshold: project.threshold,
+      default_width: project.default_width,
+      default_height: project.default_height,
       team_id: project.team_id,
       strategy_id: project.strategy_id
     }

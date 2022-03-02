@@ -1,7 +1,6 @@
 defmodule UserdocsWeb.TeamControllerTest do
   use UserdocsWeb.ConnCase
 
-  alias Userdocs.Teams
   alias Schemas.Teams.Team
   alias Userdocs.UsersFixtures
   alias Userdocs.TeamsFixtures
