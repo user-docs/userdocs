@@ -1,6 +1,5 @@
 defmodule Userdocs.ScreenshotFixtures do
   @moduledoc false
-  alias Schemas.Screenshots.Screenshot
   alias Userdocs.Screenshots
 
   def screenshot(params, opts) do

@@ -6,11 +6,15 @@ defmodule Client.Channel do
 
   def connect(user, access_token) do
     Logger.debug("#{__MODULE__} connecting to channel")
-    {:ok, socket} = connect_socket(access_token)
-    wait_until_connected(socket)
-    {:ok, _response, user_channel} = join_user_channel(socket, user.id)
-    {:ok, _response, team_channel} = join_team_channel(socket, user.selected_team_id)
-    {:ok, %{socket: socket, user_channel: user_channel, team_channel: team_channel}}
+    with {:ok, socket} <- connect_socket(access_token),
+         :ok <- wait_until_connected(socket),
+         {:ok, _response, user_channel} <- join_user_channel(socket, user.id),
+         {:ok, _response, team_channel} <- join_team_channel(socket, user.selected_team_id)
+    do
+      {:ok, %{socket: socket, user_channel: user_channel, team_channel: team_channel}}
+    else
+      e -> {:error, "#{__MODULE__}.connect failed for #{inspect e}"}
+    end
   end
 
   def maybe_reconnect(socket, user_channel, team_channel, user, access_token) do
@@ -31,6 +35,7 @@ defmodule Client.Channel do
       Process.sleep(100)
       wait_until_connected(socket)
     end
+    :ok
   end
 
   def join_user_channel(socket, user_id) do

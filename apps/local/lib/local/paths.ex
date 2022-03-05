@@ -1,4 +1,4 @@
-defmodule UserdocsDesktop.Paths do
+defmodule Local.Paths do
   @moduledoc "Paths used by the Desktop application"
 
   def home_path(), do: Desktop.OS.home()
@@ -16,13 +16,13 @@ defmodule UserdocsDesktop.Paths do
   end
 
   def image_repo_path(), do: Path.join([Desktop.OS.home(), "userdocs", "internal_data", "images"])
-  def image_magick_download_path(), do: Path.join([Desktop.OS.home(), "userdocs", "downloads", "image_magick"])
-  def image_magick_downloaded_file_path(), do: Path.join([Desktop.OS.home(), "userdocs", "downloads", "image_magick", "magick.zip"])
-  def image_magick_path(), do: Path.join([Desktop.OS.home(), "userdocs", "image_magick"])
+  def imagemagick_download_path(), do: Path.join([Desktop.OS.home(), "userdocs", "downloads", "imagemagick"])
+  def imagemagick_downloaded_file_path(), do: Path.join([Desktop.OS.home(), "userdocs", "downloads", "imagemagick", "magick.zip"])
+  def imagemagick_path(), do: Path.join([Desktop.OS.home(), "userdocs", "imagemagick"])
   def imagemagick_executable_path(), do: imagemagick_executable_path(Desktop.OS.type())
-  def imagemagick_executable_path(Windows), do: Path.join([image_magick_path(), "magick.exe"])
-  def imagemagick_executable_path(Linux), do: Path.join([image_magick_path(), "magick"])
-  def imagemagick_executable_path(MacOS), do: Path.join([image_magick_path(), "bin", "magick"])
+  def imagemagick_executable_path(Windows), do: Path.join([imagemagick_path(), "magick.exe"])
+  def imagemagick_executable_path(Linux), do: Path.join([imagemagick_path(), "magick"])
+  def imagemagick_executable_path(MacOS), do: Path.join([imagemagick_path(), "bin", "magick"])
 
   def vendor_path(), do: Path.join([Desktop.OS.home(), "userdocs", "vendor"])
 

@@ -6,7 +6,6 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
   alias Userdocs.TeamsFixtures
   alias Userdocs.WebFixtures
   alias Userdocs.ExtensionMessageFixtures
-  alias UserdocsDesktop.BrowserController
   @opts %{context: %{repo: Userdocs.Repo}}
   @test_page_path Path.join([:code.priv_dir(:userdocs_desktop_web), "static", "html", "test_page.html"])
   @receive_timeout 250
@@ -101,7 +100,7 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
       {:ok, index_live, _html} = live(conn, Routes.page_index_path(conn, :index))
       index_live |> element("#screenshot-page-" <> to_string(page.id)) |> render_click()
       wait_for_empty_queue()
-      #assert UserdocsDesktop.Paths.image_repo_path() |> Path.join(to_string(screenshot.id) <> ".png") |> File.exists?()
+      #assert Local.Paths.image_repo_path() |> Path.join(to_string(screenshot.id) <> ".png") |> File.exists?()
     end
   end
 

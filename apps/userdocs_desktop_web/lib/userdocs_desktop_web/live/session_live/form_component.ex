@@ -30,13 +30,11 @@ defmodule UserdocsDesktopWeb.SessionLive.FormComponent do
   def handle_event("save", %{"user" => _user_params} = params, socket) do
     case Client.authenticate(params) do
       {:ok, _user} ->
-        :ok = Client.connect()
-        Client.load()
         {
           :noreply,
           socket
           |> put_flash(:info, "Logged in successfully")
-          |> push_redirect(to: Routes.home_path(socket, :index))
+          |> push_redirect(to: Routes.initialize_path(socket, :index))
         }
       {:error, message} ->
         {:noreply, put_flash(socket, :error, message)}

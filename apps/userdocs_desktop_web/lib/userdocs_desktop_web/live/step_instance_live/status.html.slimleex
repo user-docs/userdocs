@@ -1,26 +1,26 @@
 
 = case @step.step_instance do 
-  - %StepInstance{status: :not_started} = step_instance ->
+  - %StepInstance{status: :not_started} ->
     a.badge.badge-ghost 
       = Icons.dots_horizontal([]) 
       | Not Started
        
-  - %StepInstance{status: :started} = step_instance ->
+  - %StepInstance{status: :started} ->
     a.badge.badge-info 
       = Icons.refresh([]) 
       | running
        
-  - %StepInstance{status: :succeeded} = step_instance ->
+  - %StepInstance{status: :succeeded} ->
     a.badge.badge-success 
       = Icons.check([]) 
       | done
        
-  - %StepInstance{status: :warning} = step_instance ->
+  - %StepInstance{status: :warning} ->
     = live_patch to: Routes.step_index_path(@socket, :show_step_instance, @step.process_id, @step.id), class: "badge badge-warning" do
       = Icons.exclamation([]) 
       | warn
 
-  - %StepInstance{status: :failed} = step_instance ->
+  - %StepInstance{status: :failed} ->
     = live_patch to: Routes.step_index_path(@socket, :show_step_instance, @step.process_id, @step.id), class: "badge badge-error" do
       = Icons.x([]) 
       | error

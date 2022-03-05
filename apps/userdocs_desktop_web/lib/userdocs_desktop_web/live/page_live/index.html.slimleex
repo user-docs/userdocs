@@ -35,7 +35,7 @@ ul.py-3.shadow-lg.bg-base-100.rounded-box.m-4
           = live_patch to: Routes.page_index_path(@socket, :review_screenshot, page), class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do 
             = Icons.check([])
 
-        - %Screenshot{status: status} = screenshot when status in [:size_difference, :difference] ->
+        - %Screenshot{status: status} when status in [:size_difference, :difference] ->
           = live_patch to: Routes.page_index_path(@socket, :review_screenshot, page), class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do 
             = Icons.exclamation([])
             

@@ -8,6 +8,7 @@ defmodule Userdocs.Processes do
   alias Userdocs.RepoHandler
   alias Schemas.Processes.Process
   alias Userdocs.Teams
+  alias Userdocs.Subscription
 
 
   @doc "Returns the list of processes."
@@ -103,7 +104,7 @@ defmodule Userdocs.Processes do
   def maybe_broadcast_process({:ok, %Process{} = process}, action, channel, true) do
     Logger.debug("#{__MODULE__} broadcasting a Process struct")
     payload = %{type: "Schemas.Processes.Process", attrs: process}
-    UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+    Subscription.broadcast(channel, action, payload)
     {:ok, process}
   end
   def maybe_broadcast_process(state, _, _, _), do: state

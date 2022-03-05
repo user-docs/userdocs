@@ -6,7 +6,6 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
   alias Userdocs.Pages
   alias Schemas.Pages.Page
   alias Schemas.Screenshots.Screenshot
-  alias UserdocsDesktop.BrowserController
   alias UserdocsDesktopWeb.Root
   alias UserdocsDesktopWeb.LiveHelpers
   alias UserdocsDesktopWeb.RootSubscriptionHandlers
@@ -174,9 +173,6 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
   end
 
   defp page_screenshot(page), do: Pages.page_screenshot(page)
-
-  defp effective_url(nil, _project, _user), do: ""
-  defp effective_url(page, project, user), do: Pages.effective_url(page, project, user)
 
   defp screenshot_command(page, project) do
     width = page.default_width || project.default_width

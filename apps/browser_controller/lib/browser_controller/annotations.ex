@@ -5,7 +5,7 @@ defmodule BrowserController.Annotations do
   alias Schemas.Elements.Element
   alias Schemas.Elements.ElementAnnotation
   alias ChromeRemoteInterface.RPC.Runtime
-  alias UserdocsDesktop.BrowserController.Utilities
+  alias BrowserController.Utilities
   alias ChromeRemoteInterface.RPC.DOM
 
   def create(page_pid, %Annotation{
@@ -34,10 +34,10 @@ defmodule BrowserController.Annotations do
         window.addYClass('#userdocs-badge-#{id}-locator', '#{y_orientation}');
         window.adjustPlacement('#userdocs-badge-#{id}-locator', #{y_offset}, #{x_offset});
         window.setFontSize('#userdocs-annotation-#{id}-badge', #{font_size})
-      """ |> IO.inspect()
+      """
       Runtime.evaluate(page_pid, %{expression: expression})
     else
-      {:error, _message} = result -> result
+      e -> e
     end
   end
   def create(page_pid, %Annotation{

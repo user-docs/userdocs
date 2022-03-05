@@ -23,10 +23,11 @@ defmodule UserdocsWeb.UserSocket do
   def connect(%{"token" => token}, socket, _connect_info) do
     salt = Atom.to_string(UserdocsWeb.API.Auth.Plug)
     config = Application.get_env(:userdocs_web, :pow)
-    conn = %Plug.Conn{secret_key_base: UserdocsWeb.Endpoint.config(:secret_key_base)}
-           |> Pow.Plug.put_config(otp_app: :userdocs_web)
 
-    case Pow.Plug.verify_token(conn, salt, token, config) do
+    %Plug.Conn{secret_key_base: UserdocsWeb.Endpoint.config(:secret_key_base)}
+    |> Pow.Plug.put_config(otp_app: :userdocs_web)
+    |> Pow.Plug.verify_token(salt, token, config)
+    |> case do
       {:ok, _token} -> {:ok, socket}
       result ->
         Logger.error("Authentication Failed #{result}")

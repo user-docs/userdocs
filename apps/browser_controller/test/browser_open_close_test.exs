@@ -1,6 +1,5 @@
 defmodule UserdocsDesktop.BrowserOpenCloseTest do
   use ExUnit.Case
-  alias UserdocsDesktop.BrowserController
 
   @test_page_path Path.join([:code.priv_dir(:browser_controller), "static", "html", "test_page.html"])
   describe "Open/Close Browser" do

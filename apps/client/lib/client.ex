@@ -22,12 +22,37 @@ defmodule Client do
   alias Client.Channel
   alias Client.Authentication
   alias Client.Subscription
-  alias Userdocs.Paths
+  alias Local.Paths
+  alias Userdocs.Setups
 
   @timeout 10_000
+  @types [
+    Schemas.Users.User,
+    Schemas.Teams.TeamUser,
+    Schemas.Teams.Team,
+    Schemas.Strategies.Strategy,
+    Schemas.Annotations.AnnotationType,
+    Schemas.Steps.StepType,
+    Schemas.Projects.Project,
+    Schemas.Processes.Process,
+    Schemas.Steps.Step,
+    Schemas.Elements.Element,
+    Schemas.Elements.ElementAnnotation,
+    Schemas.Annotations.Annotation,
+    Schemas.Screenshots.Screenshot,
+    Schemas.Pages.Page
+  ]
+  @setup_status %{
+    initialize_state: %{order: 1, status: nil, next_task: :check_tokens, title: "Initial State"},
+    check_tokens: %{order: 2, status: nil, next_task: :authenticate, title: "Tokens"},
+    authenticate: %{order: 3, status: nil, next_task: :connect_channel, title: "Authenticate"},
+    connect_channel: %{order: 4, status: nil, next_task: :load_data, title: "Connecting"},
+    load_data: %{order: 5, status: nil, next_task: :complete, title: "Load Data"}
+  }
 
   def start_link(_), do: GenServer.start_link(__MODULE__, %{current_user: nil}, name: __MODULE__)
 
+  def status(), do: GenServer.call(__MODULE__, :status)
   def authenticate(params), do: GenServer.call(__MODULE__, {:authenticate, params}, @timeout)
   def authenticate(), do: GenServer.call(__MODULE__, :authenticate, @timeout)
   def tokens(), do:  GenServer.call(__MODULE__, :tokens)
@@ -115,7 +140,7 @@ defmodule Client do
   def find_element(field, value, opts), do: GenServer.call(__MODULE__, {:find_element, field, value, opts}, @timeout)
   def create_element(attrs), do: GenServer.call(__MODULE__, {:create_element, attrs}, @timeout)
   def update_element(element, attrs), do: GenServer.call(__MODULE__, {:update_element, element, attrs}, @timeout)
-  def delete_element(id, opts), do: GenServer.call(__MODULE__, {:delete_element, id, opts}, @timeout)
+  def delete_element(id, opts \\ %{}), do: GenServer.call(__MODULE__, {:delete_element, id, opts}, @timeout)
 
   def load_annotations(opts), do: GenServer.call(__MODULE__, {:load_annotations, opts}, @timeout)
   def list_annotations(), do: GenServer.call(__MODULE__, {:list_annotations, []}, @timeout)
@@ -147,45 +172,75 @@ defmodule Client do
 
   @impl true
   def init(_) do
-    Logger.info("Initializing Client")
-    types = [
-      Schemas.Users.User,
-      Schemas.Teams.TeamUser,
-      Schemas.Teams.Team,
-      Schemas.Strategies.Strategy,
-      Schemas.Annotations.AnnotationType,
-      Schemas.Steps.StepType,
-      Schemas.Projects.Project,
-      Schemas.Processes.Process,
-      Schemas.Steps.Step,
-      Schemas.Elements.Element,
-      Schemas.Elements.ElementAnnotation,
-      Schemas.Annotations.Annotation,
-      Schemas.Screenshots.Screenshot,
-      Schemas.Pages.Page
-    ]
-    state_opts = [data_type: :list, strategy: :by_type, location: :data, types: types]
+    {:ok, %{setup_status: @setup_status, topic: "client"}, {:continue, :initialize_state}}
+  end
+
+  @impl true
+  def handle_continue(:initialize_state, state) do
+    state_opts = [data_type: :list, strategy: :by_type, location: :data, types: @types]
     state =
-      %{state_opts: state_opts}
+      state
+      |> Map.put(:state_opts, state_opts)
       |> StateHandlers.initialize(state_opts)
 
+    {:ok, "State Initialized"}
+    |> Setups.handle_setup_result(state, :initialize_state)
+  end
+  def handle_continue(:check_tokens, state) do
     %{context: %{repo: Userdocs.LocalRepo}}
     |> Userdocs.Tokens.list_tokens()
     |> Authentication.check_token_store()
     |> case do
-      {:ok, _tokens} ->
-        Logger.info("Tokens exist, setting up client")
-        {:ok, state, {:continue, :setup_client}}
-      {:error, _err} ->
-        Logger.warning("Tokens don't exist, setup won't happen")
-        {:ok, state}
+      {:ok, _tokens} -> {:ok, "Tokens Exist"}
+      {:error, e} -> {:error, e}
     end
+    |> Setups.handle_setup_result(state, :check_tokens)
+  end
+  def handle_continue(:authenticate, state) do
+    case Authentication.init() do
+      {:error, message} ->
+        IO.puts("Authentication error")
+        {:halt, message}
+        |> Setups.handle_setup_result(state, :authenticate)
+
+      {:ok, user} ->
+        state = Map.put(state, :current_user, user)
+        {:ok, "Authenticated"}
+        |> Setups.handle_setup_result(state, :authenticate)
+    end
+  end
+  def handle_continue(:connect_channel, %{current_user: user} = state) do
+    case Channel.connect(user, access_token()) do
+      {:ok, channel_info} ->
+        Logger.info("Client.Init Channel Connected")
+        state = Map.merge(state, channel_info)
+        {:ok, "Client connected"}
+        |> Setups.handle_setup_result(state, :connect_channel)
+
+      _ ->
+        {:error, "Client.Init Channel Failed to Connect"}
+        |> Setups.handle_setup_result(state, :connect_channel)
+    end
+  end
+  def handle_continue(:load_data, %{state_opts: state_opts, current_user: user} = state) do
+    opts = %{user: user, state_opts: state_opts, access_token: access_token()}
+    state = Client.Loaders.apply(state, opts)
+    {:ok, "Data Loaded"}
+    |> Setups.handle_setup_result(state, :load_data)
+  end
+  def handle_continue(:complete, state), do: {:noreply, state}
+
+  def initialize_state() do
+    state_opts = [data_type: :list, strategy: :by_type, location: :data, types: @types]
+    %{state_opts: state_opts}
+    |> StateHandlers.initialize(state_opts)
   end
 
   @impl true
+  def handle_call(:status, _from, %{setup_status: setup_status} = state), do: {:reply, setup_status, state}
   def handle_call({:authenticate, %{"user" => %{"email" => _, "password" => _}} = params}, _from, state) do
     case Authentication.init(params) do
-      {:ok, user} -> {:reply, {:ok, user}, Map.put(state, :current_user, user)}
+      {:ok, user} -> {:reply, {:ok, user}, Map.put(state, :current_user, user), {:continue, :authenticate}}
       {:error, message} -> {:reply, {:error, message}, state}
     end
   end
@@ -242,14 +297,7 @@ defmodule Client do
     {:reply, object_counts(state), state}
   end
   def handle_call(:load, _from, state), do: {:reply, {:error, "Could not load client, no user"}, state}
-  """
-  def handle_call({:load, %{project_id: project_id}}, _from, %{user: _, state_opts: state_opts} = state) do
-    project = State.Projects.get_project!(project_id, state, state_opts)
-    opts = %{access_token: access_token(), state_opts: state_opts, project: project}
-    state = Client.Loaders.apply(state, opts)
-    {:reply, object_counts(state), state}
-  end
-  """
+
   # Annotation Types
   def handle_call({:load_annotation_types, opts}, _from, %{state_opts: state_opts} = state) do
     annotation_types = Client.AnnotationTypes.list_annotation_types(include_token(opts))
@@ -494,30 +542,6 @@ defmodule Client do
 
   @impl true
   def handle_cast(:destroy_state, state), do: {:noreply, Map.delete(state, :data)}
-
-  @impl true
-  def handle_continue(:setup_client, %{state_opts: state_opts} = state) do
-    #:timer.sleep(1000) #TODO: Remove after refactor
-    case Authentication.init() do
-      {:error, _message} ->
-        Logger.info("Client.Init Failed to Authenticated")
-        {:noreply, Map.put(state, :auth_state, :not_authenticated)}
-      {:ok, user} ->
-        Logger.info("Client.Init Authenticated")
-        state = Map.put(state, :current_user, user)
-        case Channel.connect(user, access_token()) do
-          {:ok, channel_info} ->
-            Logger.info("Client.Init Channel Connected")
-            opts = %{access_token: access_token(), state_opts: state_opts, user: user}
-            state = Map.merge(state, channel_info)
-            state = Client.Loaders.apply(state, opts)
-            {:noreply, state}
-          _ ->
-            Logger.info("Client.Init Channel Failed to Connect")
-            {:noreply, state}
-        end
-    end
-  end
 
 
   @impl true

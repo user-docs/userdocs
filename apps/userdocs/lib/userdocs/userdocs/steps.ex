@@ -7,6 +7,7 @@ defmodule Userdocs.Steps do
   alias Userdocs.RepoHandler
   alias Userdocs.Teams
   alias Schemas.Steps.Step
+  alias Userdocs.Subscription
 
   @doc "Returns the list of steps."
   def list_steps(opts) do
@@ -106,7 +107,7 @@ defmodule Userdocs.Steps do
   def maybe_broadcast_step({:ok, %Step{} = step}, action, channel, true) do
     Logger.debug("#{__MODULE__} broadcasting a Step struct")
     payload = %{type: "Schemas.Steps.Step", attrs: step}
-    UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+    Subscription.broadcast(channel, action, payload)
     {:ok, step}
   end
   def maybe_broadcast_step(state, _, _, _), do: state

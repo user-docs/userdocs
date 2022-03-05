@@ -4,7 +4,6 @@ defmodule UserdocsDesktopWeb.AnnotationLive.Index do
 
   alias Schemas.Annotations.Annotation
   alias Userdocs.Pages
-  alias UserdocsDesktop.BrowserController
   alias UserdocsDesktopWeb.Icons
   alias UserdocsDesktopWeb.Root
   alias UserdocsDesktopWeb.LiveHelpers

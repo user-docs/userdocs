@@ -4,6 +4,7 @@ defmodule Userdocs.TeamUsers do
   import Ecto.Query, warn: false
   alias Userdocs.RepoHandler
   alias Schemas.Teams.TeamUser
+  alias Userdocs.Subscription
 
   @doc ""
   def list_team_users(opts) do
@@ -88,7 +89,7 @@ defmodule Userdocs.TeamUsers do
     channels
     |> Enum.each(fn channel ->
       Logger.debug("#{__MODULE__} broadcasting a TeamUser struct on #{channel}")
-      UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+      Subscription.broadcast(channel, action, payload)
     end)
 
     {:ok, team_user}

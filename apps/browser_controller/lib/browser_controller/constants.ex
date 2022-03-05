@@ -1,21 +1,17 @@
 defmodule BrowserController.Constants do
   @moduledoc "constants for use in the browser controller."
 
-  def chrome_reconnected_page() do
-    url = UserdocsDesktopWeb.Endpoint.url()
-    path = UserdocsDesktopWeb.Router.Helpers.static_path(UserdocsDesktopWeb.Endpoint, "/html/browser_reconnected_page.html")
-    url <> path
+  def chrome_reconnected_page(url) do
+    url <> "/html/browser_reconnected_page.html"
   end
   def chrome_extension_path() do
     Path.join([:code.priv_dir(:userdocs_desktop_web), "static", "assets", "extension", "public"])
 
   end
-  def chrome_startup_page() do
-    url = UserdocsDesktopWeb.Endpoint.url()
-    path = UserdocsDesktopWeb.Router.Helpers.static_path(UserdocsDesktopWeb.Endpoint, "/html/browser_welcome_page.html")
-    url <> path
+  def chrome_startup_page(url) do
+    url <> "/html/browser_welcome_page.html"
   end
-  def chrome_startup_args() do
+  def chrome_startup_args(url) do
     # Middle bits are the default puppeteer args, with a few mods
     ~w(
       --remote-debugging-port=9222
@@ -47,7 +43,7 @@ defmodule BrowserController.Constants do
       --enable-blink-features=IdleDetection
       --export-tagged-pdf
 
-      #{chrome_startup_page()}
+      #{chrome_startup_page(url)}
     )
   end
 end

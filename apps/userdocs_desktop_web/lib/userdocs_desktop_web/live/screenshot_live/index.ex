@@ -55,7 +55,7 @@ defmodule UserdocsDesktopWeb.ScreenshotLive.Index do
   def handle_event(n, p, s), do: RootEventHandlers.handle_event(n, p, s)
 
   @impl true
-  def handle_info(%{topic: _, event: _, payload: %Screenshot{}} = sub_data, socket) do
+  def handle_info(%{topic: _, event: _, payload: %Screenshot{}}, socket) do
     {:noreply, prepare_screenshots(socket)}
   end
   def handle_info(n, s), do: RootSubscriptionHandlers.handle_info(n, s)

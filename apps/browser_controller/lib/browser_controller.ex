@@ -3,11 +3,11 @@ defmodule BrowserController do
   use GenServer
   alias Userdocs.ProcessInstances
   alias Schemas.ProcessInstances.ProcessInstance
-  alias UserdocsDesktop.BrowserState
-  alias UserdocsDesktop.Paths
-  alias UserdocsDesktop.BrowserController.Constants
-  alias UserdocsDesktop.BrowserController.Annotations
-  alias UserdocsDesktop.BrowserController.Utilities
+  alias BrowserController.BrowserState
+  alias BrowserController.Constants
+  alias BrowserController.Annotations
+  alias BrowserController.Utilities
+  alias Local.Paths
   alias ChromeRemoteInterface.Session
 
   def start_link(default), do: GenServer.start_link(__MODULE__, default, name: __MODULE__)
@@ -19,7 +19,7 @@ defmodule BrowserController do
   def get_document(), do: GenServer.call(__MODULE__, {:get_document})
   def get_url(), do: GenServer.call(__MODULE__, {:get_url})
   def execute(command), do: GenServer.call(__MODULE__, {:execute, command})
-  def open_browser(css), do: GenServer.call(__MODULE__, {:open_browser, css})
+  def open_browser(url), do: GenServer.call(__MODULE__, {:open_browser, url})
   def close_browser(), do: GenServer.call(__MODULE__, {:close_browser})
   def queue(), do: GenServer.call(__MODULE__, {:queue})
 
@@ -32,9 +32,10 @@ defmodule BrowserController do
   def quit(), do: GenServer.cast(__MODULE__, :quit)
 
   @impl true
-  def init(_) do
-    Logger.info("#{__MODULE__} Initializing")
-    UserdocsDesktopWeb.Endpoint.subscribe("extension")
+  def init(args) do
+    Logger.info("#{__MODULE__} Initializing with args #{inspect args}")
+    url = Keyword.get(args, :url, "http://localhost:4002")
+    Phoenix.PubSub.subscribe(Userdocs.PubSub, "extension")
     state =
       case BrowserState.get() do
         nil -> %{server: Session.new(), page_pid: nil, run_state: :pause, queue: :queue.new()}
@@ -52,7 +53,7 @@ defmodule BrowserController do
             end
           {:ok, page_pid} = reset_chrome(state.server, page_pid)
           :timer.sleep(500)
-          setup_chrome(page_pid)
+          setup_chrome(page_pid, url)
           Map.put(state, :page_pid, page_pid)
         false -> state
       end
@@ -76,14 +77,14 @@ defmodule BrowserController do
   def handle_call({:queue}, _from, %{queue: {tail, head}} = state) do
     {:reply, head ++ tail, state}
   end
-  def handle_call({:open_browser, _css}, _from, %{server: server, page_pid: page_pid} = state) do
-    {:ok, page_pid} = open_chrome(server, page_pid)
-    UserdocsDesktopWeb.Endpoint.broadcast!("browser", "browser_opened", %{timestamp: NaiveDateTime.utc_now()})
+  def handle_call({:open_browser, url}, _from, %{server: server, page_pid: page_pid} = state) do
+    {:ok, page_pid} = open_chrome(server, page_pid, url)
+    broadcast("browser", "browser_opened", %{timestamp: NaiveDateTime.utc_now()})
     {:reply, :ok, state |> Map.put(:page_pid, page_pid)}
   end
   def handle_call({:close_browser}, _from, %{server: server, page_pid: page_pid} = state) do
     close_chrome(server, page_pid)
-    UserdocsDesktopWeb.Endpoint.broadcast!("browser", "browser_closed", %{timestamp: NaiveDateTime.utc_now()})
+    broadcast("browser", "browser_closed", %{timestamp: NaiveDateTime.utc_now()})
     {:reply, :ok, state |> Map.put(:page_pid, nil)}
   end
   def handle_call({:get_document}, _from, %{page_pid: page_pid} = state) do
@@ -113,30 +114,30 @@ defmodule BrowserController do
   @impl true
   def handle_cast(:quit, _state), do: Kernel.exit(:normal)
   def handle_cast({:play}, %{page_pid: page_pid} = state) do
-    UserdocsDesktopWeb.Endpoint.broadcast!("browser", "run_state_updated", %{run_state: :play})
+    broadcast("browser", "run_state_updated", %{run_state: :play})
     stop_extension_subscription(page_pid)
     {:noreply, state |> Map.put(:run_state, :play), {:continue, :handle_queue}}
   end
   def handle_cast({:pause}, %{page_pid: page_pid} = state) do
-    UserdocsDesktopWeb.Endpoint.broadcast!("browser", "run_state_updated", %{run_state: :pause})
+    broadcast("browser", "run_state_updated", %{run_state: :pause})
     start_extension_subscription(page_pid)
     {:noreply, state |> Map.put(:run_state, :pause) |> Map.put(:return_to, :pause)}
   end
   def handle_cast({:stop}, %{page_pid: page_pid} = state) do
-    UserdocsDesktopWeb.Endpoint.broadcast!("browser", "run_state_updated", %{run_state: :stop})
+    broadcast("browser", "run_state_updated", %{run_state: :stop})
     start_extension_subscription(page_pid)
     {:noreply, state |> Map.put(:run_state, :stop) |> Map.put(:return_to, :stop)}
   end
   def handle_cast({:clear_queue}, state) do
     {_queue, state} = Map.pop(state, :queue)
     updated_queue = :queue.new()
-    UserdocsDesktopWeb.Endpoint.broadcast!("browser", "queue_updated", %{queue: :queue.to_list(updated_queue)})
+    broadcast("browser", "queue_updated", %{queue: :queue.to_list(updated_queue)})
     {:noreply, state |> Map.put(:queue, updated_queue)}
   end
   def handle_cast({:enqueue, commands}, %{queue: _, run_state: run_state} = state) do
     {queue, state} = Map.pop(state, :queue)
     updated_queue = update_queue(queue, commands)
-    UserdocsDesktopWeb.Endpoint.broadcast!("browser", "queue_updated", %{queue: :queue.to_list(updated_queue)})
+    broadcast("browser", "queue_updated", %{queue: :queue.to_list(updated_queue)})
     case run_state do
       :play -> {:noreply, state |> Map.put(:queue, updated_queue), {:continue, :handle_queue}}
       :pause -> {:noreply, state |> Map.put(:queue, updated_queue)}
@@ -154,7 +155,7 @@ defmodule BrowserController do
       }
       |> ProcessInstances.create_process_instance()
 
-    UserdocsDesktopWeb.Endpoint.broadcast("data", "create", process_instance)
+    broadcast("data", "create", process_instance)
     context = Map.put(context, :process_instance, process_instance)
 
     Enum.each(process.steps, fn(step) ->
@@ -204,7 +205,7 @@ defmodule BrowserController do
   @impl true
   def handle_continue(:handle_queue, %{queue: {[], []}} = state) do
     Logger.info("Queue is finished, halting execution")
-    UserdocsDesktopWeb.Endpoint.broadcast!("browser", "queue_updated", %{queue: []})
+    broadcast("browser", "queue_updated", %{queue: []})
     case Map.get(state, :return_to, :pause) do
       :pause -> pause()
       :stop -> stop()
@@ -217,20 +218,20 @@ defmodule BrowserController do
     case execute(command, server, page_pid) do
       {:ok, _result} ->
         Logger.debug("#{command_name} command completed successfully")
-        UserdocsDesktopWeb.Endpoint.broadcast!("browser", "queue_updated", %{queue: :queue.to_list(updated_queue)})
+        broadcast("browser", "queue_updated", %{queue: :queue.to_list(updated_queue)})
         {:noreply, state |> Map.put(:queue, updated_queue), {:continue, :handle_queue}}
       {:warn, message} ->
         Logger.warn("#{command_name} command completed with warnings")
-        UserdocsDesktopWeb.Endpoint.broadcast!("browser", "queue_updated", %{queue: :queue.to_list(updated_queue)})
-        UserdocsDesktopWeb.Endpoint.broadcast!("browser", "execution_warning", %{command: command, message: message})
+        broadcast("browser", "queue_updated", %{queue: :queue.to_list(updated_queue)})
+        broadcast("browser", "execution_warning", %{command: command, message: message})
         {:noreply, state |> Map.put(:queue, updated_queue), {:continue, :handle_queue}}
       {:error, message} ->
         Logger.error("#{command_name} failed. Invalidating queue.")
         new_run_state = Map.get(state, :return_to, :pause)
         empty_queue = :queue.new()
-        UserdocsDesktopWeb.Endpoint.broadcast!("browser", "queue_updated", %{queue: :queue.to_list(empty_queue)})
-        UserdocsDesktopWeb.Endpoint.broadcast!("browser", "execution_error", %{command: command, message: message})
-        UserdocsDesktopWeb.Endpoint.broadcast!("browser", "run_state_updated", %{run_state: new_run_state})
+        broadcast("browser", "queue_updated", %{queue: :queue.to_list(empty_queue)})
+        broadcast("browser", "execution_error", %{command: command, message: message})
+        broadcast("browser", "run_state_updated", %{run_state: new_run_state})
         {
           :noreply,
           state
@@ -262,7 +263,6 @@ defmodule BrowserController do
   alias ChromeRemoteInterface.RPC.Page
   alias ChromeRemoteInterface.RPC.DOM
   alias ChromeRemoteInterface.RPC.Browser
-  alias ChromeRemoteInterface.RPC.Target
   alias ChromeRemoteInterface.PageSession
   alias ChromeRemoteInterface.Session
   alias ChromeRemoteInterface.RPC.Runtime
@@ -276,35 +276,22 @@ defmodule BrowserController do
     end
   end
 
-  def open_chrome(server, page_pid) do
+  def open_chrome(server, page_pid, url) do
     Logger.info("#{__MODULE__} opening chrome")
     if !browser_open?(server) do
       Logger.info("Browser was closed, opening")
-      args = Constants.chrome_startup_args()
+      args = Constants.chrome_startup_args(url)
       chrome_path = Paths.chromium_executable_path()
       _port = Port.open({:spawn_executable, chrome_path}, args: args)
       {:ok, page_pid} = active_page_pid(server, page_pid)
-      setup_chrome(page_pid)
+      setup_chrome(page_pid, url)
     else
       Logger.info("Browser is already open, reconnecting")
       {:ok, page_pid} = active_page_pid(server, page_pid)
-      setup_chrome(page_pid)
+      setup_chrome(page_pid, url)
      end
   end
-  """
-  def reset_chrome(server, page_pid) do
-    Logger.info("# {__MODULE__} resetting an already started chrome instance")
-    {:ok, stale_pages} = ChromeRemoteInterface.Session.list_pages(server)
-    Target.createTarget(page_pid, %{url: Utilities.get_url(server)})
-    {:ok, new_page_pid} = active_page_pid(server, nil)
-    PageSession.stop(page_pid)
-    Enum.each(stale_pages, fn(page) ->
-      Target.closeTarget(new_page_pid, %{targetId: page["id"]})
-    end)
-    Logger.info("# {__MODULE__} finished restarting chrome")
-    {:ok, new_page_pid}
-  end
-  """
+
   def reset_chrome(_server, page_pid) do
     Logger.info("#{__MODULE__} resetting an already started chrome instance")
     Page.reload(page_pid)
@@ -342,12 +329,12 @@ defmodule BrowserController do
 
   def close_connection(page_pid), do: PageSession.stop(page_pid)
 
-  def setup_chrome(page_pid) do
+  def setup_chrome(page_pid, url) do
     Logger.info("#{__MODULE__} setting chrome up")
     Page.enable(page_pid)
     DOM.enable(page_pid)
     Runtime.enable(page_pid)
-    Page.addScriptToEvaluateOnNewDocument(page_pid, %{source: Utilities.script()})
+    Page.addScriptToEvaluateOnNewDocument(page_pid, %{source: Utilities.script(url)})
     PageSession.execute_command(page_pid, "Overlay.enable", %{}, [])
     Page.reload(page_pid)
     Logger.info("#{__MODULE__} finished setting chrome up")
@@ -390,11 +377,8 @@ defmodule BrowserController do
 
   alias Userdocs.StepInstances
   alias Userdocs.Pages
-  alias Userdocs.Steps
-  alias Schemas.StepInstances.StepInstance
   alias Schemas.Steps.Step
   alias Schemas.Teams.Team
-  alias Schemas.Processes.Process
 
   def cast_command({:navigate, opts}), do: {:navigate, opts}
   def cast_command({:highlight, opts}), do: {:highlight, opts}
@@ -422,10 +406,9 @@ defmodule BrowserController do
   def cast_step(%Step{step_type_id: "full_screen_screenshot", page_id: page_id, screenshot_id: screenshot_id}, _context) do
     {:full_screen_screenshot, %{page_id: page_id, screenshot_id: screenshot_id}}
   end
-  def cast_step(%Step{step_type_id: "element_screenshot", margin_left: _ml, margin_right: _mr,  element: element} = step,
-  %{team: %Team{} = team, opts: opts}) do
-    on_complete = Steps.upsert_step_screenshot_callback(step, team, opts)
-    {:element_screenshot, %{element: element, on_complete: on_complete}}
+  def cast_step(%Step{step_type_id: "element_screenshot", margin_left: _ml, margin_right: _mr,  element: element},
+  %{team: %Team{}}) do
+    {:element_screenshot, %{element: element}}
   end
   def cast_step(%Step{step_type_id: "apply_annotation", annotation: annotation}, _context) do
     {:create_annotation, %{annotation: annotation}}
@@ -444,44 +427,9 @@ defmodule BrowserController do
   end
   def cast_step(%Step{step_type_id: nil}, _context), do: {:do_nothing, %{}}
 
-  def execute_command({:execute_step, %{step: step, context: %{process_instance: %ProcessInstance{} = process_instance} = context}}, page_pid) do
-    IO.inspect("Executing step instance with a process in the context")
-    {:ok, step_instance} =
-      %{
-        id: UUID.uuid4(), status: :started, error: "", warning: "",
-        step_id: step.id, process_instance_id: process_instance.id
-      }
-      |> StepInstances.create_step_instance()
-
-    UserdocsDesktopWeb.Endpoint.broadcast("data", "create", step_instance)
-    step = Map.put(step, :step_instance, step_instance)
-
-    step
-    |> broadcast_step_update()
-    |> cast_step(context)
-    |> execute_command(page_pid)
-    |> handle_step_result(step)
-    |> handle_process_instance_update(process_instance)
-    |> handle_return_value()
-  end
-  def execute_command({:execute_step, %{step: step, context: context}}, page_pid) do
-    {:ok, step_instance} =
-      %{id: UUID.uuid4(), status: :started, error: "", warning: "", step_id: step.id}
-      |> StepInstances.create_step_instance()
-
-    step = Map.put(step, :step_instance, step_instance)
-
-    step
-    |> broadcast_step_update()
-    |> cast_step(context)
-    |> execute_command(page_pid)
-    |> handle_step_result(step)
-    |> handle_return_value()
-  end
-
   def broadcast_step_update(step) do
-    UserdocsDesktopWeb.Endpoint.broadcast("data", "update", step)
-    UserdocsDesktopWeb.Endpoint.broadcast("data", "update", step.step_instance)
+    broadcast("data", "update", step)
+    broadcast("data", "update", step.step_instance)
     step
   end
 
@@ -505,23 +453,68 @@ defmodule BrowserController do
   end
 
   def handle_process_instance_update({:ok, result, step}, process_instance) do
-    UserdocsDesktopWeb.Endpoint.broadcast("data", "update", process_instance)
+    broadcast("data", "update", process_instance)
     {:ok, result, step}
   end
   def handle_process_instance_update({:error, message, step}, process_instance) do
     updated_process_instance = Map.put(process_instance, :status, :failed)
-    UserdocsDesktopWeb.Endpoint.broadcast("data", "update", updated_process_instance)
+    broadcast("data", "update", updated_process_instance)
     {:error, message, step}
   end
   def handle_process_instance_update({:warn, message, step}, process_instance) do
     updated_process_instance = Map.put(process_instance, :status, :warning)
-    UserdocsDesktopWeb.Endpoint.broadcast("data", "update", updated_process_instance)
+    broadcast("data", "update", updated_process_instance)
     {:warn, message, step}
   end
 
   def handle_return_value({:ok, result, _step}), do: {:ok, result}
   def handle_return_value({:error, message, _step}), do: {:error, message}
   def handle_return_value({:warn, message, _step}), do: {:warn, message}
+
+  def type_text(page_pid, text) do
+    text
+    |> String.graphemes()
+    |> Enum.each(fn(char) ->
+      Input.dispatchKeyEvent(page_pid, %{type: "keyDown", text: char})
+      Input.dispatchKeyEvent(page_pid, %{type: "keyUp"})
+    end)
+    :ok
+  end
+
+  def execute_command({:execute_step, %{step: step, context: %{process_instance: %ProcessInstance{} = process_instance} = context}}, page_pid) do
+    {:ok, step_instance} =
+      %{
+        id: UUID.uuid4(), status: :started, error: "", warning: "",
+        step_id: step.id, process_instance_id: process_instance.id
+      }
+      |> StepInstances.create_step_instance()
+
+    broadcast("data", "create", step_instance)
+    step = Map.put(step, :step_instance, step_instance)
+
+    step
+    |> broadcast_step_update()
+    |> cast_step(context)
+    |> execute_command(page_pid)
+    |> handle_step_result(step)
+    |> handle_process_instance_update(process_instance)
+    |> handle_return_value()
+  end
+
+  def execute_command({:execute_step, %{step: step, context: context}}, page_pid) do
+    {:ok, step_instance} =
+      %{id: UUID.uuid4(), status: :started, error: "", warning: "", step_id: step.id}
+      |> StepInstances.create_step_instance()
+
+    step = Map.put(step, :step_instance, step_instance)
+
+    step
+    |> broadcast_step_update()
+    |> cast_step(context)
+    |> execute_command(page_pid)
+    |> handle_step_result(step)
+    |> handle_return_value()
+  end
 
   def execute_command({:navigate, %{url: url}}, page_pid) do
     Logger.info("#{__MODULE__} executing navigate command")
@@ -591,7 +584,7 @@ defmodule BrowserController do
     end
   end
 
-  def execute_command({:full_document_screenshot, %{width: width, page_id: page_id}}, page_pid) do
+  def execute_command({:full_document_screenshot, %{width: _width, page_id: page_id}}, page_pid) do
     Logger.info("#{__MODULE__} executing full document screenshot command with page_id")
     case Page.captureScreenshot(page_pid) do
       {:ok, %{"result" => %{"data" => base64}}} ->
@@ -670,7 +663,7 @@ defmodule BrowserController do
     end
   end
 
-  def execute_command({:element_screenshot, %{element: element}}, page_pid) do
+  def execute_command({:element_screenshot, %{element: _element}}, page_pid) do
     Logger.info("#{__MODULE__} executing element screenshot command")
     case Page.captureScreenshot(page_pid) do
       {:ok, %{"result" => %{"data" => base64}}} -> {:ok, base64}
@@ -711,17 +704,7 @@ defmodule BrowserController do
     end
   end
 
-  def execute_command({:do_nothing, _}, page_pid), do: {:warn, "This command did nothing."}
-
-  def type_text(page_pid, text) do
-    text
-    |> String.graphemes()
-    |> Enum.each(fn(char) ->
-      Input.dispatchKeyEvent(page_pid, %{type: "keyDown", text: char})
-      Input.dispatchKeyEvent(page_pid, %{type: "keyUp"})
-    end)
-    :ok
-  end
+  def execute_command({:do_nothing, _}, _page_pid), do: {:warn, "This command did nothing."}
 
   def execute_command({:click, %{strategy: strategy, selector: selector}}, page_pid) do
     with {:ok, remote_object} <-
@@ -800,4 +783,12 @@ defmodule BrowserController do
   def display_command({:execute_step, %{step: %{name: name}}}), do: "Execute Step #{name}"
   def display_command({:execute_process, %{process: %{name: name}}}), do: "Execute Process #{name}"
   def display_command({:full_screen_svg, _opts}), do: "Full Screen SVG Document"
+
+  def broadcast(channel, action, payload) do
+    Phoenix.PubSub.broadcast(Userdocs.PubSub, channel, %{
+      topic: channel,
+      event: action,
+      payload: payload
+    })
+  end
 end

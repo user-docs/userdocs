@@ -9,6 +9,7 @@ defmodule Userdocs.Teams do
   alias Userdocs.Repo
   alias Userdocs.RepoHandler
   alias Schemas.Teams.Team
+  alias Userdocs.Subscription
 
   @doc "Returns the list of teams."
   def list_teams(opts) do
@@ -176,7 +177,7 @@ defmodule Userdocs.Teams do
     channels
     |> Enum.each(fn channel ->
       Logger.debug("#{__MODULE__} broadcasting a Team struct on #{channel}")
-      UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+      Subscription.broadcast(channel, action, payload)
     end)
 
     {:ok, team}

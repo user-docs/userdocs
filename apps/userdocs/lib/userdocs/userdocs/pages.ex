@@ -9,6 +9,7 @@ defmodule Userdocs.Pages do
   alias Schemas.Users.User
   alias Schemas.Teams.Team
   alias Userdocs.Teams
+  alias Userdocs.Subscription
   alias Userdocs.RepoHandler
 
   @doc "Returns the list of pages."
@@ -90,7 +91,7 @@ defmodule Userdocs.Pages do
   def maybe_broadcast_page({:ok, %Page{} = page}, action, channel, true) do
     Logger.debug("#{__MODULE__} broadcasting a Page struct")
     payload = %{type: "Schemas.Pages.Page", attrs: page}
-    UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+    Subscription.broadcast(channel, action, payload)
     {:ok, page}
   end
   def maybe_broadcast_page(state, _, _, _), do: state

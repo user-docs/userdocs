@@ -7,7 +7,6 @@ defmodule UserdocsDesktopWeb.AnnotationLive.FormComponent do
   alias Schemas.Elements.ElementAnnotation
   alias Userdocs.Annotations
   alias Userdocs.ElementAnnotations
-  alias UserdocsDesktop.BrowserController
 
   @impl true
   def update(%{annotation: annotation} = assigns, socket) do

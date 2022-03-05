@@ -4,10 +4,7 @@ defmodule UserdocsDesktopWeb.BrowserControlsLive do
   require Logger
 
   alias UserdocsDesktopWeb.Icons
-  alias UserdocsDesktop.ChromiumInstaller
-  alias UserdocsDesktop.Paths
-  alias UserdocsDesktop.BrowserController
-  alias UserdocsDesktopWeb.Icons
+  alias Local.Paths
 
   @impl true
   def mount(_params, _session, socket) do
@@ -26,8 +23,7 @@ defmodule UserdocsDesktopWeb.BrowserControlsLive do
 
   @impl true
   def handle_event("install-chromium", _params, socket) do
-    {:ok, _path} = ChromiumInstaller.download()
-    :ok = ChromiumInstaller.install()
+    Local.install_chrome()
     {
       :noreply,
       socket
@@ -35,7 +31,7 @@ defmodule UserdocsDesktopWeb.BrowserControlsLive do
     }
   end
   def handle_event("remove-chromium", _params, socket) do
-    :ok = ChromiumInstaller.remove()
+    Local.remove_chrome
     {
       :noreply,
       socket
@@ -43,8 +39,7 @@ defmodule UserdocsDesktopWeb.BrowserControlsLive do
     }
   end
   def handle_event("open-browser", _, socket) do
-    current_user = Client.current_user()
-    Task.start(fn -> BrowserController.open_browser(current_user.selected_team.css) end)
+    Task.start(fn -> BrowserController.open_browser(UserdocsDesktopWeb.Endpoint.url()) end)
     {:noreply, socket |> assign(:user_opened_browser?, true)}
   end
   def handle_event("close-browser", _, socket) do
@@ -89,7 +84,9 @@ defmodule UserdocsDesktopWeb.BrowserControlsLive do
   def handle_info(%{topic: "browser", event: "execution_error", payload: _}, socket), do: {:noreply, socket}
 
   def chromium_exists? do
-    case File.stat(Paths.chromium_executable_path()) do
+    Paths.chromium_executable_path()
+    |> File.stat()
+    |> case do
     {:ok, _stat} -> true
     {:error, :enoent} -> false
     {:error, reason} -> Logger.error("Unhandled path error #{reason}")

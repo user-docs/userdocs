@@ -1,7 +1,7 @@
 defmodule UserdocsDesktopWeb.ScreenshotLive.ReviewComponent do
   use UserdocsDesktopWeb, :live_component
 
-  alias UserdocsDesktop.Paths
+  alias Local.Paths
   alias Schemas.Screenshots.Screenshot
   alias Userdocs.ImageComparison
 
@@ -40,10 +40,12 @@ defmodule UserdocsDesktopWeb.ScreenshotLive.ReviewComponent do
   end
 
   def assign_dimensions(socket, %Screenshot{status: :size_difference} = screenshot) do
-    original_path = Path.join(Paths.image_repo_path(), "#{screenshot.id}.png")
-    provisional_path = Path.join(Paths.image_repo_path(), "#{screenshot.id}-provisional.png")
-    original_dimensions = ImageComparison.ping(original_path, Paths.image_magick_executable_path(Desktop.OS.type()))
-    provisional_dimensions = ImageComparison.ping(provisional_path, Paths.image_magick_executable_path(Desktop.OS.type()))
+    repo_path = Paths.image_repo_path()
+    magick_path = Paths.imagemagick_executable_path()
+    original_path = Path.join(repo_path, "#{screenshot.id}.png")
+    provisional_path = Path.join(repo_path, "#{screenshot.id}-provisional.png")
+    original_dimensions = ImageComparison.ping(original_path, magick_path)
+    provisional_dimensions = ImageComparison.ping(provisional_path, magick_path)
     assign(socket, :dimensions, %{
       provisional: %{w: provisional_dimensions.w, h: provisional_dimensions.h},
       original: %{w: original_dimensions.w, h: original_dimensions.h},
@@ -51,7 +53,7 @@ defmodule UserdocsDesktopWeb.ScreenshotLive.ReviewComponent do
   end
   def assign_dimensions(socket, %Screenshot{status: :difference} = screenshot) do
     original_path = Path.join(Paths.image_repo_path(), "#{screenshot.id}.png")
-    original_dimensions = ImageComparison.ping(original_path, Paths.image_magick_executable_path(Desktop.OS.type()))
+    original_dimensions = ImageComparison.ping(original_path, Paths.imagemagick_executable_path())
     assign(socket, :dimensions, %{original: %{w: original_dimensions.w, h: original_dimensions.h}})
   end
   def assign_dimensions(socket, _), do: socket

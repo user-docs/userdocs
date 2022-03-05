@@ -5,7 +5,6 @@ defmodule UserdocsDesktopWeb.ElementLive.Index do
   require Logger
   alias Schemas.Elements.Element
   alias Userdocs.Pages
-  alias UserdocsDesktop.BrowserController
   alias UserdocsDesktopWeb.Icons
   alias UserdocsDesktopWeb.Root
   alias UserdocsDesktopWeb.LiveHelpers
@@ -32,7 +31,6 @@ defmodule UserdocsDesktopWeb.ElementLive.Index do
       |> apply_action(socket.assigns.live_action, params)
     }
   end
-  def handle_params(_, _, socket), do: {:noreply, socket}
 
   defp apply_action(socket, :edit, %{"page_id" => page_id, "element_id" => element_id} = params) do
     socket

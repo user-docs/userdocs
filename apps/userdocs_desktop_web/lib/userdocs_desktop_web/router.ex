@@ -90,7 +90,7 @@ defmodule UserdocsDesktopWeb.Router do
   pipeline :images do
     plug Plug.Static,
       at: "/images", gzip: false,
-      from: UserdocsDesktop.Paths.image_repo_path()
+      from: Local.Paths.image_repo_path()
   end
 
   scope "/images" do

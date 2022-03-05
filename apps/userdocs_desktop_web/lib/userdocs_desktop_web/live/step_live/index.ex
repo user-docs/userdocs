@@ -8,13 +8,11 @@ defmodule UserdocsDesktopWeb.StepLive.Index do
   alias Schemas.Pages.Page
   alias Schemas.Steps.Step
   alias Schemas.Processes.Process
-  alias Schemas.Users.User
   alias Schemas.Screenshots.Screenshot
   alias Schemas.ProcessInstances.ProcessInstance
   alias Schemas.StepInstances.StepInstance
   alias Userdocs.Steps
   alias Userdocs.Pages
-  alias UserdocsDesktop.BrowserController
   alias UserdocsDesktop.Paths
   alias UserdocsDesktopWeb.LiveHelpers
   alias UserdocsDesktopWeb.Root
@@ -50,7 +48,7 @@ defmodule UserdocsDesktopWeb.StepLive.Index do
   end
 
   def opts(token), do: %{
-    magick_path: Paths.image_magick_executable_path(Desktop.OS.type()),
+    magick_path: Paths.imagemagick_executable_path(Desktop.OS.type()),
     repo_path: Paths.image_repo_path(),
     access_token: token,
     context: %{repo: Client}
@@ -241,14 +239,16 @@ defmodule UserdocsDesktopWeb.StepLive.Index do
   def handle_event("reorder_dragenter", %{"order" => to_order}, socket) do
     drag = socket.assigns.drag
     Logger.debug("Reordering #{drag.name} from #{drag.order} to #{to_order}, #{drag.id}")
-    steps = move(socket.assigns.items, drag, to_order) |> Enum.sort(&(&1.order < &2.order))
+    steps =
+      move(socket.assigns.items, drag, String.to_integer(to_order))
+      |> Enum.sort(&(&1.order < &2.order))
     {:noreply, assign(socket, :steps, steps)}
   end
   def handle_event("reorder_dragenter", _, socket), do: {:noreply, socket}
   def handle_event("reorder_end", _, socket) do
     Enum.map(socket.assigns.steps, fn(updated_step) ->
-      original_step = Client.get_step!(updated_step.id, step_opts())
       Task.async(fn ->
+        original_step = Client.get_step!(updated_step.id, step_opts())
         {:ok, step} = Client.update_step(original_step, %{order: updated_step.order})
         step
       end)
@@ -407,6 +407,10 @@ defmodule UserdocsDesktopWeb.StepLive.Index do
         _ -> item
       end
     end)
+  end
+  def move(items, %{order: from_order}, to_order)  do
+    IO.puts("Should move from #{from_order} to #{to_order} with dfiff #{Kernel.abs(from_order - to_order)}")
+    items
   end
 
   def order_args(source_order, target_order)

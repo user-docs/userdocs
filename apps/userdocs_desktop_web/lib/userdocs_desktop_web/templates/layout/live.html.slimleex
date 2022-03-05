@@ -1,102 +1,87 @@
-= if @status == "connected" do  
-  .navbar.mb-2.shadow-lg.bg-neutral.text-neutral-content.rounded-box
-    .flex-none.px-2.mx-2
-      = link to: Routes.home_path(@socket, :index), class: "flex" do
-        = img_tag Routes.static_path(@socket, "/images/logo.png"), style: "height: 28px;",  class: "flex"
-        span.text-lg.font-bold.pl-4.hover_text-white
-          | Userdocs
-    .flex-none
-      = live_component @socket, UserdocsDesktopWeb.ProjectPicker, 
-        id: "project-picker", 
-        url: @url
-    .flex-1.px-2.mx-2  
-      .items-stretch.hidden.lg_flex
-        = if is_struct(Client.current_project(), Schemas.Projects.Project) do
-          button.btn.btn-ghost.btn-sm 
-            = live_patch "Processes", to: Routes.process_index_path(@socket, :index), class: "hover_text-white"
-          button.btn.btn-ghost.btn-sm 
-            = live_patch "Pages", to: Routes.page_index_path(@socket, :index), class: "hover_text-white"
-          button.btn.btn-ghost.btn-sm 
-            = live_patch "Screenshots", to: Routes.screenshot_index_path(@socket, :index), class: "hover_text-white"
-    .flex-none
-      = live_component UserdocsDesktopWeb.BrowserControlsToggle, 
-        id: "browser-controls-toggle",
-        browser_controls_hidden?: false
-    .flex-none
-      .dropdown.dropdown-left
-        button.m-1.btn.btn-square.btn-ghost tabindex="0"
-          svg.inline-block.w-6.h-6.stroke-current.hover_text-white fill="none" viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" 
-            path d="M496 384H160v-16c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v16H16c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h80v16c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16v-16h336c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zm0-160h-80v-16c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v16H16c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h336v16c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16v-16h80c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zm0-160H288V48c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v16H16C7.2 64 0 71.2 0 80v32c0 8.8 7.2 16 16 16h208v16c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16v-16h208c8.8 0 16-7.2 16-16V80c0-8.8-7.2-16-16-16z" fill="currentColor" 
-        ul.p-2.shadow.menu.dropdown-content.bg-base-100.rounded-box.w-52 tabindex="0" 
-          li.text-black
-            a phx-click="local-options" Local Options
-          li.text-black
-            = live_patch "Teams", to: Routes.team_index_path(@socket, :index), class: "hover_text-white"
-          li.text-black
-              = live_patch "Projects", to: Routes.project_index_path(@socket, :index), class: "hover_text-white"
-    .flex-none
-      .dropdown.dropdown-left
-        button.m-1.btn.btn-square.btn-ghost tabindex="0"
-          svg.inline-block.w-6.h-6.stroke-current.hover_text-white xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-        ul.p-2.shadow.menu.dropdown-content.bg-base-100.rounded-box.w-52 tabindex="0" 
-          li.text-black
-            a phx-click="user-options" User Options
-          li.text-black
-            a phx-click="sign-out" Sign Out
-                
-  main
-    .alert.alert-info.mx-4 role="alert" phx-click="lv:clear-flash" phx-value-key="info"
-      = live_flash(@flash, :info)
+.navbar.mb-2.shadow-lg.bg-neutral.text-neutral-content.rounded-box
+  .flex-none.px-2.mx-2
+    = link to: Routes.home_path(@socket, :index), class: "flex" do
+      = img_tag Routes.static_path(@socket, "/images/logo.png"), style: "height: 28px;",  class: "flex"
+      span.text-lg.font-bold.pl-4.hover_text-white
+        | Userdocs
+  .flex-none
+    = live_component @socket, UserdocsDesktopWeb.ProjectPicker, 
+      id: "project-picker", 
+      url: @url
+  .flex-1.px-2.mx-2  
+    .items-stretch.hidden.lg_flex
+      = if is_struct(Client.current_project(), Schemas.Projects.Project) do
+        button.btn.btn-ghost.btn-sm 
+          = live_patch "Processes", to: Routes.process_index_path(@socket, :index), class: "hover_text-white"
+        button.btn.btn-ghost.btn-sm 
+          = live_patch "Pages", to: Routes.page_index_path(@socket, :index), class: "hover_text-white"
+        button.btn.btn-ghost.btn-sm 
+          = live_patch "Screenshots", to: Routes.screenshot_index_path(@socket, :index), class: "hover_text-white"
+  .flex-none
+    = live_component UserdocsDesktopWeb.BrowserControlsToggle, 
+      id: "browser-controls-toggle",
+      browser_controls_hidden?: false
+  .flex-none
+    .dropdown.dropdown-left
+      button.m-1.btn.btn-square.btn-ghost tabindex="0"
+        svg.inline-block.w-6.h-6.stroke-current.hover_text-white fill="none" viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" 
+          path d="M496 384H160v-16c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v16H16c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h80v16c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16v-16h336c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zm0-160h-80v-16c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v16H16c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h336v16c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16v-16h80c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zm0-160H288V48c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v16H16C7.2 64 0 71.2 0 80v32c0 8.8 7.2 16 16 16h208v16c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16v-16h208c8.8 0 16-7.2 16-16V80c0-8.8-7.2-16-16-16z" fill="currentColor" 
+      ul.p-2.shadow.menu.dropdown-content.bg-base-100.rounded-box.w-52 tabindex="0" 
+        li.text-black
+          a phx-click="local-options" Local Options
+        li.text-black
+          = live_patch "Teams", to: Routes.team_index_path(@socket, :index), class: "hover_text-white"
+        li.text-black
+            = live_patch "Projects", to: Routes.project_index_path(@socket, :index), class: "hover_text-white"
+  .flex-none
+    .dropdown.dropdown-left
+      button.m-1.btn.btn-square.btn-ghost tabindex="0"
+        svg.inline-block.w-6.h-6.stroke-current.hover_text-white xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      ul.p-2.shadow.menu.dropdown-content.bg-base-100.rounded-box.w-52 tabindex="0" 
+        li.text-black
+          a phx-click="user-options" User Options
+        li.text-black
+          a phx-click="sign-out" Sign Out
+              
+main
+  .alert.alert-info.mx-4 role="alert" phx-click="lv:clear-flash" phx-value-key="info"
+    = live_flash(@flash, :info)
 
-    .alert.alert-warning.mx-4 role="alert" phx-click="lv:clear-flash" phx-value-key="info"
-      = live_flash(@flash, :warning)
+  .alert.alert-warning.mx-4 role="alert" phx-click="lv:clear-flash" phx-value-key="info"
+    = live_flash(@flash, :warning)
 
-    .alert.alert-error.mx-4 role="alert" phx-click="lv:clear-flash" phx-value-key="error"
-      = live_flash(@flash, :error)
+  .alert.alert-error.mx-4 role="alert" phx-click="lv:clear-flash" phx-value-key="error"
+    = live_flash(@flash, :error)
 
-    = if @live_action in [:local_options] do
-      = UserdocsDesktopWeb.LiveHelpers.live_modal @socket, 
-        UserdocsDesktopWeb.UserLive.LocalFormComponent,
-        id: "local-options",
-        title: "Local Options",
-        action: :edit,
-        return_to: @url.path
+  = if @live_action in [:local_options] do
+    = UserdocsDesktopWeb.LiveHelpers.live_modal @socket, 
+      UserdocsDesktopWeb.UserLive.LocalFormComponent,
+      id: "local-options",
+      title: "Local Options",
+      action: :edit,
+      return_to: @url.path
 
-    = if @live_action in [:edit_credentials] do 
-      = UserdocsDesktopWeb.LiveHelpers.live_modal @socket, 
-        UserdocsDesktopWeb.UserLive.FormComponent,
-        id: @current_user.id,
-        title: "Update Credentials",
-        action: :edit,
-        user: @current_user,
-        access_token: @access_token,
-        select_lists: %{},
-        return_to: @url.path
+  = if @live_action in [:edit_credentials] do 
+    = UserdocsDesktopWeb.LiveHelpers.live_modal @socket, 
+      UserdocsDesktopWeb.UserLive.FormComponent,
+      id: @current_user.id,
+      title: "Update Credentials",
+      action: :edit,
+      user: @current_user,
+      access_token: @access_token,
+      select_lists: %{},
+      return_to: @url.path
 
-    = if @live_action in [:user_options] do 
-      = UserdocsDesktopWeb.LiveHelpers.live_modal @socket, 
-        UserdocsDesktopWeb.UserLive.OptionsFormComponent,
-        id: @current_user.id,
-        title: "User Options",
-        action: :edit,
-        user: Client.current_user(),
-        select_lists: %{teams: Client.list_team_users(%{filters: %{user_id: Client.current_user_id()}, preloads: [:team]}) |> Enum.map(&{&1.team.name, &1.team.id})},
-        return_to: @url.path
+  = if @live_action in [:user_options] do 
+    = UserdocsDesktopWeb.LiveHelpers.live_modal @socket, 
+      UserdocsDesktopWeb.UserLive.OptionsFormComponent,
+      id: @current_user.id,
+      title: "User Options",
+      action: :edit,
+      user: Client.current_user(),
+      select_lists: %{teams: Client.list_team_users(%{filters: %{user_id: Client.current_user_id()}, preloads: [:team]}) |> Enum.map(&{&1.team.name, &1.team.id})},
+      return_to: @url.path
 
-    = @inner_content
+  = @inner_content
     
-- else 
-  .flex.flex-col.h-screen
-    .navbar.mb-2.shadow-lg.bg-neutral.text-neutral-content.rounded-box
-      .flex-none.px-2.mx-2
-        = link to: Routes.home_path(@socket, :index), class: "flex" do
-          = img_tag Routes.static_path(@socket, "/images/logo.png"), style: "height: 28px;",  class: "flex"
-          span.text-lg.font-bold.pl-4.hover_text-white
-            | Userdocs
-    .max-w-md.flex-grow
-      .flex.flex-col.justify-center.h-full
-        svg.animate-spin.ml-1.mr-3.h-40.w-40.self-center fill="none" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" 
-          circle.opacity-25 cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" 
-          path.opacity-75 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor" 
-        h1.text-2xl.m-5.self-center Loading

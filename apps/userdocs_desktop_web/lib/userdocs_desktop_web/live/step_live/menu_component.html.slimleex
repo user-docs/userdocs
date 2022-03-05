@@ -64,8 +64,6 @@ ul.py-3.shadow-lg.bg-base-100.rounded-box.m-4
         class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
           = Icons.trash([])
     </li>
-  
-  = for {previous_step, step} <- step_frame(@steps) do 
 
 = live_redirect to: Routes.process_index_path(@socket, :index, @project.id) do
   button.btn.btn-primary.m-4 Back 

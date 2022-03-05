@@ -14,13 +14,12 @@ defmodule BrowserController.BrowserCommandsTest do
   alias Userdocs.UsersFixtures
   alias Userdocs.TeamsFixtures
   alias Userdocs.ScreenshotFixtures
-  alias UserdocsDesktop.BrowserController
-  alias UserdocsDesktop.BrowserController.Utilities
+  alias BrowserController.Utilities
 
   @screenshot_path Path.join([:code.priv_dir(:browser_controller), "static", "images"])
   @test_page_path Path.join([:code.priv_dir(:browser_controller), "static", "html", "test_page.html"])
-  @magick_path UserdocsDesktop.Paths.image_magick_executable_path(Desktop.OS.type())
-  @image_repo_path UserdocsDesktop.Paths.image_repo_path()
+  @magick_path Local.Paths.imagemagick_executable_path(Desktop.OS.type())
+  @image_repo_path Local.Paths.image_repo_path()
 
   defp css() do
     "
@@ -54,6 +53,20 @@ defmodule BrowserController.BrowserCommandsTest do
       padding-bottom: 100%;
     }
     "
+  end
+
+  defp badge_annotation_fixture() do
+    %{
+      label: UUID.uuid4(),
+      name: UUID.uuid4(),
+      color: "some color",
+      font_size: 42,
+      size: 42,
+      x_offset:  42,
+      x_orientation: "R",
+      y_offset: 42,
+      y_orientation: "M"
+    }
   end
 
   setup_all do

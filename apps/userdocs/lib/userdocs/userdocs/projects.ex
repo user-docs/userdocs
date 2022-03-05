@@ -6,6 +6,7 @@ defmodule Userdocs.Projects do
   import Ecto.Query, warn: false
   alias Schemas.Projects.Project
   alias Userdocs.RepoHandler
+  alias Userdocs.Subscription
 
   @doc "Returns the list of projects."
   def list_projects(opts) do
@@ -89,7 +90,7 @@ defmodule Userdocs.Projects do
   def maybe_broadcast_project({:ok, %Project{} = project}, action, channel, true) do
     Logger.debug("#{__MODULE__} broadcasting a Project struct on #{channel}")
     payload = %{type: "Schemas.Projects.Project", attrs: project}
-    UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+    Subscription.broadcast(channel, action, payload)
     {:ok, project}
   end
   def maybe_broadcast_project(state, _, _, _), do: state

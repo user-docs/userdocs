@@ -1,9 +1,9 @@
-defmodule BrowserController.MixProject do
+defmodule Local.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :browser_controller,
+      app: :local,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
@@ -19,17 +19,16 @@ defmodule BrowserController.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {BrowserController.Application, [url: "http://localhost:4001"]}
+      mod: {Local.Application, []}
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:chrome_remote_interface, "~> 0.4.1"},
-      {:schemas, in_umbrella: true},
-      {:client, in_umbrella: true},
-      {:local, in_umbrella: true, runtime: false},
+      {:download, "~> 0.0.4"},
+      {:desktop, "~> 1.4.0"},
+      {:userdocs, in_umbrella: :true}
     ]
   end
 end

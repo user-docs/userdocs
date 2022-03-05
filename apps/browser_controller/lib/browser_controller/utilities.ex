@@ -1,17 +1,14 @@
 defmodule BrowserController.Utilities do
   @moduledoc "Utility functions for managing a browser over the Chrome RDP"
   require Logger
-  alias UserdocsDesktopWeb.Endpoint
-  alias UserdocsDesktopWeb.Router.Helpers, as: Routes
   alias ChromeRemoteInterface.RPC.DOM
   alias ChromeRemoteInterface.PageSession
   alias ChromeRemoteInterface.RPC.Runtime
 
-  def script() do
-    url = Endpoint.url()
-    default_css_path = Routes.static_path(Endpoint, "/styles/sui_font.css")
-    team_css_path = Routes.static_path(Endpoint, "/styles/team_css_overrides.css")
-    annotations_path = Routes.static_path(Endpoint, "/assets/annotations.js")
+  def script(url) do
+    default_css_path = url <> "/styles/sui_font.css"
+    team_css_path = url <> "/styles/team_css_overrides.css"
+    annotations_path = url <> "/assets/annotations.js"
     """
     console.log('Running script');
     var team_style = document.createElement('link');

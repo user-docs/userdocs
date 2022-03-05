@@ -58,14 +58,16 @@ defmodule UserdocsDesktopWeb.MixProject do
       {:floki, ">= 0.30.0", only: :test},
       {:esbuild, "~> 0.2", runtime: Mix.env() == :dev},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:desktop, "~> 1.3.0"},
+      {:desktop, "~> 1.4.0"},
       {:download, "~> 0.0.4"},
       {:inflex, "~> 2.1"},
+      {:local, in_umbrella: true},
       {:state, in_umbrella: true},
       {:client, in_umbrella: true},
       {:userdocs, in_umbrella: true},
       {:state_handlers, in_umbrella: true},
-      {:userdocs_web, in_umbrella: true, only: [:test], runtime: false},
+      {:browser_controller, in_umbrella: true},
+      {:userdocs_web, in_umbrella: true, only: [:test], runtime: false}
     ]
   end
 

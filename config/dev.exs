@@ -67,7 +67,15 @@ config :userdocs_web, UserdocsWeb.Endpoint,
   ]
 
 # Do not include metadata nor timestamps in development logs
-config :logger, :console, format: "[$level] $message\n"
+config :logger, backends: [{FlexLogger, :userdocs_logger}]
+
+config :logger, :userdocs_logger,
+  logger: :console,
+  default_level: :debug,
+  level_config: [
+    [module: Ecto, level: :info]
+  ],
+  format: "[$level] $message\n"
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime

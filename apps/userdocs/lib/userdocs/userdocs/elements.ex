@@ -7,6 +7,7 @@ defmodule Userdocs.Elements do
   alias Userdocs.RepoHandler
   alias Userdocs.Teams
   alias Schemas.Elements.Element
+  alias Userdocs.Subscription
 
   def list_elements(opts) do
     filters = Map.get(opts, :filters, nil)
@@ -85,7 +86,7 @@ defmodule Userdocs.Elements do
   def maybe_broadcast_element({:ok, %Element{} = element}, action, channel, true) do
     Logger.debug("#{__MODULE__} broadcasting a Element struct")
     payload = %{type: "Schemas.Elements.Element", attrs: element}
-    UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+    Subscription.broadcast(channel, action, payload)
     {:ok, element}
   end
   def maybe_broadcast_element(state, _, _, _), do: state

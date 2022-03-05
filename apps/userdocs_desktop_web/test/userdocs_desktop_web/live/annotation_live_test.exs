@@ -5,7 +5,6 @@ defmodule UserdocsDesktopWeb.AnnotationLiveTest do
   alias Userdocs.UsersFixtures
   alias Userdocs.TeamsFixtures
   alias Userdocs.WebFixtures
-  alias UserdocsDesktop.BrowserController
 
   @opts %{context: %{repo: Userdocs.Repo}}
   @receive_timeout 250

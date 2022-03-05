@@ -7,6 +7,7 @@ defmodule Userdocs.Annotations do
   alias Schemas.Annotations.Annotation
   alias Schemas.Elements.ElementAnnotation
   alias Userdocs.Teams
+  alias Userdocs.Subscription
 
   def list_annotations(opts)  do
     filters = Map.get(opts, :filters, [])
@@ -108,7 +109,8 @@ defmodule Userdocs.Annotations do
   def maybe_broadcast_annotation({:ok, %Annotation{} = annotation}, action, channel, true) do
     Logger.debug("#{__MODULE__} broadcasting a Annotation struct")
     payload = %{type: "Schemas.Annotations.Annotation", attrs: annotation}
-    UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+    Userdocs.Subsc
+    Subscription.broadcast(channel, action, payload)
     {:ok, annotation}
   end
   def maybe_broadcast_annotation(state, _, _, _), do: state
@@ -129,7 +131,7 @@ defmodule Userdocs.Annotations do
       if broadcast? == true do
         Logger.debug("#{__MODULE__} broadcasting an Element Annotation struct")
         payload = %{type: "Schemas.Elements.ElementAnnotation", attrs: element_annotation}
-        UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+        Subscription.broadcast(channel, action, payload)
       end
     end)
   end

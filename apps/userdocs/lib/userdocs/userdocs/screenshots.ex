@@ -8,6 +8,7 @@
   alias Userdocs.Teams
   alias Schemas.Screenshots.Screenshot
   alias Schemas.Screenshots.PresignedURLs
+  alias Userdocs.Subscription
   @placeholder_path Path.join([:code.priv_dir(:userdocs), "static", "images", "userdocs_placeholder.png"])
 
   @doc "Returns the list of screenshots."
@@ -128,7 +129,7 @@
       type: "Schemas.Screenshots.Screenshot",
       attrs: screenshot |> Map.put(:presigned_urls, presigned_urls(screenshot))
     }
-    UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+    Subscription.broadcast(channel, action, payload)
     {:ok, screenshot}
   end
   def maybe_broadcast_screenshot(state, _, _, _), do: state

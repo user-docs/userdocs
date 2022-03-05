@@ -1,8 +1,8 @@
-defmodule UserdocsDesktop.ChromiumInstaller do
+defmodule Local.ChromiumInstaller do
   @moduledoc "Functions for downloading and installing chrome"
   require Logger
   alias Desktop.OS
-  alias UserdocsDesktop.Paths
+  alias Local.Paths
 
   def download() do
     Logger.debug("#{__MODULE__} Downloading Chromium")

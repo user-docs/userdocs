@@ -50,8 +50,8 @@ defmodule Userdocs.MixProject do
       {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.22", only: :dev, runtime: false},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:flex_logger, "~> 0.2", only: [:dev]}
       {:schemas, in_umbrella: true},
-      {:state_handlers, in_umbrella: true, runtime: false}
     ]
   end
 

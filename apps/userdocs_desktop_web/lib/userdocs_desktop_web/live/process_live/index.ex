@@ -91,11 +91,11 @@ defmodule UserdocsDesktopWeb.ProcessLive.Index do
 
   def assign_select_lists(socket) do
     assign(socket, :select_lists, %{
-      projects: projects_select(socket)
+      projects: projects_select()
     })
   end
 
-  def projects_select(socket) do
+  def projects_select() do
     Client.list_projects()
     |> LiveHelpers.select_list(:name, :true)
   end

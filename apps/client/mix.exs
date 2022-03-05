@@ -34,6 +34,7 @@ defmodule Client.MixProject do
       {:inflex, "~> 2.1"},
       {:httpoison, "~> 1.8"},
       {:state_handlers, in_umbrella: true},
+      {:local, in_umbrella: true},
       {:schemas, in_umbrella: true},
       {:state, in_umbrella: true},
       {:userdocs, in_umbrella: true},
