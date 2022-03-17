@@ -9,6 +9,8 @@ defmodule Userdocs.Repo.Migrations.CreateStepInstances do
       add :warning, :jsonb
       add :step_id, :uuid
       add :process_instance_id, :uuid
+
+      timestamps()
     end
   end
 end

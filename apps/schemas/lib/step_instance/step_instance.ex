@@ -17,6 +17,8 @@ defmodule Schemas.StepInstances.StepInstance do
 
     belongs_to :step, Step, on_replace: :nilify
     belongs_to :process_instance, ProcessInstance, on_replace: :nilify, type: :string
+
+    timestamps()
   end
 
   def changeset(step_instance, attrs) do
