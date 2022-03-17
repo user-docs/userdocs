@@ -1,18 +1,14 @@
 defmodule BrowserController.Browser.Commands do
   require Logger
 
-  alias Userdocs.StepInstances
-  alias Userdocs.Pages
-  alias Schemas.Steps.Step
-  alias Schemas.Teams.Team
-  alias Schemas.ProcessInstances.ProcessInstance
-
   alias BrowserController.Utilities
+  alias BrowserController.Annotations
+
+  alias Local.Paths
 
   alias ChromeRemoteInterface.RPC.Page
   alias ChromeRemoteInterface.RPC.DOM
   alias ChromeRemoteInterface.PageSession
-  alias ChromeRemoteInterface.Session
   alias ChromeRemoteInterface.RPC.Runtime
   alias ChromeRemoteInterface.RPC.Emulation
   alias ChromeRemoteInterface.RPC.Input
@@ -178,7 +174,6 @@ defmodule BrowserController.Browser.Commands do
         File.write(input_location, binary)
         Logger.info("Starting Inkscape")
         System.cmd("D:\\Program Files\\Inkscape\\inkscape.exe", ["--without-gui", input_location, "--export-plain-svg=#{output_location}"], [stderr_to_stdout: true])
-        Logger.info("Starting svgo #{Paths.svgo_path()}")
         Logger.info(inspect(["< #{output_location} > #{optimized_output_location}"]))
         System.shell("#{Paths.svgo_path()} < #{output_location} > #{optimized_output_location}")
         {:ok, %{}}
@@ -234,7 +229,7 @@ defmodule BrowserController.Browser.Commands do
 
   defp full_document_screenshot(page_pid, width) do
     Logger.debug("Executing full document screenshot with width #{width}")
-    with {:ok, result} <- Page.getLayoutMetrics(page_pid),
+    with {:ok, _result} <- Page.getLayoutMetrics(page_pid),
          {:ok, remote_object} <- Utilities.get_remote_object("css", "html", page_pid),
          {:ok, %{height: height}} <- Utilities.get_box(page_pid, %{object_id: remote_object.object_id}),
          {:ok, _dimensions} <- set_size(page_pid, width, height),
