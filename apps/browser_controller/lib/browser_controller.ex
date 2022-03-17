@@ -347,36 +347,6 @@ defmodule BrowserController do
   def cast_command({:clear_annotations, opts}), do: {:clear_annotations, opts}
   def cast_command({:full_screen_svg, opts}), do: {:full_screen_svg, opts}
 
-  def cast_step(%Step{step_type_id: "navigate", page: %{project: project} = page}, %{user: user}) do
-    {:navigate, %{url: Pages.effective_url(page, project, user)}}
-  end
-  def cast_step(%Step{step_type_id: "set_size_explicit", width: width, height: height}, _context) do
-    {:set_size, %{height: height, width: width}}
-  end
-  def cast_step(%Step{step_type_id: "full_screen_screenshot", page_id: page_id, screenshot_id: screenshot_id}, _context) do
-    {:full_screen_screenshot, %{page_id: page_id, screenshot_id: screenshot_id}}
-  end
-  def cast_step(%Step{step_type_id: "element_screenshot", margin_left: _ml, margin_right: _mr,  element: element},
-  %{team: %Team{}}) do
-    {:element_screenshot, %{element: element}}
-  end
-  def cast_step(%Step{step_type_id: "apply_annotation", annotation: annotation}, _context) do
-    {:create_annotation, %{annotation: annotation}}
-  end
-  def cast_step(%Step{step_type_id: "fill_field", element: %{selector: selector, strategy_id: strategy}, text: text}, _context) do
-    {:fill_field, %{selector: selector, strategy: strategy, text: text}}
-  end
-  def cast_step(%Step{step_type_id: "click", element: %{selector: selector, strategy_id: strategy}}, _context) do
-    {:click, %{selector: selector, strategy: strategy}}
-  end
-  def cast_step(%Step{step_type_id: "clear_annotations"}, _context) do
-    {:clear_annotations, %{}}
-  end
-  def cast_step(%Step{step_type_id: "full_screen_svg"}, _context) do
-    {:full_screen_svg, %{}}
-  end
-  def cast_step(%Step{step_type_id: nil}, _context), do: {:do_nothing, %{}}
-
   def broadcast_step_update(step) do
     broadcast("data", "update", step)
     broadcast("data", "update", step.step_instance)
