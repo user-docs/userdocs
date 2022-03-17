@@ -57,13 +57,11 @@ defmodule ClientTest.UsersTest do
 
     test "Updates user", %{user: user, team: team} do
       Phoenix.PubSub.subscribe(Userdocs.PubSub, "data")
-      Client.connect()
       Client.load_users(%{user_id: user.id})
       attrs = %{selected_team_id: team.id}
       Client.update_user_selections(user, attrs)
       assert_receive({"update_user", %{}}, 1000)
       Phoenix.PubSub.unsubscribe(Userdocs.PubSub, "data")
-      Client.disconnect()
     end
   end
 end
