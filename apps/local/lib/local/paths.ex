@@ -15,6 +15,8 @@ defmodule Local.Paths do
     end
   end
 
+  def extension_path(), do: Path.join([Desktop.OS.home(), "userdocs", "extension"])
+
   def image_repo_path(), do: Path.join([Desktop.OS.home(), "userdocs", "internal_data", "images"])
   def imagemagick_download_path(), do: Path.join([Desktop.OS.home(), "userdocs", "downloads", "imagemagick"])
   def imagemagick_downloaded_file_path(), do: Path.join([Desktop.OS.home(), "userdocs", "downloads", "imagemagick", "magick.zip"])

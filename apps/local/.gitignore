@@ -24,3 +24,6 @@ local-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Extension dist folder 
+/priv/static/assets/js/extension/dist/

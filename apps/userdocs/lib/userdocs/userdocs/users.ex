@@ -8,6 +8,7 @@ defmodule Userdocs.Users do
   alias Userdocs.Repo
   alias Userdocs.RepoHandler
   alias Userdocs.Email
+  alias Userdocs.Subscription
 
   @behaviour Bodyguard.Policy
   def authorize(:get_user!, %{id: user_id} = _current_user, %{id: user_id} = _user), do: :ok
@@ -223,7 +224,7 @@ defmodule Userdocs.Users do
     channels
     |> Enum.each(fn channel ->
       Logger.debug("#{__MODULE__} broadcasting a User struct on #{channel}")
-      UserdocsWeb.Endpoint.broadcast(channel, action, payload)
+      Subscription.broadcast(channel, action, payload)
     end)
   end
 

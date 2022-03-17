@@ -11,7 +11,8 @@ defmodule Local do
     local_dirs: %{order: 1, status: nil, next_task: :chromium, title: "Local Dirs"},
     chromium: %{order: 2, status: nil, next_task: :imagemagick, title: "Chromium"},
     imagemagick: %{order: 3, status: nil, next_task: :local_repo, title: "Imagemagick"},
-    local_repo: %{order: 4, status: nil, next_task: :complete, title: "Local Options"}
+    local_repo: %{order: 4, status: nil, next_task: :extension, title: "Local Options"},
+    extension: %{order: 5, status: nil, next_task: :complete, title: "Extension"}
   }
 
 
@@ -45,6 +46,10 @@ defmodule Local do
     check_local_repo()
     |> Setups.handle_setup_result(state, :local_repo)
   end
+  def handle_continue(:extension = step, state) do
+    install_extension()
+    |> Setups.handle_setup_result(state, step)
+  end
   def handle_continue(:complete, state), do: {:noreply, state}
 
   def create_local_dirs() do
@@ -57,7 +62,8 @@ defmodule Local do
       Paths.chromium_download_path(),
       Paths.imagemagick_path(),
       Paths.image_repo_path(),
-      Paths.imagemagick_download_path()
+      Paths.imagemagick_download_path(),
+      Paths.extension_path(),
     ]
     |> Enum.each(fn path -> :ok = File.mkdir_p!(path) end)
 
@@ -112,6 +118,15 @@ defmodule Local do
         |> LocalOptions.create_local_options()
 
         {:ok, "Local Options Created"}
+    end
+  end
+
+  def install_extension() do
+    Path.join([:code.priv_dir(:local), "static", "assets", "js", "extension"])
+    |> File.cp_r(Paths.extension_path())
+    |> case do
+      {:ok, _dirs} -> {:ok, "Extension Installed"}
+      {:error, _code, reason} -> {:error, "Extension Installation Failed because #{reason}"}
     end
   end
 end
