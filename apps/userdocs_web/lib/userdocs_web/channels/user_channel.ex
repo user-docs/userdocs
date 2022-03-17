@@ -36,6 +36,10 @@ defmodule UserdocsWeb.UserChannel do
     broadcast!(socket, "presence_state", presence_list)
     {:noreply, socket}
   end
+  def handle_info(%{event: event, payload: payload}, socket) when event in ["create", "update", "delete"] do
+    broadcast!(socket, event, payload)
+    {:noreply, socket}
+  end
 
   # Add authorization logic here as required.
   defp authorized?(_payload) do
