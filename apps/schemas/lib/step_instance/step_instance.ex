@@ -8,7 +8,7 @@ defmodule Schemas.StepInstances.StepInstance do
   alias Schemas.Steps.Step
   alias Schemas.ProcessInstances.ProcessInstance
 
-  @primary_key {:id, Ecto.UUID, autogenerate: false}
+  @primary_key {:id, Ecto.UUID, autogenerate: true}
   @derive {Jason.Encoder, only: [:id, :status, :error, :warning, :step_id, :process_instance_id]}
   schema "step_instances" do
     field :status, Ecto.Enum, values: [:not_started, :started, :succeeded, :failed, :warning]
