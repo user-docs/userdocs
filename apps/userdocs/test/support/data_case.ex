@@ -29,9 +29,11 @@ defmodule Userdocs.DataCase do
 
   setup tags do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Userdocs.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Userdocs.LocalRepo)
 
     unless tags[:async] do
       Ecto.Adapters.SQL.Sandbox.mode(Userdocs.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Userdocs.LocalRepo, {:shared, self()})
     end
 
     :ok
