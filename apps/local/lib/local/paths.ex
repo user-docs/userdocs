@@ -32,6 +32,6 @@ defmodule Local.Paths do
   def svgo_path(Windows), do: Path.join([vendor_path(), "svgop.exe"])
 
   def default_images_path(), do: Path.join([Desktop.OS.home(), "userdocs", "images"])
-  def assets_dir(), do: Path.join([:code.priv_dir(:userdocs_desktop_web), "static", "assets"])
+  def assets_dir(), do: Path.join([:code.priv_dir(:userdocs), "static", "assets"])
   def team_css_override_file(), do: Path.join(assets_dir(), "team_css_overrides.css")
 end
