@@ -19,16 +19,22 @@ defmodule BrowserController.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {BrowserController.Application, [url: "http://localhost:4001"]}
+      mod: {
+        BrowserController.Application, [
+          host_url: "http://localhost:4001",
+          headed_browser: [port: 9222, headless: false]
+        ]
+      }
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:chrome_remote_interface, "~> 0.4.1"},
+      {:chrome_remote_interface, path: "D:\\Users\\johns10\\Documents\\GitHub\\chrome-remote-interface"},
       {:schemas, in_umbrella: true},
-      {:client, in_umbrella: true},
+      {:userdocs, in_umbrella: true},
+      {:client, in_umbrella: true, runtime: false},
       {:local, in_umbrella: true, runtime: false},
     ]
   end
