@@ -383,25 +383,6 @@ defmodule BrowserController do
     step
   end
 
-  def handle_step_result({:ok, result}, step) do
-    {:ok, step_instance} = StepInstances.update_step_instance(step.step_instance, %{status: :succeeded})
-    step = Map.put(step, :step_instance, step_instance)
-    broadcast_step_update(step)
-    {:ok, result, step}
-  end
-  def handle_step_result({:error, message}, step) do
-    {:ok, step_instance} = StepInstances.update_step_instance(step.step_instance, %{status: :failed, error: %{message: message}})
-    step = Map.put(step, :step_instance, step_instance)
-    broadcast_step_update(step)
-    {:error, message, step}
-  end
-  def handle_step_result({:warn, message}, step) do
-    {:ok, step_instance} = StepInstances.update_step_instance(step.step_instance, %{status: :warning, warning: %{message: message}})
-    step = Map.put(step, :step_instance, step_instance)
-    broadcast_step_update(step)
-    {:warn, message, step}
-  end
-
   def handle_process_instance_update({:ok, result, step}, process_instance) do
     broadcast("data", "update", process_instance)
     {:ok, result, step}
