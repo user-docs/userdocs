@@ -64,6 +64,8 @@ defmodule Local do
       Paths.image_repo_path(),
       Paths.imagemagick_download_path(),
       Paths.extension_path(),
+      Paths.assets_dir(),
+      Paths.team_css_override_file()
     ]
     |> Enum.each(fn path -> :ok = File.mkdir_p!(path) end)
 
