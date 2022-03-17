@@ -42,13 +42,21 @@ defmodule Client do
     Schemas.Screenshots.Screenshot,
     Schemas.Pages.Page
   ]
-  @setup_status %{
-    initialize_state: %{order: 1, status: nil, next_task: :check_tokens, title: "Initial State"},
-    check_tokens: %{order: 2, status: nil, next_task: :authenticate, title: "Tokens"},
-    authenticate: %{order: 3, status: nil, next_task: :connect_channel, title: "Authenticate"},
-    connect_channel: %{order: 4, status: nil, next_task: :load_data, title: "Connecting"},
-    load_data: %{order: 5, status: nil, next_task: :complete, title: "Load Data"}
-  }
+  if Mix.env() == :test do
+    @setup_status %{
+      initialize_state: %{order: 1, status: nil, next_task: :authenticate, title: "Initial State"},
+      authenticate: %{order: 2, status: nil, next_task: :connect_channel, title: "Authenticate"},
+      connect_channel: %{order: 3, status: nil, next_task: :complete, title: "Connecting"}
+    }
+  else
+    @setup_status %{
+      initialize_state: %{order: 1, status: nil, next_task: :check_tokens, title: "Initial State"},
+      check_tokens: %{order: 2, status: nil, next_task: :authenticate, title: "Tokens"},
+      authenticate: %{order: 3, status: nil, next_task: :connect_channel, title: "Authenticate"},
+      connect_channel: %{order: 4, status: nil, next_task: :load_data, title: "Connecting"},
+      load_data: %{order: 5, status: nil, next_task: :complete, title: "Load Data"}
+    }
+  end
 
   def start_link(_), do: GenServer.start_link(__MODULE__, %{current_user: nil}, name: __MODULE__)
 
@@ -68,7 +76,7 @@ defmodule Client do
   def disconnect(), do: GenServer.call(__MODULE__, :disconnect, @timeout)
 
   def load(), do: GenServer.call(__MODULE__, :load, @timeout)
-  def load(opts), do: GenServer.call(__MODULE__, {:load, opts}, @timeout)
+  def load(data), do: GenServer.call(__MODULE__, {:load, data}, @timeout)
 
   def load_users(opts), do: GenServer.call(__MODULE__, {:load_users, opts}, @timeout)
   def list_users(opts), do: GenServer.call(__MODULE__, {:list_users, opts}, @timeout)
