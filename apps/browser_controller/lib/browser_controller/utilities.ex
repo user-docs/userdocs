@@ -5,50 +5,6 @@ defmodule BrowserController.Utilities do
   alias ChromeRemoteInterface.PageSession
   alias ChromeRemoteInterface.RPC.Runtime
 
-  def script(url) do
-    default_css_path = url <> "/styles/sui_font.css"
-    team_css_path = url <> "/styles/team_css_overrides.css"
-    annotations_path = url <> "/assets/annotations.js"
-    """
-    console.log('Running script');
-    var team_style = document.createElement('link');
-    team_style.rel = 'stylesheet'
-    team_style.href = '#{url <> team_css_path}'
-    var default_style = document.createElement('link');
-    default_style.rel = 'stylesheet'
-    default_style.href = '#{url <> default_css_path}'
-    var script = document.createElement('script');
-    script.type = 'text/javascript'
-    script.src = '#{url <> annotations_path}'
-    window.dpi = (function () {
-      let i = 1;
-      while ( !hasMatch(i) ) i *= 2;
-      function getValue(start, end) {
-          if (start > end) return -1;
-          let average = (start + end) / 2;
-          if ( hasMatch(average) ) {
-              if ( start == average || !hasMatch(average - 1) ) {
-                  return average;
-              } else {
-                  return getValue(start, average - 1);
-              }
-          } else {
-              return getValue(average + 1, end);
-          }
-      }
-      function hasMatch(x) {
-          return matchMedia(`(max-resolution: ${x}dpi)`).matches;}
-      return getValue(i / 2, i) | 0;
-    });
-    document.addEventListener('DOMContentLoaded', () => {
-      var head = document.getElementsByTagName('head')[0]
-      head.appendChild(default_style);
-      head.appendChild(team_style);
-      head.appendChild(script);
-    }, false);
-    """
-  end
-
   def get_root_node_id(page_pid) do
     {:ok, %{"result" => %{"root" => %{"nodeId" => root_node_id}}}} = DOM.getDocument(page_pid, %{depth: 1})
     {:ok, root_node_id}
@@ -153,6 +109,14 @@ defmodule BrowserController.Utilities do
     :ok
   end
 
+  def blur(page_pid, remote_object_id) do
+    Runtime.callFunctionOn(page_pid, %{
+      arguments: [%{objectId: remote_object.object_id}],
+      functionDeclaration: "(element) => {element.blur()}",
+      objectId: remote_object.object_id
+    })
+  end
+
   def get_box(page_pid, %{node_id: node_id}) do
     case DOM.getBoxModel(page_pid, %{nodeId: node_id}) do
       {:ok, %{"result" => %{"model" => model}}} ->
@@ -240,7 +204,6 @@ defmodule BrowserController.Utilities do
     }
   end
   def get_master_box(boxes) do
-    IO.inspect(boxes)
     %{
       border: %{
         upper_left: %{

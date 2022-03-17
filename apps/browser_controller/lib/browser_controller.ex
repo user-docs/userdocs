@@ -1,14 +1,18 @@
 defmodule BrowserController do
   require Logger
   use GenServer
+
   alias Userdocs.ProcessInstances
   alias Schemas.ProcessInstances.ProcessInstance
+
   alias BrowserController.BrowserState
   alias BrowserController.Constants
   alias BrowserController.Annotations
   alias BrowserController.Utilities
+  alias BrowserController.Browser
   alias Local.Paths
   alias ChromeRemoteInterface.Session
+  alias Schemas.Steps.Step
 
   def start_link(default), do: GenServer.start_link(__MODULE__, default, name: __MODULE__)
 
@@ -17,10 +21,10 @@ defmodule BrowserController do
   def page_pid(), do: GenServer.call(__MODULE__, {:page_pid})
   def run_state(), do: GenServer.call(__MODULE__, {:run_state})
   def get_document(), do: GenServer.call(__MODULE__, {:get_document})
-  def get_url(), do: GenServer.call(__MODULE__, {:get_url})
   def execute(command), do: GenServer.call(__MODULE__, {:execute, command})
-  def open_browser(url), do: GenServer.call(__MODULE__, {:open_browser, url})
-  def close_browser(), do: GenServer.call(__MODULE__, {:close_browser})
+  def open_browser(), do: GenServer.call(__MODULE__, :open_browser)
+  def ensure_browser_open(), do: GenServer.call(__MODULE__, :ensure_browser_open)
+  def close_browser(), do: GenServer.call(__MODULE__, :close_browser)
   def queue(), do: GenServer.call(__MODULE__, {:queue})
 
   def play(), do: GenServer.cast(__MODULE__, {:play})
@@ -34,28 +38,12 @@ defmodule BrowserController do
   @impl true
   def init(args) do
     Logger.info("#{__MODULE__} Initializing with args #{inspect args}")
-    url = Keyword.get(args, :url, "http://localhost:4002")
+    Process.flag(:trap_exit, true)
     Phoenix.PubSub.subscribe(Userdocs.PubSub, "extension")
     state =
       case BrowserState.get() do
-        nil -> %{server: Session.new(), page_pid: nil, run_state: :pause, queue: :queue.new()}
+        nil -> %{run_state: :pause, queue: :queue.new()}
         current_state -> current_state
-      end
-
-    state =
-      case browser_open?(state.server) do
-        true ->
-          {:ok, page_pid} = active_page_pid(state.server, state.page_pid)
-          {:ok, page_pid} =
-            case Process.info(page_pid)[:status] do
-              nil -> active_page_pid(state.server, nil)
-              :waiting -> active_page_pid(state.server, state.page_pid)
-            end
-          {:ok, page_pid} = reset_chrome(state.server, page_pid)
-          :timer.sleep(500)
-          setup_chrome(page_pid, url)
-          Map.put(state, :page_pid, page_pid)
-        false -> state
       end
 
     {:ok, state}
@@ -68,8 +56,8 @@ defmodule BrowserController do
   def handle_call({:is_empty?}, _from, %{queue: queue} = state),
     do: {:reply, :queue.is_empty(queue), state}
 
-  def handle_call({:browser_open?}, _from, %{server: server} = state),
-    do: {:reply, browser_open?(server), state}
+  def handle_call({:browser_open?}, _from, state),
+    do: {:reply, Browser.browser_open?(headed_browser()), state}
 
   def handle_call({:run_state}, _from, %{run_state: run_state} = state),
     do: {:reply, run_state, state}
@@ -77,38 +65,33 @@ defmodule BrowserController do
   def handle_call({:queue}, _from, %{queue: {tail, head}} = state) do
     {:reply, head ++ tail, state}
   end
-  def handle_call({:open_browser, url}, _from, %{server: server, page_pid: page_pid} = state) do
-    {:ok, page_pid} = open_chrome(server, page_pid, url)
-    broadcast("browser", "browser_opened", %{timestamp: NaiveDateTime.utc_now()})
-    {:reply, :ok, state |> Map.put(:page_pid, page_pid)}
+  def handle_call(:open_browser, _from, state) do
+    case Browser.open_browser(headed_browser()) do
+      {:ok, _} ->
+        broadcast("browser", "browser_opened", %{timestamp: NaiveDateTime.utc_now()})
+        {:reply, :ok, state}
+      {:error, message} -> {:reply, {:error, message}, state}
+    end
   end
-  def handle_call({:close_browser}, _from, %{server: server, page_pid: page_pid} = state) do
-    close_chrome(server, page_pid)
+  def handle_call(:ensure_browser_open, _from, state) do
+    {:ok, result} = Browser.ensure_open(headed_browser())
+    broadcast("browser", "browser_opened", %{timestamp: NaiveDateTime.utc_now()})
+    {:reply, Map.put(result, :headed_browser_pid, headed_browser()), state}
+  end
+  def handle_call(:close_browser, _from, state) do
+    Browser.close_browser(headed_browser())
     broadcast("browser", "browser_closed", %{timestamp: NaiveDateTime.utc_now()})
-    {:reply, :ok, state |> Map.put(:page_pid, nil)}
+    {:reply, :ok, state}
   end
   def handle_call({:get_document}, _from, %{page_pid: page_pid} = state) do
     {:reply, Utilities.get_document(page_pid), state}
   end
-  def handle_call({:get_url}, _from, %{server: server} = state) do
-    {:reply, Utilities.get_url(server), state}
-  end
-  def handle_call({:execute, _command}, _from, %{page_pid: nil} = state),
-    do: {:reply, {:error, "Browser not open"}, state}
 
-  def handle_call({:execute, command}, _from, %{server: server, page_pid: page_pid, queue: _queue, run_state: _run_state} = state) do
-    result =
-      try do
-        execute(command, server, page_pid)
-      rescue
-        e -> reraise(e, __STACKTRACE__)
-      catch
-        :exit, reason ->
-          Logger.debug("Failed to execute command because #{inspect reason}")
-          exit(reason)
-      end
-
-    {:reply, result, state}
+  def handle_call({:execute, command}, _from, state) do
+    case Browser.browser_open?(headed_browser()) do
+      true -> {:reply, Browser.execute(headed_browser(), command), state}
+      false -> {:reply, {:error, "Browser not open", state}}
+    end
   end
 
   @impl true
@@ -178,14 +161,6 @@ defmodule BrowserController do
     do: {:noreply, state}
 
   @impl true
-  def handle_info({:chrome_remote_interface, "Page.frameStoppedLoading", _payload}, socket) do
-    Logger.debug("#{__MODULE__} received a Page.frameStoppedLoading message")
-    {:noreply, socket}
-  end
-  def handle_info({:chrome_remote_interface, "Page.frameStartedLoading", _payload}, socket) do
-    Logger.debug("#{__MODULE__} received a Page.frameStartedLoading message")
-    {:noreply, socket}
-  end
   def handle_info(%{topic: "extension", event: "context_menu_interaction", payload: %{"action" => "SVG"}}, socket) do
     Logger.warning("#{__MODULE__} received an SVG context menu interaction")
     handle_command({:full_screen_svg, %{}})
@@ -201,6 +176,10 @@ defmodule BrowserController do
   end
   def handle_info(%{topic: "extension", event: "devtools_element_inspected"}, socket),
     do: {:noreply, socket}
+  def handle_info({:EXIT, from, reason}, state) do
+    IO.puts "#{__MODULE__} exiting because #{inspect reason}, from #{inspect from}"
+    {:stop, reason, state} # see GenServer docs for other return types
+  end
 
   @impl true
   def handle_continue(:handle_queue, %{queue: {[], []}} = state) do
@@ -247,6 +226,8 @@ defmodule BrowserController do
     BrowserState.update(state)
   end
 
+  def headed_browser(), do: Process.whereis(HeadedBrowser)
+
   ################# QUEUE HELPERS ##########################
 
   def update_queue(queue, [_ | _] = commands) do
@@ -262,7 +243,6 @@ defmodule BrowserController do
 
   alias ChromeRemoteInterface.RPC.Page
   alias ChromeRemoteInterface.RPC.DOM
-  alias ChromeRemoteInterface.RPC.Browser
   alias ChromeRemoteInterface.PageSession
   alias ChromeRemoteInterface.Session
   alias ChromeRemoteInterface.RPC.Runtime
@@ -276,27 +256,27 @@ defmodule BrowserController do
     end
   end
 
-  def open_chrome(server, page_pid, url) do
-    Logger.info("#{__MODULE__} opening chrome")
-    if !browser_open?(server) do
-      Logger.info("Browser was closed, opening")
-      args = Constants.chrome_startup_args(url)
-      chrome_path = Paths.chromium_executable_path()
-      _port = Port.open({:spawn_executable, chrome_path}, args: args)
-      {:ok, page_pid} = active_page_pid(server, page_pid)
-      setup_chrome(page_pid, url)
-    else
-      Logger.info("Browser is already open, reconnecting")
-      {:ok, page_pid} = active_page_pid(server, page_pid)
-      setup_chrome(page_pid, url)
-     end
+  def open_chrome(url) do
+    args = Constants.chrome_startup_args(url)
+    chrome_path = Paths.chromium_executable_path()
+    Port.open({:spawn_executable, chrome_path}, args: args)
+    {:ok, "Chrome Opened"}
   end
 
-  def reset_chrome(_server, page_pid) do
-    Logger.info("#{__MODULE__} resetting an already started chrome instance")
-    Page.reload(page_pid)
-    Logger.info("#{__MODULE__} finished restarting chrome")
-    {:ok, page_pid}
+  def connect_chrome(server) do
+    {:ok, pages} = ChromeRemoteInterface.Session.list_pages(server)
+    valid_page(pages)
+    |> ChromeRemoteInterface.PageSession.start_link()
+  end
+
+  def valid_page(pages) do
+    pages
+    |> Enum.filter(fn(p) -> p["type"] == "page" end)
+    |> Enum.at(-1)
+    |> case do
+      %{"id" => _page_id, "type" => "page"} = page -> page
+      nil -> raise("No valid page exists, we should create a page")
+    end
   end
 
   def disable_domain_events(page_pid) do
@@ -328,36 +308,6 @@ defmodule BrowserController do
   end
 
   def close_connection(page_pid), do: PageSession.stop(page_pid)
-
-  def setup_chrome(page_pid, url) do
-    Logger.info("#{__MODULE__} setting chrome up")
-    Page.enable(page_pid)
-    DOM.enable(page_pid)
-    Runtime.enable(page_pid)
-    Page.addScriptToEvaluateOnNewDocument(page_pid, %{source: Utilities.script(url)})
-    PageSession.execute_command(page_pid, "Overlay.enable", %{}, [])
-    Page.reload(page_pid)
-    Logger.info("#{__MODULE__} finished setting chrome up")
-    {:ok, page_pid}
-  end
-
-  def close_chrome(server, page_pid) do
-    case Session.version(server) do
-      {:error, :econnrefused} ->
-        Logger.info("Chrome finished closing")
-        :ok
-      {:ok, _version_info} ->
-        Logger.info("#{__MODULE__} closing chrome normally")
-        try do
-          Browser.close(page_pid)
-        rescue
-          e -> Logger.error(e)
-        end
-        if Process.info(page_pid), do: GenServer.stop(page_pid)
-        :timer.sleep(200)
-        close_chrome(server, page_pid)
-    end
-  end
 
   def start_extension_subscription(page_pid),
     do: Runtime.evaluate(page_pid, %{expression: "window.postMessage({action: 'subscribe'}, '*')"})
