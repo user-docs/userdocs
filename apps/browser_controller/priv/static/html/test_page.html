@@ -5,16 +5,23 @@
       function change(button) {
         button.innerHTML = "After";
       }
+      function copyValue() {
+        source = document.getElementById("name")
+        destination = document.getElementById("copiedValue")
+        console.log(destination)
+        destination.innerText = source.value
+      }
     </script>
   </head>
   <body>
       <h1>h1</h1>
       <p id="p">p</p>
       <p id="many_attributes_p" style="color: green;" name="name">many attributes p</p>
-      <form>
+      <form id="testForm">
         <label for="fname">name</label>
-        <input type="text" id="name" name="name"><br><br>
+        <input type="text" id="name" name="name" oninput="copyValue()"><br><br>
       </form>
+      <p id="copiedValue"></p>
       <button id='testButton' onclick='change(this)'>Before</button>
   </body>
 </html>
