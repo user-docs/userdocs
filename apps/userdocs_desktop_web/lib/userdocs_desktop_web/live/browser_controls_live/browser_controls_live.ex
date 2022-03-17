@@ -39,7 +39,7 @@ defmodule UserdocsDesktopWeb.BrowserControlsLive do
     }
   end
   def handle_event("open-browser", _, socket) do
-    Task.start(fn -> BrowserController.open_browser(UserdocsDesktopWeb.Endpoint.url()) end)
+    Task.start(fn -> BrowserController.open_browser() end)
     {:noreply, socket |> assign(:user_opened_browser?, true)}
   end
   def handle_event("close-browser", _, socket) do
