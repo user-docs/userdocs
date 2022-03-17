@@ -22,8 +22,6 @@ defmodule Schemas.StepInstances.StepInstance do
   def changeset(step_instance, attrs) do
     step_instance
     |> cast(attrs, [:id, :status, :error, :warning, :step_id, :process_instance_id])
-    |> foreign_key_constraint(:step_id)
-    |> foreign_key_constraint(:process_instance_id)
     |> validate_required([:status, :step_id])
   end
 end
