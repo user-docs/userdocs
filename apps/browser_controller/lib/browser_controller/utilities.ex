@@ -111,9 +111,9 @@ defmodule BrowserController.Utilities do
 
   def blur(page_pid, remote_object_id) do
     Runtime.callFunctionOn(page_pid, %{
-      arguments: [%{objectId: remote_object.object_id}],
+      arguments: [%{objectId: remote_object_id}],
       functionDeclaration: "(element) => {element.blur()}",
-      objectId: remote_object.object_id
+      objectId: remote_object_id
     })
   end
 
