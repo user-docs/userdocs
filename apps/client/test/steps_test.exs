@@ -71,7 +71,6 @@ defmodule ClientTest.Steps do
     end
 
     test "Step CU", %{project: project, step: step, page: page, process: process} do
-      Client.connect()
       Phoenix.PubSub.subscribe(Userdocs.PubSub, "data")
       Client.load_steps(%{filters: %{project_id: project.id}})
 
@@ -83,7 +82,6 @@ defmodule ClientTest.Steps do
       Client.update_step(step, attrs)
       assert_receive(%{event: "update"}, 1000)
       Phoenix.PubSub.unsubscribe(Userdocs.PubSub, "data")
-      Client.disconnect()
     end
   end
 end

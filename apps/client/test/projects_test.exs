@@ -62,7 +62,6 @@ defmodule ClientTest.Projects do
     end
 
     test "Project CU", %{user: user, project: project, team: team, strategy: strategy} do
-      Client.connect()
       Phoenix.PubSub.subscribe(Userdocs.PubSub, "data")
       Client.load_projects(%{filters: %{user_id: user.id}})
 
@@ -74,7 +73,6 @@ defmodule ClientTest.Projects do
       Client.update_project(project, attrs)
       assert_receive(%{event: "update"}, 1000)
       Phoenix.PubSub.unsubscribe(Userdocs.PubSub, "data")
-      Client.disconnect()
     end
   end
 end

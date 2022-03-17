@@ -68,7 +68,6 @@ defmodule ClientTest.Processes do
     end
 
     test "Process CU", %{user: user, process: process, project: project} do
-      Client.connect()
       Phoenix.PubSub.subscribe(Userdocs.PubSub, "data")
       Client.load_processes(%{filters: %{user_id: user.id}})
 
@@ -80,7 +79,6 @@ defmodule ClientTest.Processes do
       Client.update_process(process, attrs)
       assert_receive(%{event: "update"}, 1000)
       Phoenix.PubSub.unsubscribe(Userdocs.PubSub, "data")
-      Client.disconnect()
     end
   end
 end

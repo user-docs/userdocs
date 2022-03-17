@@ -68,7 +68,6 @@ defmodule ClientTest.Annotations do
     end
 
     test "Annotation CU", %{project: project, page: page, annotation: annotation} do
-      Client.connect()
       Phoenix.PubSub.subscribe(Userdocs.PubSub, "data")
       Client.load_annotations(%{filters: %{project_id: project.id}})
 
@@ -80,7 +79,6 @@ defmodule ClientTest.Annotations do
       Client.update_annotation(annotation, attrs)
       assert_receive(%{event: "update"}, 1000)
       Phoenix.PubSub.unsubscribe(Userdocs.PubSub, "data")
-      Client.disconnect()
     end
   end
 end

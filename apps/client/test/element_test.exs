@@ -68,7 +68,6 @@ defmodule ClientTest.Elements do
     end
 
     test "Element CU", %{project: project, element: element, strategy: strategy, page: page} do
-      Client.connect()
       Phoenix.PubSub.subscribe(Userdocs.PubSub, "data")
       Client.load_elements(%{filters: %{project_id: project.id}})
 
@@ -80,7 +79,6 @@ defmodule ClientTest.Elements do
       Client.update_element(element, attrs)
       assert_receive(%{event: "update"}, 1000)
       Phoenix.PubSub.unsubscribe(Userdocs.PubSub, "data")
-      Client.disconnect()
     end
   end
 end

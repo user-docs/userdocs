@@ -63,7 +63,6 @@ defmodule ClientTest.PagesTest do
     end
 
     test "Page CU", %{user: user, page: page} do
-      Client.connect()
       Phoenix.PubSub.subscribe(Userdocs.PubSub, "data")
       Client.load_pages(%{project_id: user.selected_project_id})
 
@@ -75,7 +74,6 @@ defmodule ClientTest.PagesTest do
       Client.update_page(page, attrs)
       assert_receive(%{event: "update"}, 1000)
       Phoenix.PubSub.unsubscribe(Userdocs.PubSub, "data")
-      Client.disconnect()
     end
   end
 end
