@@ -308,7 +308,7 @@ defmodule BrowserController.Browser.Commands do
     with {:ok, %{object_id: object_id}} <- Utilities.get_remote_object(strategy, selector, page_pid),
          {:ok, %{"result" => _focus_result}} <- DOM.focus(page_pid, %{objectId: object_id}),
          :ok <- type_text(page_pid, text),
-         {:ok, %{"result" => result}} <- Utilities.blur(page_pid, object_id do
+         {:ok, %{"result" => result}} <- Utilities.blur(page_pid, object_id) do
       {:ok, result}
     else
       {:error, error_object} -> cast_error(error_object)
@@ -318,7 +318,7 @@ defmodule BrowserController.Browser.Commands do
 
   defp click(page_pid, strategy, selector) do
     with {:ok, %{object_id: object_id}} <- Utilities.get_remote_object(strategy, selector, page_pid),
-         {:ok, box} <- Utilities.get_box(page_pid, %{object_id: remote_object.object_id}),
+         {:ok, box} <- Utilities.get_box(page_pid, %{object_id: object_id}),
          x <- box.content.upper_left.x,
          y <- box.content.upper_left.y,
          {:ok, %{"result" => _}} <- Input.dispatchMouseEvent(page_pid, %{type: "mouseMoved", x: x, y: y}),
