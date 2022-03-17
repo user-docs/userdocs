@@ -353,25 +353,6 @@ defmodule BrowserController do
     step
   end
 
-  def handle_process_instance_update({:ok, result, step}, process_instance) do
-    broadcast("data", "update", process_instance)
-    {:ok, result, step}
-  end
-  def handle_process_instance_update({:error, message, step}, process_instance) do
-    updated_process_instance = Map.put(process_instance, :status, :failed)
-    broadcast("data", "update", updated_process_instance)
-    {:error, message, step}
-  end
-  def handle_process_instance_update({:warn, message, step}, process_instance) do
-    updated_process_instance = Map.put(process_instance, :status, :warning)
-    broadcast("data", "update", updated_process_instance)
-    {:warn, message, step}
-  end
-
-  def handle_return_value({:ok, result, _step}), do: {:ok, result}
-  def handle_return_value({:error, message, _step}), do: {:error, message}
-  def handle_return_value({:warn, message, _step}), do: {:warn, message}
-
   def type_text(page_pid, text) do
     text
     |> String.graphemes()
