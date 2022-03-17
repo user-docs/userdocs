@@ -19,34 +19,6 @@ defmodule UserdocsWeb.UserChannel do
   def handle_in("ping", payload, socket) do
     {:reply, {:ok, payload}, socket}
   end
-  """
-  def handle_in("client:query", payload, socket) do
-    Logger.debug("Received query")
-    {:ok, payload} = Jason.decode(payload, keys: :atoms)
-    result = UserChannelHandlers.query(payload)
-    {:reply, {:ok, result}, socket}
-  end
-  def handle_in("client:create", payload, socket) do
-    Logger.debug("Received create mutation")
-    case UserChannelHandlers.create(payload) do
-      {:ok, _} = result -> {:reply, result, socket}
-      {:error, _} -> {:reply, {:error, "Create failed, check form errors and try again."}, socket}
-    end
-  end
-  def handle_in("client:update", payload, socket) do
-    Logger.debug("Received client update mutation")
-    {:ok, update} = Jason.decode(payload)
-    case UserChannelHandlers.update(update) do
-      {:ok, _} = result -> {:reply, result, socket}
-      {:error, _} -> {:reply, {:error, "Update failed, check form errors and try again."}, socket}
-    end
-  end
-  def handle_in("client:delete", payload, socket) do
-    Logger.debug("Received delete")
-    {:ok, args} = Jason.decode(payload)
-    {:reply, UserChannelHandlers.delete(args), socket}
-  end
-  """
   def handle_in("update", payload, socket) do
     Logger.debug("Received server update broadcast")
     IO.puts("#{__MODULE__}.update subscription message")
