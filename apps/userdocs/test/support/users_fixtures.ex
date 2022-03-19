@@ -48,4 +48,19 @@ defmodule Userdocs.UsersFixtures do
       |> Users.create_test_user()
     user
   end
+
+  def user_struct(attrs) do
+    {:ok, user} = user_struct_attrs(attrs) |> Users.create_user_struct()
+    user
+  end
+
+  def user_struct_attrs(attrs) do
+    %{
+      email: UUID.uuid4() <> "@user-docs.com",
+      password: "test",
+      password_confirmation: "test",
+      email_confirmed_at: DateTime.utc_now()
+    }
+    |> Map.merge(attrs)
+  end
 end

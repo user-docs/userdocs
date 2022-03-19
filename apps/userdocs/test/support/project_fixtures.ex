@@ -37,4 +37,22 @@ defmodule Userdocs.ProjectsFixtures do
     }
   end
 
+
+  def project_struct(attrs \\ %{}) do
+    {:ok, project} = project_struct_attrs(attrs) |> Projects.create_project_struct()
+    project
+  end
+
+  def project_struct_attrs(attrs) do
+    %{
+      id: UUID.uuid4(),
+      base_url: "https://www.#{UUID.uuid4()}.com",
+      name: UUID.uuid4(),
+      team_id: UUID.uuid4(),
+      strategy_id: UUID.uuid4(),
+      default_width: 800,
+      default_height: 600
+    }
+    |> Map.merge(attrs)
+  end
 end

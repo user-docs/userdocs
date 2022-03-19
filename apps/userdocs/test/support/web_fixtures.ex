@@ -68,7 +68,7 @@ defmodule Userdocs.WebFixtures do
   end
 
   def page_attrs(type, project_id \\ nil)
-  def page_attrs(:valid, project_id) do
+  def page_attrs(:valid, project_id) when is_binary(project_id) do
     %{
       url: "http://www.user-docs.com",
       name: UUID.uuid4(),
