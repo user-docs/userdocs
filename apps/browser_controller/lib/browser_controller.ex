@@ -3,7 +3,6 @@ defmodule BrowserController do
   use GenServer
 
   alias Userdocs.ProcessInstances
-  alias Schemas.ProcessInstances.ProcessInstance
 
   alias BrowserController.BrowserState
   alias BrowserController.Constants
@@ -12,7 +11,6 @@ defmodule BrowserController do
   alias BrowserController.Browser
   alias Local.Paths
   alias ChromeRemoteInterface.Session
-  alias Schemas.Steps.Step
 
   def start_link(default), do: GenServer.start_link(__MODULE__, default, name: __MODULE__)
 
@@ -325,10 +323,7 @@ defmodule BrowserController do
 
   ################## COMMANDS #############################
 
-  alias Userdocs.StepInstances
   alias Userdocs.Pages
-  alias Schemas.Steps.Step
-  alias Schemas.Teams.Team
 
   def cast_command({:navigate, opts}), do: {:navigate, opts}
   def cast_command({:highlight, opts}), do: {:highlight, opts}
