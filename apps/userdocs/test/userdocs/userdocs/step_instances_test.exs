@@ -18,6 +18,7 @@ defmodule Userdocs.StepInstancesTest do
 
   describe "Step Instances" do
     test "list_step_instances/0 returns all step_instances" do
+      Userdocs.LocalRepo.delete_all(StepInstance)
       step_instance = step_instance_fixture()
       assert StepInstances.list_step_instances() == [step_instance]
     end
@@ -60,6 +61,30 @@ defmodule Userdocs.StepInstancesTest do
       step_instance = step_instance_fixture()
       assert {:error, %Ecto.Changeset{}} = StepInstances.update_step_instance(step_instance, @invalid_attrs)
       assert step_instance == StepInstances.get_step_instance!(step_instance.id)
+    end
+  end
+
+  describe "Step Instances Broadcast" do
+    setup do
+      Phoenix.PubSub.subscribe(Userdocs.PubSub, "data")
+      on_exit(fn -> Phoenix.PubSub.unsubscribe(Userdocs.PubSub, "data") end)
+    end
+
+    test "create_step_instance sends a message" do
+      assert {:ok, %StepInstance{} = step_instance} = StepInstances.create_step_instance(@valid_attrs)
+      assert_receive(%{event: "create"}, 1000)
+    end
+
+    test "update_step_instance sends a message" do
+      step_instance = step_instance_fixture() |> Map.put(:inserted_at, Date.add(DateTime.utc_now(), -1))
+      {:ok, %StepInstance{} = step_instance} = StepInstances.update_step_instance(step_instance, %{"status" => "failed"})
+      assert_receive(%{event: "update"}, 1000)
+    end
+
+    test "delete_step_instance sends a message" do
+      step_instance = step_instance_fixture()
+      StepInstances.delete_step_instance(step_instance)
+      assert_receive(%{event: "delete"}, 1000)
     end
   end
 end

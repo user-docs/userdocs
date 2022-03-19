@@ -6,6 +6,7 @@ defmodule Userdocs.StepInstances do
   import Ecto.Query, warn: false
   alias Schemas.StepInstances.StepInstance
   alias Userdocs.LocalRepo
+  alias Userdocs.Subscription
 
   def list_step_instances(opts \\ %{}) do
     filters = Map.get(opts, :filters, [])
@@ -44,6 +45,7 @@ defmodule Userdocs.StepInstances do
     %StepInstance{}
     |> StepInstance.changeset(attrs)
     |> LocalRepo.insert()
+    |> handle_broadcast()
   end
 
   defp maybe_trim_step_instances(%{"step_id" => step_id}), do: maybe_trim_step_instances(step_id)
@@ -61,6 +63,7 @@ defmodule Userdocs.StepInstances do
 
   def delete_step_instance(%StepInstance{} = step_instance) do
     LocalRepo.delete(step_instance)
+    |> handle_broadcast
   end
 
   defp base_steps_query(), do: from(step_instances in StepInstance, order_by: [desc: step_instances.inserted_at])
@@ -69,6 +72,7 @@ defmodule Userdocs.StepInstances do
     step_instance
     |> StepInstance.changeset(attrs)
     |> LocalRepo.update()
+    |> handle_broadcast()
   end
 
   def count_completed_step_instances([]), do: 0
@@ -80,4 +84,20 @@ defmodule Userdocs.StepInstances do
       end
     end)
   end
+
+  def handle_broadcast({:error, _changeset} = response), do: response
+  def handle_broadcast({:ok, %{__meta__: %{state: :deleted}} = struct}) do
+    Subscription.broadcast(channel(), "delete", struct)
+    {:ok, struct}
+  end
+  def handle_broadcast({:ok, %{inserted_at: same_time, updated_at: same_time} = struct}) do
+    Subscription.broadcast(channel(), "create", struct)
+    {:ok, struct}
+  end
+  def handle_broadcast({:ok, struct}) do
+    Subscription.broadcast(channel(), "update", struct)
+    {:ok, struct}
+  end
+
+  def channel(), do: "data"
 end
