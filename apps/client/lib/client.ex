@@ -17,6 +17,7 @@ defmodule Client do
   alias Schemas.Elements.Element
   alias Schemas.Annotations.Annotation
   alias Schemas.Elements.ElementAnnotation
+  alias Schemas.StepInstances.StepInstance
 
   alias PhoenixClient.{Message, Socket}
   alias Client.Channel
@@ -40,7 +41,8 @@ defmodule Client do
     Schemas.Elements.ElementAnnotation,
     Schemas.Annotations.Annotation,
     Schemas.Screenshots.Screenshot,
-    Schemas.Pages.Page
+    Schemas.Pages.Page,
+    Schemas.StepInstances.StepInstance
   ]
   if Mix.env() == :test do
     @setup_status %{
@@ -172,6 +174,12 @@ defmodule Client do
   def load_step_types(opts), do: GenServer.call(__MODULE__, {:load_step_types, opts}, @timeout)
   def list_step_types(opts \\ []), do: GenServer.call(__MODULE__, {:list_step_types, opts}, @timeout)
   def get_step_type!(id, opts \\ []), do: GenServer.call(__MODULE__, {:get_step_type!, id, opts}, @timeout)
+
+  def load_step_instances(opts \\ %{}), do: GenServer.call(__MODULE__, {:load_step_instances, opts}, @timeout)
+  def list_step_instances(opts \\ []), do: GenServer.call(__MODULE__, {:list_step_instances, opts}, @timeout)
+  def create_step_instance(attrs), do: GenServer.call(__MODULE__, {:create_step_instance, attrs}, @timeout)
+  def update_step_instance(step_instance, attrs), do: GenServer.call(__MODULE__, {:update_step_instance, step_instance, attrs}, @timeout)
+  def delete_step_instance(id, opts \\ %{}), do: GenServer.call(__MODULE__, {:delete_step_instance, id, opts}, @timeout)
 
   def init_state(), do: GenServer.call(__MODULE__, :init_state, @timeout)
   def destroy_state(), do: GenServer.cast(__MODULE__, :destroy_state)
@@ -328,6 +336,26 @@ defmodule Client do
     do: {:reply, State.StepTypes.list_step_types(state, kw_opts(opts, state)), state}
   def handle_call({:get_step_type!, id, opts}, _from, state),
     do: {:reply, State.StepTypes.get_step_type!(id, state, kw_opts(opts, state)), state}
+
+  # Step Instances
+  def handle_call({:load_step_instances, opts}, _from, %{state_opts: state_opts} = state) do
+    step_instances = Userdocs.StepInstances.list_step_instances(opts)
+    state = StateHandlers.load(state, step_instances, StepInstance, state_opts)
+    {:reply, :ok, state}
+  end
+  def handle_call({:list_step_instances, opts}, _from, state) do
+    {:reply, State.StepInstances.list_step_instances(state, kw_opts(opts, state)), state}
+  end
+  def handle_call({:create_step_instance, attrs}, _from, state) do
+    {:reply, Userdocs.StepInstances.create_step_instance(attrs), state}
+  end
+  def handle_call({:update_step_instance, step_instance, attrs}, _from, state) do
+    {:reply, Userdocs.StepInstances.update_step_instance(step_instance, attrs), state}
+  end
+  def handle_call({:delete_step_instance, id, opts}, _from, state) do
+    step_instance = Userdocs.StepInstances.get_step_instance!(id)
+    {:reply, Userdocs.StepInstances.delete_step_instance(step_instance), state}
+  end
 
   # Users
   def handle_call({:load_users, opts}, _from, %{state_opts: state_opts} = state) do
