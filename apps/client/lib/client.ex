@@ -44,6 +44,10 @@ defmodule Client do
     Schemas.Pages.Page,
     Schemas.StepInstances.StepInstance
   ]
+
+  @topic "client"
+  @state_opts [data_type: :list, strategy: :by_type, location: :data, types: @types]
+
   if Mix.env() == :test do
     @setup_status %{
       initialize_state: %{order: 1, status: nil, next_task: :authenticate, title: "Initial State"},
@@ -60,7 +64,7 @@ defmodule Client do
     }
   end
 
-  def start_link(_), do: GenServer.start_link(__MODULE__, %{current_user: nil}, name: __MODULE__)
+  def start_link(args), do: GenServer.start_link(__MODULE__, Enum.into(args, %{}), name: __MODULE__)
 
   def status(), do: GenServer.call(__MODULE__, :status)
   def authenticate(params), do: GenServer.call(__MODULE__, {:authenticate, params}, @timeout)
@@ -74,7 +78,7 @@ defmodule Client do
   def current_project(), do: GenServer.call(__MODULE__, :current_project, @timeout)
   def current_team(), do: GenServer.call(__MODULE__, :current_team, @timeout)
   def data(), do: GenServer.call(__MODULE__, :data, @timeout)
-  def put_data(data), do: GenServer.call(__MODULE__, {:put_data, data}, @timeout)
+  def put_in_state(key, data), do: GenServer.call(__MODULE__, {:put_in_state, key, data}, @timeout)
   def state(), do: GenServer.call(__MODULE__, :state, @timeout)
   def disconnect(), do: GenServer.call(__MODULE__, :disconnect, @timeout)
 
@@ -188,17 +192,14 @@ defmodule Client do
   # Server (callbacks)
 
   @impl true
+  def init(%{mode: :test}), do: {:ok, initialize_state(%{topic: @topic})}
   def init(_) do
-    {:ok, %{setup_status: @setup_status, topic: "client"}, {:continue, :initialize_state}}
+    {:ok, %{setup_status: @setup_status, topic: @topic}, {:continue, :initialize_state}}
   end
 
   @impl true
   def handle_continue(:initialize_state, state) do
-    state_opts = [data_type: :list, strategy: :by_type, location: :data, types: @types]
-    state =
-      state
-      |> Map.put(:state_opts, state_opts)
-      |> StateHandlers.initialize(state_opts)
+    state = initialize_state(state)
 
     {:ok, "State Initialized"}
     |> Setups.handle_setup_result(state, :initialize_state)
@@ -247,10 +248,10 @@ defmodule Client do
   end
   def handle_continue(:complete, state), do: {:noreply, state}
 
-  def initialize_state() do
-    state_opts = [data_type: :list, strategy: :by_type, location: :data, types: @types]
-    %{state_opts: state_opts}
-    |> StateHandlers.initialize(state_opts)
+  def initialize_state(state) do
+    state
+    |> Map.put(:state_opts, @state_opts)
+    |> StateHandlers.initialize(@state_opts)
   end
 
   @impl true
@@ -302,7 +303,7 @@ defmodule Client do
   def handle_call(:current_team, _from, _state), do: nil
   def handle_call(:data, _from, %{data: data} = state), do: {:reply, data, state}
   def handle_call(:data, _from, state), do: {:reply, nil, state}
-  def handle_call({:put_data, data}, _from, state), do: {:reply, :ok, Map.put(state, :data, data)}
+  def handle_call({:put_in_state, key, data}, _from, state), do: {:reply, :ok, Map.put(state, key, data)}
   def handle_call(:state, _from, state), do: {:reply, state, state}
   def handle_call(:disconnect, _from, %{socket: socket, user_channel: uc, team_channel: tc} = state) do
     :ok = Channel.disconnect(socket, uc, tc)
