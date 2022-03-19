@@ -28,8 +28,8 @@ defmodule Userdocs.StepInstancesTest do
       assert step_instance.status == :succeeded
     end
 
-    test "create_step_instance/1 allows 5 records per step id" do
-      Enum.each(1..7, fn _ -> StepInstances.create_step_instance(@valid_attrs) end)
+    test "trim_and_create_step_instance/1 allows 5 records per step id" do
+      Enum.each(1..7, fn _ -> StepInstances.trim_and_create_step_instance(@valid_attrs) end)
       step_instances = StepInstances.list_step_instances(%{filters: [step_id: @valid_attrs["step_id"]]})
       assert Enum.count(step_instances) == 5
     end

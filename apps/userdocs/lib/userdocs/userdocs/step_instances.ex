@@ -19,8 +19,12 @@ defmodule Userdocs.StepInstances do
     |> LocalRepo.one!()
   end
 
-  def create_step_instance(attrs) do
+  def trim_and_create_step_instance(attrs) do
     maybe_trim_step_instances(attrs)
+    create_step_instance(attrs)
+  end
+
+  def create_step_instance(attrs) do
     %StepInstance{}
     |> StepInstance.changeset(attrs)
     |> LocalRepo.insert()
@@ -31,7 +35,7 @@ defmodule Userdocs.StepInstances do
   defp maybe_trim_step_instances(step_id) when is_binary(step_id) do
     case list_step_instances(%{filters: [step_id: step_id]}) do
       [_, _, _, _ | tail] -> delete_step_instances(tail)
-      list_of_5_or_less -> list_of_5_or_less
+      list_of_4_or_less -> list_of_4_or_less
     end
   end
 
