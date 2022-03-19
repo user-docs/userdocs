@@ -74,6 +74,7 @@ defmodule Client do
   def current_project(), do: GenServer.call(__MODULE__, :current_project, @timeout)
   def current_team(), do: GenServer.call(__MODULE__, :current_team, @timeout)
   def data(), do: GenServer.call(__MODULE__, :data, @timeout)
+  def put_data(data), do: GenServer.call(__MODULE__, {:put_data, data}, @timeout)
   def state(), do: GenServer.call(__MODULE__, :state, @timeout)
   def disconnect(), do: GenServer.call(__MODULE__, :disconnect, @timeout)
 
@@ -301,6 +302,7 @@ defmodule Client do
   def handle_call(:current_team, _from, _state), do: nil
   def handle_call(:data, _from, %{data: data} = state), do: {:reply, data, state}
   def handle_call(:data, _from, state), do: {:reply, nil, state}
+  def handle_call({:put_data, data}, _from, state), do: {:reply, :ok, Map.put(state, :data, data)}
   def handle_call(:state, _from, state), do: {:reply, state, state}
   def handle_call(:disconnect, _from, %{socket: socket, user_channel: uc, team_channel: tc} = state) do
     :ok = Channel.disconnect(socket, uc, tc)
@@ -516,8 +518,10 @@ defmodule Client do
   def handle_call({:list_steps, opts}, _from, state) do
     {:reply, State.Steps.list_steps(state, kw_opts(opts, state)), state}
   end
-  def handle_call({:get_step!, id, opts}, _from, state),
-    do: {:reply, State.Steps.get_step!(id, state, kw_opts(opts, state)), state}
+  def handle_call({:get_step!, id, opts}, _from, state) do
+    {:reply, State.Steps.get_step!(id, state, kw_opts(opts, state)), state}
+  end
+
   def handle_call({:create_step, attrs}, _from, state) do
     {:reply, Client.Steps.create_step(attrs, %{access_token: access_token()}), state}
   end
