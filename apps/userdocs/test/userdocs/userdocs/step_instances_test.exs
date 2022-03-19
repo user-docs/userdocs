@@ -18,9 +18,21 @@ defmodule Userdocs.StepInstancesTest do
 
   describe "Step Instances" do
     test "list_step_instances/0 returns all step_instances" do
-      Userdocs.LocalRepo.delete_all(StepInstance)
       step_instance = step_instance_fixture()
       assert StepInstances.list_step_instances() == [step_instance]
+    end
+
+    test "list_step_instances/1 with a step_id filter" do
+      id1 = Ecto.UUID.generate()
+      id2 = Ecto.UUID.generate()
+      id3 = Ecto.UUID.generate()
+      step_instances = [
+        step_instance_fixture(%{"step_id" => id1}),
+        step_instance_fixture(%{"step_id" => id1}),
+        step_instance_fixture(%{"step_id" => id2}),
+      ]
+      step_instance_fixture(%{"step_id" => id3})
+      assert StepInstances.list_step_instances(%{filters: [step_ids: [id1, id2]]}) |> Enum.count() == 3
     end
 
     test "create_step_instance/1 with valid data creates a step_instances" do

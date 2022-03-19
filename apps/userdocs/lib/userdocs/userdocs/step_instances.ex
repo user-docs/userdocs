@@ -11,8 +11,24 @@ defmodule Userdocs.StepInstances do
     filters = Map.get(opts, :filters, [])
     base_steps_query()
     |> maybe_filter_by_step_id(filters[:step_id])
+    |> maybe_filter_by_step_ids(filters[:step_ids])
     |> LocalRepo.all()
   end
+
+  defp maybe_filter_by_step_id(query, nil), do: query
+  defp maybe_filter_by_step_id(query, step_id) do
+    from(step_instance in query,
+      where: step_instance.step_id == ^step_id,
+    )
+  end
+
+  defp maybe_filter_by_step_ids(query, nil), do: query
+  defp maybe_filter_by_step_ids(query, step_ids) do
+    from(step_instance in query,
+      where: step_instance.step_id in ^step_ids,
+    )
+  end
+
 
   def get_step_instance!(step_instance_id) do
     from(step_instance in StepInstance, where: step_instance.id == ^step_instance_id)
@@ -48,13 +64,6 @@ defmodule Userdocs.StepInstances do
   end
 
   defp base_steps_query(), do: from(step_instances in StepInstance, order_by: [desc: step_instances.inserted_at])
-
-  defp maybe_filter_by_step_id(query, nil), do: query
-  defp maybe_filter_by_step_id(query, step_id) do
-    from(step_instance in query,
-      where: step_instance.step_id == ^step_id,
-    )
-  end
 
   def update_step_instance(%StepInstance{} = step_instance, attrs) do
     step_instance
