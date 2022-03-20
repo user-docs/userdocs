@@ -183,6 +183,7 @@ defmodule Client do
   def load_step_instances(opts \\ %{}), do: GenServer.call(__MODULE__, {:load_step_instances, opts}, @timeout)
   def list_step_instances(opts \\ []), do: GenServer.call(__MODULE__, {:list_step_instances, opts}, @timeout)
   def create_step_instance(attrs), do: GenServer.call(__MODULE__, {:create_step_instance, attrs}, @timeout)
+  def trim_and_create_step_instance(attrs), do: GenServer.call(__MODULE__, {:trim_and_create_step_instance, attrs}, @timeout)
   def update_step_instance(step_instance, attrs), do: GenServer.call(__MODULE__, {:update_step_instance, step_instance, attrs}, @timeout)
   def delete_step_instance(id, opts \\ %{}), do: GenServer.call(__MODULE__, {:delete_step_instance, id, opts}, @timeout)
 
@@ -351,6 +352,9 @@ defmodule Client do
   end
   def handle_call({:create_step_instance, attrs}, _from, state) do
     {:reply, Userdocs.StepInstances.create_step_instance(attrs), state}
+  end
+  def handle_call({:trim_and_create_step_instance, attrs}, _from, state) do
+    {:reply, Userdocs.StepInstances.trim_and_create_step_instance(attrs), state}
   end
   def handle_call({:update_step_instance, step_instance, attrs}, _from, state) do
     {:reply, Userdocs.StepInstances.update_step_instance(step_instance, attrs), state}
