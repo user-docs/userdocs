@@ -3,10 +3,13 @@ defmodule Userdocs.ScreenshotFixtures do
   alias Userdocs.Screenshots
 
   def screenshot(params, opts) do
-    {:ok, screenshot} =
-      screenshot_attrs(:valid, params)
-      |> Screenshots.create_screenshot(opts)
-      screenshot
+    {:ok, screenshot} = screenshot_attrs(:valid, params) |> Screenshots.create_screenshot(opts)
+    screenshot
+  end
+
+  def screenshot_struct(attrs) do
+    {:ok, screenshot} = screenshot_attrs(:valid, attrs) |> Screenshots.create_screenshot_struct()
+    screenshot
   end
 
   def screenshot_attrs(:valid, params) do

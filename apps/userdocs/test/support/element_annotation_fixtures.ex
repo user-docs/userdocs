@@ -9,6 +9,13 @@ defmodule Userdocs.ElementAnnotationFixtures do
     element_annotation
   end
 
+  def element_annotation_struct(element_id, annotation_id) do
+    {:ok, element_annotation } =
+      element_annotation_attrs(:valid, element_id, annotation_id)
+      |> ElementAnnotations.create_element_annotation_struct()
+    element_annotation
+  end
+
   def element_annotation_attrs(:valid, element_id, annotation_id) do
     %{
       id: Ecto.UUID.generate(),

@@ -31,6 +31,11 @@ defmodule Userdocs.WebFixtures do
     element(page.id, strategy.id, opts)
   end
 
+  def element_struct(page_id, strategy_id) do
+    {:ok, element} = element_attrs(:valid, page_id, strategy_id) |> Elements.create_element_struct()
+    element
+  end
+
   def strategy(opts) do
     {:ok, strategy } =
       strategy_attrs(:valid)

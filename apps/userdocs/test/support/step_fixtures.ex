@@ -14,6 +14,7 @@ defmodule Userdocs.StepFixtures do
 
   def step_attrs(attrs) do
     %{
+      id: UUID.uuid4(),
       name: UUID.uuid4(),
       order: Enum.random(1..100),
       page_id: UUID.uuid4(),
