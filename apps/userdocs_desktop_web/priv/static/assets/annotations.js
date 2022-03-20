@@ -152,6 +152,32 @@ function getElementByXpath(selector) {
 function insertAbsolute(elementToInsert) {
   document.body.prepend(elementToInsert)
 }
+
+function getElements(strategiesAndSelectors) {
+  var elements = [];
+  strategiesAndSelectors.forEach(strategyAndSelector => {
+    const element = getElement(strategyAndSelector.strategy, strategyAndSelector.selector);
+    elements.push(element)
+  })
+  return elements
+}
+
+function getElementsBoundingBox(elements) {
+  for(var i = 0; i < elements.length; ++i){
+      bottom = Math.min(minX, textElements[i].offsetLeft);
+      top = Math.max(maxX, textElements[i].offsetLeft + textElements[i].offsetWidth);
+      left = Math.min(minY, textElements[i].offsetTop);
+      right = Math.max(maxY, textElements[i].offsetTop + textElements[i].offsetHeight);   
+  }
+  return {
+    top: top,
+    bottom: bottom,
+    left: left,
+    right: right,
+    width: right - left,
+    height: top - bottom
+  }
+}
   
 window.createAnnotation = createAnnotation
 window.absolutePositionElement = absolutePositionElement

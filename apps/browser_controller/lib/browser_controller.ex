@@ -6,7 +6,6 @@ defmodule BrowserController do
 
   alias BrowserController.BrowserState
   alias BrowserController.Constants
-  alias BrowserController.Annotations
   alias BrowserController.Utilities
   alias BrowserController.Browser
   alias Local.Paths
@@ -397,22 +396,6 @@ defmodule BrowserController do
     {:ok, root_node_id} = Utilities.get_root_node_id(page_pid)
     {:ok, %{"result" => %{"nodeId" => node_id}}} = DOM.querySelector(page_pid, %{nodeId: root_node_id, selector: selector})
     DOM.hideHighlight(page_pid, %{nodeId: node_id})
-  end
-
-  def execute_command({:create_annotation, %{annotation: annotation}}, page_pid) do
-    Logger.info("#{__MODULE__} executing create_annotation command")
-    Annotations.create(page_pid, annotation)
-  end
-
-  def execute_command({:remove_annotation, %{annotation: annotation}}, page_pid) do
-    Logger.info("#{__MODULE__} executing remove_annotation command")
-    Annotations.remove(page_pid, annotation)
-  end
-
-  def execute_command({:update_annotation, %{annotation: annotation}}, page_pid) do
-    Logger.info("#{__MODULE__} executing update_annotation command")
-    Annotations.remove(page_pid, annotation)
-    Annotations.create(page_pid, annotation)
   end
 
   def execute_command({:full_document_screenshot, %{on_complete: on_complete, width: width}}, page_pid) do

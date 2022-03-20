@@ -2,7 +2,7 @@ defmodule BrowserController.Browser.Commands do
   require Logger
 
   alias BrowserController.Utilities
-  alias BrowserController.Annotations
+  alias BrowserController.AnnotationHandler
 
   alias Local.Paths
 
@@ -54,18 +54,18 @@ defmodule BrowserController.Browser.Commands do
 
   def execute_command({:create_annotation, %{annotation: annotation}}, page_pid) do
     Logger.info("#{__MODULE__} executing create_annotation command")
-    Annotations.create(page_pid, annotation)
+    AnnotationHandler.create(page_pid, annotation)
   end
 
   def execute_command({:remove_annotation, %{annotation: annotation}}, page_pid) do
     Logger.info("#{__MODULE__} executing remove_annotation command")
-    Annotations.remove(page_pid, annotation)
+    AnnotationHandler.remove(page_pid, annotation)
   end
 
   def execute_command({:update_annotation, %{annotation: annotation}}, page_pid) do
     Logger.info("#{__MODULE__} executing update_annotation command")
-    Annotations.remove(page_pid, annotation)
-    Annotations.create(page_pid, annotation)
+    AnnotationHandler.remove(page_pid, annotation)
+    AnnotationHandler.create(page_pid, annotation)
   end
 
   # def execute_command({:full_document_screenshot, %{on_complete: on_complete, width: width}}, page_pid) do
