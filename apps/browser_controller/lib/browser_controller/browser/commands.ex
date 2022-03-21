@@ -2,7 +2,6 @@ defmodule BrowserController.Browser.Commands do
   require Logger
 
   alias BrowserController.Utilities
-  alias BrowserController.AnnotationHandler
 
   alias Local.Paths
 
@@ -22,19 +21,15 @@ defmodule BrowserController.Browser.Commands do
   def cast_command({:navigate, opts}), do: {:navigate, opts}
   def cast_command({:highlight, opts}), do: {:highlight, opts}
   def cast_command({:hide_highlight, opts}), do: {:hide_highlight, opts}
-  def cast_command({:create_annotation, opts}), do: {:create_annotation, opts}
-  def cast_command({:remove_annotation, opts}), do: {:remove_annotation, opts}
-  def cast_command({:update_annotation, opts}), do: {:update_annotation, opts}
   def cast_command({:full_screen_screenshot, opts}), do: {:full_screen_screenshot, opts}
   def cast_command({:element_screenshot, opts}), do: {:element_screenshot, opts}
   def cast_command({:full_document_screenshot, opts}), do: {:full_document_screenshot, opts}
   def cast_command({:set_size, opts}), do: {:set_size, opts}
-  def cast_command({:execute_step, opts}), do: {:execute_step, opts}
-  def cast_command({:execute_process, opts}), do: {:execute_process, opts}
   def cast_command({:fill_field, opts}), do: {:fill_field, opts}
   def cast_command({:click, opts}), do: {:click, opts}
-  def cast_command({:clear_annotations, opts}), do: {:clear_annotations, opts}
+  def cast_command({:evaluate_script, opts}), do: {:evaluate_script, opts}
   def cast_command({:full_screen_svg, opts}), do: {:full_screen_svg, opts}
+  def cast_command({:clear_annotations, opts}), do: {:clear_annotations, opts}
 
   def execute_command({:navigate, %{url: url}}, page_pid), do: navigate(page_pid, url)
   def execute_command({:highlight, %{strategy: strategy, selector: selector}}, page_pid), do: highlight(page_pid, strategy, selector)
@@ -42,8 +37,9 @@ defmodule BrowserController.Browser.Commands do
   def execute_command({:full_document_screenshot, %{width: width}}, page_pid), do: full_document_screenshot(page_pid, width)
   def execute_command({:set_size, %{width: width, height: height}}, page_pid), do: set_size(page_pid, width, height)
   def execute_command({:full_screen_screenshot, _opts}, page_pid), do: full_screen_screenshot(page_pid)
-  def execute_command({:clear_annotations, %{}}, page_pid), do: clear_annotations(page_pid)
   def execute_command({:click, %{strategy: strategy, selector: selector}}, page_pid), do: click(page_pid, strategy, selector)
+  def execute_command({:evaluate_script, %{script: script}}, page_pid), do: evaluate_script(page_pid, script)
+  def execute_command({:clear_annotations, _opts}, page_pid), do: clear_annotations(page_pid)
   def execute_command({:fill_field, %{strategy: strategy, selector: selector, text: text}}, page_pid),
     do: fill_field(page_pid, strategy, selector, text)
 
@@ -51,22 +47,6 @@ defmodule BrowserController.Browser.Commands do
     do: element_screenshot(page_pid, strategy, selector)
 
   def execute_command({:do_nothing, _}, _page_pid), do: {:warn, "This command did nothing."}
-
-  def execute_command({:create_annotation, %{annotation: annotation}}, page_pid) do
-    Logger.info("#{__MODULE__} executing create_annotation command")
-    AnnotationHandler.create(page_pid, annotation)
-  end
-
-  def execute_command({:remove_annotation, %{annotation: annotation}}, page_pid) do
-    Logger.info("#{__MODULE__} executing remove_annotation command")
-    AnnotationHandler.remove(page_pid, annotation)
-  end
-
-  def execute_command({:update_annotation, %{annotation: annotation}}, page_pid) do
-    Logger.info("#{__MODULE__} executing update_annotation command")
-    AnnotationHandler.remove(page_pid, annotation)
-    AnnotationHandler.create(page_pid, annotation)
-  end
 
   # def execute_command({:full_document_screenshot, %{on_complete: on_complete, width: width}}, page_pid) do
   #   Logger.info("#{__MODULE__} executing full document screenshot command with on_complete callback")
@@ -129,7 +109,6 @@ defmodule BrowserController.Browser.Commands do
   #   end
   # end
 
-
   # def execute_command({:element_screenshot, %{element: %{selector: selector, strategy_id: strategy_id}, on_complete: on_complete}}, page_pid) do
   #   Logger.info("#{__MODULE__} executing element screenshot command with on_complete callback")
   #   with {:ok, remote_object} <- Utilities.get_remote_object(strategy_id, selector, page_pid),
@@ -152,33 +131,32 @@ defmodule BrowserController.Browser.Commands do
   #   end
   # end
 
-
-  def execute_command({:full_screen_svg, _opts}, page_pid) do
-    Logger.info("Here's another one")
-    Logger.info("#{__MODULE__} executing full screen svg command")
-    Emulation.setEmulatedMedia(page_pid, %{media: "screen"})
-    {:ok, %{"result" => %{"cssContentSize" => %{"height" => height}}}}
-      = Page.getLayoutMetrics(page_pid)
-    {:ok, %{"result" => %{"result" => %{"type" => "number", "value" => dpi}}}}
-      = Runtime.evaluate(page_pid, %{expression: "window.dpi()"})
-    Logger.info("Height: #{height} dpi: #{dpi}")
-    zoom_factor = 1.25
-    height_inches = height/dpi*zoom_factor
-    opts = %{marginTop: 0, marginBottom: 0, marginLeft: 0, marginRight: 0, printBackground: true, preferCSSPageSize: true, displayHeaderFooter: true, paperHeight: height_inches}
-    case Page.printToPDF(page_pid, opts) do
-      {:ok, %{"result" => %{"data" => base64}}} ->
-        input_location = "C:\\test\\test.pdf"
-        output_location = "C:\\test\\test.svg"
-        optimized_output_location = "C:\\test\\test.min.svg"
-        binary = Base.decode64!(base64)
-        File.write(input_location, binary)
-        Logger.info("Starting Inkscape")
-        System.cmd("D:\\Program Files\\Inkscape\\inkscape.exe", ["--without-gui", input_location, "--export-plain-svg=#{output_location}"], [stderr_to_stdout: true])
-        Logger.info(inspect(["< #{output_location} > #{optimized_output_location}"]))
-        System.shell("#{Paths.svgo_path()} < #{output_location} > #{optimized_output_location}")
-        {:ok, %{}}
-    end
-  end
+  # def execute_command({:full_screen_svg, _opts}, page_pid) do
+  #   Logger.info("Here's another one")
+  #   Logger.info("#{__MODULE__} executing full screen svg command")
+  #   Emulation.setEmulatedMedia(page_pid, %{media: "screen"})
+  #   {:ok, %{"result" => %{"cssContentSize" => %{"height" => height}}}}
+  #     = Page.getLayoutMetrics(page_pid)
+  #   {:ok, %{"result" => %{"result" => %{"type" => "number", "value" => dpi}}}}
+  #     = Runtime.evaluate(page_pid, %{expression: "window.dpi()"})
+  #   Logger.info("Height: #{height} dpi: #{dpi}")
+  #   zoom_factor = 1.25
+  #   height_inches = height/dpi*zoom_factor
+  #   opts = %{marginTop: 0, marginBottom: 0, marginLeft: 0, marginRight: 0, printBackground: true, preferCSSPageSize: true, displayHeaderFooter: true, paperHeight: height_inches}
+  #   case Page.printToPDF(page_pid, opts) do
+  #     {:ok, %{"result" => %{"data" => base64}}} ->
+  #       input_location = "C:\\test\\test.pdf"
+  #       output_location = "C:\\test\\test.svg"
+  #       optimized_output_location = "C:\\test\\test.min.svg"
+  #       binary = Base.decode64!(base64)
+  #       File.write(input_location, binary)
+  #       Logger.info("Starting Inkscape")
+  #       System.cmd("D:\\Program Files\\Inkscape\\inkscape.exe", ["--without-gui", input_location, "--export-plain-svg=#{output_location}"], [stderr_to_stdout: true])
+  #       Logger.info(inspect(["< #{output_location} > #{optimized_output_location}"]))
+  #       System.shell("#{Paths.svgo_path()} < #{output_location} > #{optimized_output_location}")
+  #       {:ok, %{}}
+  #   end
+  # end
 
   defp navigate(page_pid, url) do
     Logger.info("#{__MODULE__} executing navigate command")
@@ -286,6 +264,14 @@ defmodule BrowserController.Browser.Commands do
     else
       {:error, error_object} -> cast_error(error_object)
       {:warn, message} -> {:warn, message}
+    end
+  end
+
+  defp evaluate_script(page_pid, script) do
+    with {:ok, _result} <- Runtime.evaluate(page_pid, %{expression: script}) do
+      {:ok, %{}}
+    else
+      {:error, error_object} -> cast_error(error_object)
     end
   end
 

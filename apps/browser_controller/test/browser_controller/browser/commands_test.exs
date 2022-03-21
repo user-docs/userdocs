@@ -74,4 +74,30 @@ defmodule BrowserController.Browser.CommandsTest do
       assert document =~ "After"
     end
   end
+
+  describe "Clear Annotations" do
+    test "clears elements from the page", %{headed_browser_pid: browser_pid, page_pid: page_pid} do
+      script = """
+      var div = document.createElement("div");
+      div.classList.add("userdocs-annotation");
+      document.body.prepend(div);
+      """
+      Browser.execute(browser_pid, {:evaluate_script, %{script: script}})
+      assert {:ok, _} = Utilities.get_remote_object("css", ".userdocs-annotation", page_pid)
+      Browser.execute(browser_pid, {:clear_annotations, %{}})
+      assert {:warn, _} = Utilities.get_remote_object("css", ".userdocs-annotation", page_pid)
+    end
+  end
+
+  describe "Evaluate Script" do
+    test "evaluates a simple script", %{headed_browser_pid: browser_pid, page_pid: page_pid} do
+      script = """
+      var div = document.createElement("div");
+      div.classList.add("userdocs-annotation");
+      document.body.prepend(div);
+      """
+      Browser.execute(browser_pid, {:evaluate_script, %{script: script}})
+      assert {:ok, _} = Utilities.get_remote_object("css", ".userdocs-annotation", page_pid)
+    end
+  end
 end
