@@ -2,8 +2,7 @@ defmodule BrowserController.Browser.Commands do
   require Logger
 
   alias BrowserController.Utilities
-
-  alias Local.Paths
+  alias BrowserController.AnnotationHandler
 
   alias ChromeRemoteInterface.RPC.Page
   alias ChromeRemoteInterface.RPC.DOM
@@ -30,6 +29,18 @@ defmodule BrowserController.Browser.Commands do
   def cast_command({:evaluate_script, opts}), do: {:evaluate_script, opts}
   def cast_command({:full_screen_svg, opts}), do: {:full_screen_svg, opts}
   def cast_command({:clear_annotations, opts}), do: {:clear_annotations, opts}
+  def cast_command({:create_annotation, %{annotation: annotation}}),
+    do: {:evaluate_script, %{script: AnnotationHandler.cast(annotation)}}
+
+  def cast_command({:remove_annotation, %{annotation: annotation}}),
+    do: {:evaluate_script, %{script: AnnotationHandler.remove(annotation)}}
+
+  def cast_command({:update_annotation, %{annotation: annotation}}) do
+    remove = AnnotationHandler.remove(annotation)
+    create = AnnotationHandler.cast(annotation)
+    script = remove <> "\n" <> create
+    {:evaluate_script, %{script: script}}
+  end
 
   def execute_command({:navigate, %{url: url}}, page_pid), do: navigate(page_pid, url)
   def execute_command({:highlight, %{strategy: strategy, selector: selector}}, page_pid), do: highlight(page_pid, strategy, selector)
