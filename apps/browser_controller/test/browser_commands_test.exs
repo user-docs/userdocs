@@ -76,52 +76,6 @@ defmodule BrowserController.BrowserCommandsTest do
 
   describe "Commands" do
 
-    test "create_annotation makes a badge annotation" do
-      {:ok, page_pid} = BrowserController.page_pid()
-      annotation = badge_annotation_fixture()
-      BrowserController.execute({:navigate, %{url: @test_page_path}})
-      BrowserController.execute({:create_annotation, %{annotation: annotation}})
-
-
-      {:ok, locator_node_id} = Utilities.get_node_id("css", "#userdocs-annotation-1-locator", page_pid)
-      {:ok, %{"result" => %{"attributes" => locator_attributes}}} = DOM.getAttributes(page_pid, %{nodeId: locator_node_id})
-      {:ok, badge_node_id} = Utilities.get_node_id("css", "#userdocs-annotation-1-badge", page_pid)
-      {:ok, %{"result" => %{"attributes" => badge_attributes}}} = DOM.getAttributes(page_pid, %{nodeId: badge_node_id})
-
-      assert "userdocs-annotation-1-locator" in locator_attributes
-      assert "userdocs-locator" in locator_attributes
-      assert "userdocs-annotation-1-badge" in badge_attributes
-      assert "userdocs-badge" in badge_attributes
-    end
-
-    test "remove_annotation removes the annotation" do
-      {:ok, page_pid} = BrowserController.page_pid()
-      annotation = badge_annotation_fixture()
-      BrowserController.execute({:navigate, %{url: @test_page_path}})
-      BrowserController.execute({:create_annotation, %{annotation: annotation}})
-      {:ok, locator_node_id} = Utilities.get_node_id("css", "#userdocs-annotation-1-locator", page_pid)
-      BrowserController.execute({:remove_annotation, %{annotation: annotation}})
-      assert Utilities.get_node_id("css", "#userdocs-annotation-1-locator", page_pid) == {:ok, 0}
-    end
-
-    test "update_annotation updates the annotation" do
-      {:ok, page_pid} = BrowserController.page_pid()
-      annotation = badge_annotation_fixture()
-      BrowserController.execute({:navigate, %{url: @test_page_path}})
-      BrowserController.execute({:create_annotation, %{annotation: annotation}})
-      annotation = annotation |> Map.put(:x_orientation, "R")
-      BrowserController.execute({:update_annotation, %{annotation: annotation}})
-      {status, node_id} = Utilities.get_node_id("css", "#userdocs-badge-1-locator", page_pid)
-      {:ok, attributes} = Utilities.get_attributes(page_pid, node_id)
-      assert String.contains?(attributes.class, "ud-x-right")
-    end
-
-    test "clear_annotations" do
-      annotation = badge_annotation_fixture()
-      BrowserController.execute({:navigate, %{url: @test_page_path}})
-      BrowserController.execute({:create_annotation, %{annotation: annotation}})
-      BrowserController.execute({:clear_annotations, %{}})
-    end
     """
     test "full screen screenshot step, new screenshot" do
       process = %Process{id: 1, name: "test"}
