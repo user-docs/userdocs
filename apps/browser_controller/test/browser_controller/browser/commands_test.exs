@@ -1,8 +1,10 @@
 defmodule BrowserController.Browser.CommandsTest do
   use ExUnit.Case
 
+  alias Userdocs.AnnotationFixtures
   alias BrowserController.Utilities
   alias BrowserController.Browser
+  alias BrowserController.AnnotationHandler
 
   @test_page_path Path.join([:code.priv_dir(:browser_controller), "static", "html", "test_page.html"])
 
@@ -75,6 +77,18 @@ defmodule BrowserController.Browser.CommandsTest do
     end
   end
 
+  describe "Evaluate Script" do
+    test "evaluates a simple script", %{headed_browser_pid: browser_pid, page_pid: page_pid} do
+      script = """
+      var div = document.createElement("div");
+      div.classList.add("userdocs-annotation");
+      document.body.prepend(div);
+      """
+      Browser.execute(browser_pid, {:evaluate_script, %{script: script}})
+      assert {:ok, _} = Utilities.get_remote_object("css", ".userdocs-annotation", page_pid)
+    end
+  end
+
   describe "Clear Annotations" do
     test "clears elements from the page", %{headed_browser_pid: browser_pid, page_pid: page_pid} do
       script = """
@@ -89,15 +103,53 @@ defmodule BrowserController.Browser.CommandsTest do
     end
   end
 
-  describe "Evaluate Script" do
-    test "evaluates a simple script", %{headed_browser_pid: browser_pid, page_pid: page_pid} do
-      script = """
-      var div = document.createElement("div");
-      div.classList.add("userdocs-annotation");
-      document.body.prepend(div);
-      """
+  describe "Create Annotations" do
+    setup %{headed_browser_pid: pid} = context do
+      annotations_script =
+        Path.join(File.cwd!(), "../userdocs_desktop_web/priv/static/assets/annotations.js")
+        |> File.read!()
+
+      Browser.execute(pid, {:evaluate_script, %{script: annotations_script}})
+      context
+    end
+
+    test "badge creates the elements", %{headed_browser_pid: browser_pid, page_pid: page_pid} do
+      annotation = AnnotationFixtures.badge_annotation_struct()
+      script = AnnotationHandler.cast(annotation)
       Browser.execute(browser_pid, {:evaluate_script, %{script: script}})
-      assert {:ok, _} = Utilities.get_remote_object("css", ".userdocs-annotation", page_pid)
+      locator_id = "userdocs-annotation-#{annotation.id}-locator"
+      badge_id = "userdocs-annotation-#{annotation.id}-badge"
+
+      {:ok, locator_node_id} = Utilities.get_node_id("css", "#" <> locator_id, page_pid)
+      {:ok, locator_attributes} = Utilities.get_attributes(page_pid, locator_node_id)
+      {:ok, badge_node_id} = Utilities.get_node_id("css", "#" <> badge_id, page_pid)
+      {:ok, badge_attributes} = Utilities.get_attributes(page_pid, badge_node_id)
+
+      assert locator_attributes.id == locator_id
+      assert String.contains?(locator_attributes.class, "userdocs-locator")
+      assert badge_attributes.id == badge_id
+      assert String.contains?(badge_attributes.class, "userdocs-badge")
+      Browser.execute(browser_pid, {:remove_annotation, %{annotation: annotation}})
+    end
+
+    test "remove_annotation removes the annotation", %{headed_browser_pid: browser_pid, page_pid: page_pid} do
+      annotation = AnnotationFixtures.badge_annotation_struct()
+      Browser.execute(browser_pid, {:create_annotation, %{annotation: annotation}})
+      {:ok, _locator_node_id} = Utilities.get_node_id("css", "#userdocs-annotation-1-locator", page_pid)
+      Browser.execute(browser_pid, {:remove_annotation, %{annotation: annotation}})
+      assert Utilities.get_node_id("css", "#userdocs-annotation-1-locator", page_pid) == {:ok, 0}
+      Browser.execute(browser_pid, {:remove_annotation, %{annotation: annotation}})
+    end
+
+    test "update_annotation updates the annotation", %{headed_browser_pid: browser_pid, page_pid: page_pid} do
+      annotation = AnnotationFixtures.badge_annotation_struct()
+      Browser.execute(browser_pid, {:create_annotation, %{annotation: annotation}})
+      annotation = annotation |> Map.put(:x_orientation, "R")
+      Browser.execute(browser_pid, {:update_annotation, %{annotation: annotation}})
+      {status, node_id} = Utilities.get_node_id("css", "#userdocs-badge-#{annotation.id}-locator", page_pid)
+      {:ok, attributes} = Utilities.get_attributes(page_pid, node_id)
+      assert String.contains?(attributes.class, "ud-x-right")
+      Browser.execute(browser_pid, {:remove_annotation, %{annotation: annotation}})
     end
   end
 end
