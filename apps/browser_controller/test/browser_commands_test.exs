@@ -1,5 +1,6 @@
 defmodule BrowserController.BrowserCommandsTest do
   use ExUnit.Case
+  """
   alias ChromeRemoteInterface.RPC.DOM
   alias Schemas.Elements.Element
   alias Schemas.Elements.ElementAnnotation
@@ -20,9 +21,7 @@ defmodule BrowserController.BrowserCommandsTest do
   @test_page_path Path.join([:code.priv_dir(:browser_controller), "static", "html", "test_page.html"])
   @magick_path Local.Paths.imagemagick_executable_path(Desktop.OS.type())
   @image_repo_path Local.Paths.image_repo_path()
-
   defp css() do
-    "
     .userdocs-locator{
       position: relative;
       width: 0;
@@ -52,7 +51,6 @@ defmodule BrowserController.BrowserCommandsTest do
       display: block;
       padding-bottom: 100%;
     }
-    "
   end
 
   defp badge_annotation_fixture() do
@@ -68,15 +66,12 @@ defmodule BrowserController.BrowserCommandsTest do
       y_orientation: "M"
     }
   end
-
   setup_all do
-    BrowserController.open_browser(css())
+    BrowserController.open_browser()
     #on_exit(fn -> BrowserController.close_browser() end)
   end
-
   describe "Commands" do
 
-    """
     test "full screen screenshot step, new screenshot" do
       process = %Process{id: 1, name: "test"}
       page = %Page{id: 1, name: "test"}
@@ -98,6 +93,6 @@ defmodule BrowserController.BrowserCommandsTest do
       context = %{team: %Team{id: 1}, opts: %{context: %{repo: Userdocs.Repo}}}
       BrowserController.execute({:execute_step, %{step: step, context: context}})
     end
-    """
   end
+  """
 end
