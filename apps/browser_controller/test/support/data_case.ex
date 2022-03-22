@@ -13,7 +13,6 @@ defmodule BrowserController.DataCase do
 
     unless tags[:async] do
       Ecto.Adapters.SQL.Sandbox.mode(Userdocs.Repo, {:shared, self()})
-      Ecto.Adapters.SQL.Sandbox.mode(Userdocs.LocalRepo, {:shared, self()})
     end
 
     :ok
