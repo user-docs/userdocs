@@ -28,13 +28,13 @@ defmodule BrowserController.Browser.Launcher do
     Logger.info("Ensuring open")
     {:ok, result} = initialize_or_reinitialize_chrome(server, opts)
     wait_for_open(server)
+    Logger.info("Finished ensuring open")
     {:ok, result |> Map.put(:opts, opts) |> Map.put(:server, server)}
   end
 
   def initialize_or_reinitialize_chrome(page_pid, server, opts) do
     with true <- is_pid(page_pid),
          {:ok, _} <- Page.getLayoutMetrics(page_pid) do
-      IO.inspect("Connection is ok")
       {:ok, %{server: server, page_pid: page_pid}}
     else
       false -> initialize_or_reinitialize_chrome(server, opts)
@@ -51,7 +51,7 @@ defmodule BrowserController.Browser.Launcher do
   def ensure_closed(opts) do
     server = create_session(opts)
     Logger.info("Ensuring closed")
-    stop(server, nil, opts)
+    stop(server, opts)
     Logger.info("Finished ensuring closed")
   end
 
@@ -59,7 +59,7 @@ defmodule BrowserController.Browser.Launcher do
     close_chrome(page_pid)
     wait_for_close(server)
   end
-  def stop(server, page_pid, opts) do
+  def stop(server, opts) do
     case browser_open?(server) do
       true ->
         {:ok, %{page_pid: page_pid}} = reinitialize_chrome(server, opts)
@@ -69,7 +69,7 @@ defmodule BrowserController.Browser.Launcher do
     wait_for_close(server)
   end
 
-  def initialize_chrome(server, %{host_url: host_url} = opts) do
+  defp initialize_chrome(server, %{host_url: host_url} = opts) do
     Logger.debug("Initializing chrome on port #{opts.port} with headless #{opts.headless}")
     with {:ok, _} <- open_chrome(opts),
          {:ok, page_pid} <- connect_chrome(server),
@@ -90,7 +90,7 @@ defmodule BrowserController.Browser.Launcher do
       {:ok, %{server: server, page_pid: page_pid}}
     else
       {:error, :econnrefused} ->
-        close_chrome(nil)
+        stop(server, opts)
         initialize_chrome(server, opts)
       e ->
         Logger.error("Initialize chrome failed becase #{inspect e}")
@@ -179,7 +179,7 @@ defmodule BrowserController.Browser.Launcher do
     case valid_page(pages) do
       {:ok, page} -> {:ok, page}
       {:error, "No valid page."} ->
-        Browser.new_page(server) |> IO.inspect()
+        Session.new_page(server)
     end
   end
 
