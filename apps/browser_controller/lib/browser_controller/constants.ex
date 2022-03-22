@@ -8,7 +8,10 @@ defmodule BrowserController.Constants do
   def chrome_extension_path() do
     Paths.extension_path()
   end
-  def chrome_startup_page(host_url) do
+  def chrome_startup_page(%{initial_page: initial_page}) do
+    initial_page
+  end
+  def chrome_startup_page(%{host_url: host_url}) do
     host_url <> "/html/browser_welcome_page.html"
   end
   def chrome_startup_args(%{host_url: host_url} = opts) do
@@ -49,7 +52,7 @@ defmodule BrowserController.Constants do
       --export-tagged-pdf
       #{headless}
 
-      #{chrome_startup_page(host_url)}
+      #{chrome_startup_page(opts)}
     )
   end
 
