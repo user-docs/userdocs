@@ -5,7 +5,6 @@ defmodule BrowserController.Browser.LauncherTest do
   @test_page_path Path.join([:code.priv_dir(:browser_controller), "static", "html", "test_page.html"])
   @team_css "/styles/team_css_overrides.css"
   @annotations "/assets/annotations.js"
-  @url "http://localhost:5002"
   @opts %{host_url: "http://localhost:5002", headless: false, port: 9222, initial_page: @test_page_path}
 
   defp close_browser(_) do
@@ -27,7 +26,7 @@ defmodule BrowserController.Browser.LauncherTest do
     test "ensure open starts the browser with css and annotations javascript, and closes properly" do
       {:ok, %{server: server, page_pid: page_pid}} = Launcher.ensure_open(@opts)
       BrowserController.execute({:navigate, %{url: @test_page_path}}, server, page_pid)
-      {:ok, document} = BrowserController.Utilities.get_document(page_pid) |> IO.inspect()
+      {:ok, document} = BrowserController.Utilities.get_document(page_pid)
       assert document =~ @team_css
       assert document =~ @annotations
       Launcher.stop(server, page_pid, @opts)
@@ -48,16 +47,16 @@ defmodule BrowserController.Browser.LauncherTest do
     end
 
     test "Initialize browser and then close doesn't crash" do
-      {:ok, %{server: server, page_pid: page_pid}} = Launcher.ensure_open(@opts)
+      {:ok, %{page_pid: page_pid}} = Launcher.ensure_open(@opts)
       Process.flag(:trap_exit, true)
       Process.monitor(page_pid)
-      Launcher.close_chrome(page_pid)
-      assert_receive({:DOWN, _, _, _, :remote_closed})
+      ChromeRemoteInterface.RPC.Browser.close(page_pid)
+      assert_receive({:event, :chrome_closed})
     end
 
     test "Calling initialize_or_reinitialize_chrome doesn't screw things up with an existing pid" do
       {:ok, %{server: server, page_pid: page_pid}} = Launcher.ensure_open(@opts)
-      Launcher.initialize_or_reinitialize_chrome(page_pid, server, @opts) |> IO.inspect()
+      Launcher.initialize_or_reinitialize_chrome(page_pid, server, @opts)
       Launcher.stop(server, page_pid, @opts)
     end
   end

@@ -15,14 +15,11 @@ defmodule BrowserController.Browser.Launcher do
 
   def init(opts) do
     server = create_session(opts)
-
     case browser_open?(server) do
       true ->
         {:ok, result} = reinitialize_chrome(server, opts)
         {:ok, result |> Map.put(:opts, opts) |> Map.put(:server, server)}
-
-      false ->
-        {:ok, %{page_pid: nil, server: server, opts: opts}}
+      false -> {:ok, %{page_pid: nil, server: server, opts: opts}}
     end
   end
 
@@ -37,6 +34,7 @@ defmodule BrowserController.Browser.Launcher do
   def initialize_or_reinitialize_chrome(page_pid, server, opts) do
     with true <- is_pid(page_pid),
          {:ok, _} <- Page.getLayoutMetrics(page_pid) do
+      IO.inspect("Connection is ok")
       {:ok, %{server: server, page_pid: page_pid}}
     else
       false -> initialize_or_reinitialize_chrome(server, opts)
@@ -45,7 +43,7 @@ defmodule BrowserController.Browser.Launcher do
 
   def initialize_or_reinitialize_chrome(server, opts) do
     case browser_open?(server) do
-      true -> reinitialize_chrome(server, opts)
+      true ->  reinitialize_chrome(server, opts)
       false -> initialize_chrome(server, opts)
     end
   end
@@ -61,30 +59,25 @@ defmodule BrowserController.Browser.Launcher do
     close_chrome(page_pid)
     wait_for_close(server)
   end
-
   def stop(server, page_pid, opts) do
     case browser_open?(server) do
       true ->
         {:ok, %{page_pid: page_pid}} = reinitialize_chrome(server, opts)
         close_chrome(page_pid)
-
-      false ->
-        {:ok, "Browser Closed"}
+      false -> {:ok, "Browser Closed"}
     end
-
     wait_for_close(server)
   end
 
   def initialize_chrome(server, %{host_url: host_url} = opts) do
     Logger.debug("Initializing chrome on port #{opts.port} with headless #{opts.headless}")
-
     with {:ok, _} <- open_chrome(opts),
          {:ok, page_pid} <- connect_chrome(server),
          {:ok, page_pid} <- setup_chrome(page_pid, host_url) do
       {:ok, %{server: server, page_pid: page_pid}}
     else
       e ->
-        Logger.error("Renitialize chrome failed becase #{inspect(e)}")
+        Logger.error("Renitialize chrome failed becase #{inspect e}")
         {:error, "Chrome Initialization failed"}
     end
   end
@@ -92,7 +85,6 @@ defmodule BrowserController.Browser.Launcher do
   def reinitialize_chrome(server, opts) do
     %{host_url: host_url, port: port, headless: headless} = opts
     Logger.debug("Reinitializing chrome on port #{port} with headless #{headless}")
-
     with {:ok, page_pid} <- connect_chrome(server),
          {:ok, page_pid} <- setup_chrome(page_pid, host_url) do
       {:ok, %{server: server, page_pid: page_pid}}
@@ -100,9 +92,8 @@ defmodule BrowserController.Browser.Launcher do
       {:error, :econnrefused} ->
         close_chrome(nil)
         initialize_chrome(server, opts)
-
       e ->
-        Logger.error("Initialize chrome failed becase #{inspect(e)}")
+        Logger.error("Initialize chrome failed becase #{inspect e}")
         {:error, "Chrome Initialization failed"}
     end
   end
@@ -124,8 +115,9 @@ defmodule BrowserController.Browser.Launcher do
 
   def connect_chrome(server) do
     with {:ok, pages} <- Session.list_pages(server),
-         {:ok, page} <- valid_page(pages),
-         {:ok, pid} <- PageSession.start_link(page) do
+         {:ok, page} <- ensure_valid_page(server, pages),
+         {:ok, pid} <- PageSession.start_link(page)
+    do
       {:ok, pid}
     else
       {:error, message} -> {:error, message}
@@ -158,13 +150,11 @@ defmodule BrowserController.Browser.Launcher do
       {:ok, _} -> {:ok, "Browser Close Message Sent"}
       {:error, %{"error" => %{"message" => message}}} -> {:error, message}
     end
-
     Process.exit(page_pid, :normal)
   end
 
   def wait_for_close(server) do
     :timer.sleep(200)
-
     Task.async(fn ->
       case browser_open?(server) do
         true -> wait_for_close(server)
@@ -176,7 +166,6 @@ defmodule BrowserController.Browser.Launcher do
 
   def wait_for_open(server) do
     :timer.sleep(200)
-
     Task.async(fn ->
       case browser_open?(server) do
         true -> {:ok, "Browser Opened"}
@@ -186,13 +175,21 @@ defmodule BrowserController.Browser.Launcher do
     |> Task.await()
   end
 
+  def ensure_valid_page(server, pages) do
+    case valid_page(pages) do
+      {:ok, page} -> {:ok, page}
+      {:error, "No valid page."} ->
+        Browser.new_page(server) |> IO.inspect()
+    end
+  end
+
   def valid_page(pages) do
     pages
-    |> Enum.filter(fn p -> p["type"] == "page" end)
+    |> Enum.filter(fn(p) -> p["type"] == "page" end)
     |> Enum.at(-1)
     |> case do
       %{"id" => _page_id, "type" => "page"} = page -> {:ok, page}
-      nil -> {:error, "No valid page exists, we should create a page"}
+      nil -> {:error, "No valid page."}
     end
   end
 
@@ -202,6 +199,5 @@ defmodule BrowserController.Browser.Launcher do
     |> Enum.into([])
     |> create_session()
   end
-
   defp create_session(opts) when is_list(opts), do: ChromeRemoteInterface.Session.new(opts)
 end
