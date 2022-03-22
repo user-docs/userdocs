@@ -1,4 +1,4 @@
-defmodule BrowserController.Browser.CommandsTest do
+defmodule BrowserController.Browser.UtilitiesTest do
   use ExUnit.Case
 
   alias BrowserController.Utilities
