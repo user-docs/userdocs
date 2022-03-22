@@ -37,12 +37,12 @@ defmodule BrowserController.Browser do
   end
   def handle_call(:ensure_open, _from, state) do
     %{page_pid: page_pid, server: server, opts: opts} = state
-    result = Launcher.initialize_or_reinitialize_chrome(page_pid, server, opts)
-    {:reply, result, state}
+    {:ok, result} = Launcher.initialize_or_reinitialize_chrome(page_pid, server, opts)
+    {:reply, {:ok, result}, Map.merge(state, result)}
   end
   def handle_call(:browser_open?, _from, state) do
-    %{page_pid: page_pid} = state
-    {:reply, Launcher.browser_open?(page_pid), state}
+    %{server: server} = state
+    {:reply, Launcher.browser_open?(server), state}
   end
   def handle_call(:close_browser, _from, state) do
     %{server: server, page_pid: page_pid, opts: opts} = state
@@ -62,12 +62,13 @@ defmodule BrowserController.Browser do
     Logger.debug("#{__MODULE__} received a Page.frameStartedLoading message")
     {:noreply, socket}
   end
-  def handle_info({:EXIT, from, :remote_closed}, state) do
-    Logger.debug("#{__MODULE__} handling exit subscription callback from #{inspect from} because remote closed")
+  def handle_info({:event, :chrome_closed}, state) do
+    Logger.info("#{__MODULE__} handling chrome closed event")
+    broadcast("browser", "browser_closed", %{timestamp: NaiveDateTime.utc_now()})
     {:noreply, Map.put(state, :page_pid, nil)}
   end
   def handle_info({:EXIT, from, :normal}, state) do
-    Logger.debug("#{__MODULE__} handlinga normal exit subscription callback from #{inspect from}")
+    Logger.info("#{__MODULE__} handlinga normal exit subscription callback from #{inspect from}")
     {:noreply, state}
   end
 
@@ -81,63 +82,12 @@ defmodule BrowserController.Browser do
     }
   end
 
-  """
-  def deprecated_open_chrome(server, page_pid, url) do
-    if !browser_open?(server) do
-      Logger.info("Browser was closed, opening")
-      args = Constants.chrome_startup_args(url)
-      chrome_path = Paths.chromium_executable_path()
-      _port = Port.open({:spawn_executable, chrome_path}, args: args)
-      {:ok, page_pid} = active_page_pid(server, page_pid)
-      Browser.setup_chrome(page_pid, url)
-    else
-      Logger.info("Browser is already open, reconnecting")
-      {:ok, page_pid} = active_page_pid(server, page_pid)
-      Browser.setup_chrome(page_pid, url)
-    end
+
+  def broadcast(channel, action, payload) do
+    Phoenix.PubSub.broadcast(Userdocs.PubSub, channel, %{
+      topic: channel,
+      event: action,
+      payload: payload
+    })
   end
-  def deprecated_close_chrome(server, page_pid) do
-    case Session.version(server) do
-      {:error, :econnrefused} ->
-        Logger.info("Chrome finished closing")
-        IO.inspect("Chrome finished closing")
-        :ok
-      {:ok, _version_info} ->
-        Logger.info("{__MODULE__} closing chrome normally")
-        IO.inspect("{__MODULE__} closing chrome normally")
-        try do
-          IO.puts("Before Close")
-          IO.inspect(page_pid)
-          Process.info(page_pid)
-          Process.info(page_pid)
-          Browser.close(page_pid)
-          IO.puts("After Close")
-        rescue
-          e ->
-            Logger.error(e)
-            IO.inspect(e)
-        end
-        if Process.info(page_pid), do: GenServer.stop(page_pid)
-        :timer.sleep(200)
-        IO.puts("After sleep")
-        close_chrome(page_pid)
-    end
-  end
-  def deprecated_reinitialize_chrome(server, page_pid) do
-    case browser_open?(state.server) do
-      true ->
-        {:ok, page_pid} = active_page_pid(state.server, state.page_pid)
-        {:ok, page_pid} =
-          case Process.info(page_pid)[:status] do
-            nil -> active_page_pid(state.server, nil)
-            :waiting -> active_page_pid(state.server, state.page_pid)
-          end
-        {:ok, page_pid} = Browser.reset_chrome(page_pid)
-        :timer.sleep(500)
-        Browser.setup_chrome(page_pid, url)
-        Map.put(state, :page_pid, page_pid)
-      false -> state
-    end
-  end
-  """
 end
