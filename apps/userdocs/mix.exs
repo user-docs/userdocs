@@ -39,7 +39,7 @@ defmodule Userdocs.MixProject do
       {:phoenix_pubsub, "~> 2.0"},
       {:ecto_sql, "~> 3.4"},
       {:postgrex, ">= 0.0.0"},
-      {:ecto_sqlite3, "~> 0.7.1"},
+      {:ecto_sqlite3, "~> 0.7.4"},
       {:jason, "~> 1.0"},
       {:uuid, "~> 1.1"},
       {:pow, "~> 1.0.21"},
