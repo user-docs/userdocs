@@ -76,7 +76,7 @@ defmodule BrowserController.Browser.Launcher do
          {:ok, page_pid} <- setup_chrome(page_pid, host_url) do
       {:ok, %{server: server, page_pid: page_pid}}
     else
-      e -> handle_initializiation_error(e)
+      e -> handle_initializiation_error(e, server, opts)
     end
   end
 
@@ -87,7 +87,7 @@ defmodule BrowserController.Browser.Launcher do
          {:ok, page_pid} <- setup_chrome(page_pid, host_url) do
       {:ok, %{server: server, page_pid: page_pid}}
     else
-      e -> handle_initializiation_error(e)
+      e -> handle_initializiation_error(e, server, opts)
     end
   end
 
@@ -195,11 +195,11 @@ defmodule BrowserController.Browser.Launcher do
   end
   defp create_session(opts) when is_list(opts), do: ChromeRemoteInterface.Session.new(opts)
 
-  defp handle_initializiation_error({:error, :econnrefused}) do
+  defp handle_initializiation_error({:error, :econnrefused}, server, opts) do
     stop(server, opts)
     initialize_chrome(server, opts)
   end
-  defp handle_initialization_error(e) do
+  defp handle_initializiation_error(e, server, opts) do
     Logger.error("Initialize chrome failed becase #{inspect e}")
     {:error, "Chrome Initialization failed"}
   end
