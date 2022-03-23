@@ -13,7 +13,7 @@ defmodule BrowserController.Queue do
       step_instances: []
     }
 
-    {:ok, process_instance} =  ProcessInstances.create_process_instance(attrs)
+    {:ok, process_instance} = ProcessInstances.create_process_instance(attrs)
 
     context = Map.put(context, :process_instance, process_instance)
 
@@ -25,10 +25,16 @@ defmodule BrowserController.Queue do
     enqueue(state, commands)
   end
 
-  def dequeue (state) do
+  def dequeue(state) do
     {queue, state} = Map.pop(state, :queue)
-    {{:value, item}, updated_queue} = :queue.out(queue)
-    {item, Map.put(state, :queue, updated_queue)}
+
+    case :queue.out(queue) do
+      {{:value, item}, updated_queue} ->
+        {item, Map.put(state, :queue, updated_queue)}
+
+      {:empty, empty_queue} ->
+        {nil, Map.put(state, :queue, empty_queue)}
+    end
   end
 
   def enqueue(state, commands) do
@@ -61,7 +67,6 @@ defmodule BrowserController.Queue do
   end
 
   def halt_execution(state) do
-
     broadcast("browser", "queue_updated", %{queue: []})
     pause(state)
   end
