@@ -1,4 +1,4 @@
-defmodule BrowserController.Browser.StepHandler do
+defmodule BrowserController.StepHandler do
   alias Schemas.ProcessInstances.ProcessInstance
   alias Schemas.Steps.Step
   alias BrowserController.AnnotationHandler
@@ -6,6 +6,8 @@ defmodule BrowserController.Browser.StepHandler do
   alias Userdocs.Pages
 
   defstruct step: %{}, command: %{}, context: %{}, step_instance: %{}, result: {}
+
+  @@screenshot_commands [:full_screen_screenshot, :element_screenshot]
 
   @step_preloads [
     :step_type,
@@ -30,7 +32,13 @@ defmodule BrowserController.Browser.StepHandler do
     |> create_step_instance()
   end
 
-  def load_command(%__MODULE__{step: step, context: context} = step_handler) do
+  def finish(%__MODULE__{} = step_handler) do
+    step_handler
+    |> update_step_instance()
+    |> update_data()
+  end
+
+  defp load_command(%__MODULE__{step: step, context: context} = step_handler) do
     Map.put(step_handler, :command, cast_step(step, context))
   end
 
@@ -54,10 +62,10 @@ defmodule BrowserController.Browser.StepHandler do
     step = Map.put(step, :step_instance, step_instance)
 
     step
-    |> broadcast_step_update()
-    |> cast_step(context)
+    #|> broadcast_step_update()
+    #|> cast_step(context)
     #|> execute_command(page_pid)
-    |> handle_step_result(step)
+    #|> handle_step_result(step)
     |> handle_process_instance_update(process_instance)
     |> handle_return_value()
   end
@@ -70,43 +78,43 @@ defmodule BrowserController.Browser.StepHandler do
     step = Map.put(step, :step_instance, step_instance)
 
     step
-    |> broadcast_step_update()
-    |> cast_step(context)
+    #|> broadcast_step_update()
+    #|> cast_step(context)
     #|> execute_command(page_pid)
-    |> handle_step_result(step)
+    #|> handle_step_result(step)
     |> handle_return_value()
   end
 
-  def cast_step(%Step{step_type_id: "navigate", page: %{project: project} = page}, %{user: user}),
+  defp cast_step(%Step{step_type_id: "navigate", page: %{project: project} = page}, %{user: user}),
     do: {:navigate, %{url: Pages.effective_url(page, project, user)}}
 
-  def cast_step(%Step{step_type_id: "set_size_explicit", width: width, height: height}, _context),
+  defp cast_step(%Step{step_type_id: "set_size_explicit", width: width, height: height}, _context),
     do: {:set_size, %{height: height, width: width}}
 
-  def cast_step(%Step{step_type_id: "full_screen_screenshot"}, _context),
+  defp cast_step(%Step{step_type_id: "full_screen_screenshot"}, _context),
     do: {:full_screen_screenshot, %{}}
 
-  def cast_step(%Step{step_type_id: "element_screenshot", element: %{strategy_id: strategy_id, selector: selector}}, _context),
+  defp cast_step(%Step{step_type_id: "element_screenshot", element: %{strategy_id: strategy_id, selector: selector}}, _context),
     do: {:element_screenshot, %{strategy: strategy_id, selector: selector}}
 
-  def cast_step(%Step{step_type_id: "fill_field", element: %{selector: selector, strategy_id: strategy}, text: text}, _context),
+  defp cast_step(%Step{step_type_id: "fill_field", element: %{selector: selector, strategy_id: strategy}, text: text}, _context),
     do: {:fill_field, %{selector: selector, strategy: strategy, text: text}}
 
-  def cast_step(%Step{step_type_id: "click", element: %{selector: selector, strategy_id: strategy}}, _context),
+  defp cast_step(%Step{step_type_id: "click", element: %{selector: selector, strategy_id: strategy}}, _context),
     do: {:click, %{selector: selector, strategy: strategy}}
 
-  def cast_step(%Step{step_type_id: "clear_annotations"}, _context),
+  defp cast_step(%Step{step_type_id: "clear_annotations"}, _context),
     do: {:clear_annotations, %{}}
 
-  def cast_step(%Step{step_type_id: "full_screen_svg"}, _context) do
+  defp cast_step(%Step{step_type_id: "full_screen_svg"}, _context) do
     {:full_screen_svg, %{}}
   end
 
-  def cast_step(%Step{step_type_id: "apply_annotation", annotation: annotation}, _context) do
+  defp cast_step(%Step{step_type_id: "apply_annotation", annotation: annotation}, _context) do
     expression = AnnotationHandler.cast(annotation)
     {:evaluate_expression, %{expression: expression}}
   end
-  def cast_step(%Step{step_type_id: nil}, _context), do: {:do_nothing, %{}}
+  defp cast_step(%Step{step_type_id: nil}, _context), do: {:do_nothing, %{}}
 
   def broadcast_step_update(step) do
     broadcast("data", "update", step)
@@ -114,24 +122,23 @@ defmodule BrowserController.Browser.StepHandler do
     step
   end
 
-  def handle_step_result({:ok, result}, step) do
-    {:ok, step_instance} = StepInstances.update_step_instance(step.step_instance, %{status: :succeeded})
-    step = Map.put(step, :step_instance, step_instance)
-    broadcast_step_update(step)
-    {:ok, result, step}
+  def update_step_instance(%{result: {:ok, _result}, step_instance: step_instance} = step_handler) do
+    {:ok, step_instance} = Client.update_step_instance(step_instance, %{status: :succeeded})
+    Map.put(step_handler, :step_instance, step_instance)
   end
-  def handle_step_result({:error, message}, step) do
-    {:ok, step_instance} = StepInstances.update_step_instance(step.step_instance, %{status: :failed, error: %{message: message}})
-    step = Map.put(step, :step_instance, step_instance)
-    broadcast_step_update(step)
-    {:error, message, step}
+  def update_step_instance(%{result: {:error, message}, step_instance: step_instance} = step_handler) do
+    {:ok, step_instance} = Client.update_step_instance(step_instance, %{status: :failed, error: %{message: message}})
+    Map.put(step_handler, :step_instance, step_instance)
   end
-  def handle_step_result({:warn, message}, step) do
-    {:ok, step_instance} = StepInstances.update_step_instance(step.step_instance, %{status: :warning, warning: %{message: message}})
-    step = Map.put(step, :step_instance, step_instance)
-    broadcast_step_update(step)
-    {:warn, message, step}
+  def update_step_instance(%{result: {:warn, message}, step_instance: step_instance} = step_handler) do
+    {:ok, step_instance} = Client.update_step_instance(step_instance, %{status: :warning, warning: %{message: message}})
+    Map.put(step_handler, :step_instance, step_instance)
   end
+
+  def update_data(%{result: {:ok, base64}, command: {command_name, _}, step: step}) when command_name in @screenshot_commands do
+
+  end
+  def update_data(state_handler), do: state_handler
 
   def handle_process_instance_update({:ok, result, step}, process_instance) do
     broadcast("data", "update", process_instance)
