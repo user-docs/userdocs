@@ -31,3 +31,6 @@ erl_crash.dump
 **/LATEST.LOG
 **/schema.DAT
 *.tmp
+*.db
+*.db-wal
+*.db-shm
