@@ -11,13 +11,11 @@ defmodule Userdocs.Repo.Migrations.CreateElements do
       add :outer_html, :text
       add :page_id, references(:pages, on_delete: :nothing, type: :uuid)
       add :strategy_id, references(:strategies, type: :string, on_delete: :nothing)
-      add :screenshot_id, references(:screenshots, type: :uuid, on_delete: :nilify_all)
 
       timestamps()
     end
 
     create index(:elements, [:page_id])
     create index(:elements, [:strategy_id])
-    create index(:elements, [:screenshot_id])
   end
 end

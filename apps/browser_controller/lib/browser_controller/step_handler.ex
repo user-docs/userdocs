@@ -11,7 +11,7 @@ defmodule BrowserController.StepHandler do
 
   @step_preloads [
     :step_type,
-    :screenshot,
+    :screenshots,
     :page,
     [page: :project],
     :element,

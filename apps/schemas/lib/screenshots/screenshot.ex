@@ -15,7 +15,7 @@ defmodule Schemas.Screenshots.Screenshot do
   @derive {Jason.Encoder, only: [
     :id, :name, :base64, :aws_screenshot, :file_name, :status,
     :aws_provisional_screenshot, :aws_diff_screenshot, :project_id,
-    :presigned_urls, :score, :page_id
+    :presigned_urls, :score, :page_id, :step_id
   ]}
   schema "screenshots" do
     field :name, :string
@@ -30,8 +30,10 @@ defmodule Schemas.Screenshots.Screenshot do
 
     belongs_to :project, Project
     belongs_to :page, Page
+    belongs_to :step, Step
+
     embeds_one :presigned_urls, PresignedURLs
-    has_one :step, Step
+
     timestamps()
   end
 
@@ -40,7 +42,7 @@ defmodule Schemas.Screenshots.Screenshot do
     screenshot
     |> cast(attrs, [:id, :name, :file_name, :status, :base64, :aws_file,
       :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot,
-      :project_id, :score, :page_id])
+      :project_id, :score, :page_id, :sterp_id])
     |> foreign_key_constraint(:project_id)
     |> validate_required([:project_id])
   end
@@ -49,7 +51,7 @@ defmodule Schemas.Screenshots.Screenshot do
     screenshot
     |> cast(attrs, [:id, :name, :file_name, :status, :base64, :aws_file,
       :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot,
-      :project_id, :score, :page_id])
+      :project_id, :score, :page_id, :sterp_id])
     |> cast_embed(:presigned_urls, with: &PresignedURLs.changeset/2)
     |> validate_required([:project_id])
   end

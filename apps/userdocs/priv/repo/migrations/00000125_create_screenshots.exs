@@ -15,6 +15,7 @@ defmodule Userdocs.Repo.Migrations.CreateScreenshots do
       add :presigned_urls, :jsonb
       add :project_id, references(:projects, on_delete: :nilify_all, type: :uuid)
       add :page_id, references(:pages, on_delete: :nilify_all, type: :uuid)
+      add :step_id, references(:steps, on_delete: :delete_all, type: :uuid)
 
       timestamps()
     end

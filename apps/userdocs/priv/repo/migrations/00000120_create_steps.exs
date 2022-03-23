@@ -22,7 +22,6 @@ defmodule Userdocs.Repo.Migrations.CreateSteps do
       add :annotation_id, references(:annotations, on_delete: :nilify_all, type: :uuid)
       add :step_type_id, references( :step_types,  on_delete: :nothing,    type: :string)
       add :process_id, references(   :processes,   on_delete: :delete_all, type: :uuid)
-      add :screenshot_id, references(:screenshots, on_delete: :delete_all, type: :uuid)
 
       timestamps()
     end
@@ -32,6 +31,5 @@ defmodule Userdocs.Repo.Migrations.CreateSteps do
     create index(:steps, [:annotation_id])
     create index(:steps, [:step_type_id])
     create index(:steps, [:process_id])
-    create index(:steps, [:screenshot_id])
   end
 end
