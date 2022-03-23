@@ -7,7 +7,6 @@ defmodule BrowserController do
   alias BrowserController.Browser
   alias BrowserController.Queue
   alias BrowserController.StepHandler
-  alias BrowserController.Browser.Commands
 
   defguard is_empty(queue) when queue == {[], []}
   defguard not_running(state) when state.run_state in [:stop, :pause]
