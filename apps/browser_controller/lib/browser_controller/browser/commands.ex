@@ -29,6 +29,8 @@ defmodule BrowserController.Browser.Commands do
   def cast_command({:evaluate_script, opts}), do: {:evaluate_script, opts}
   def cast_command({:full_screen_svg, opts}), do: {:full_screen_svg, opts}
   def cast_command({:clear_annotations, opts}), do: {:clear_annotations, opts}
+  def cast_command({:do_nothing, opts}), do: {:do_nothing, opts}
+
   def cast_command({:create_annotation, %{annotation: annotation}}),
     do: {:evaluate_script, %{script: AnnotationHandler.cast(annotation)}}
 
