@@ -13,6 +13,8 @@ defmodule Userdocs.ClientFixtures do
     navigate_step = StepFixtures.step_struct(%{step_type_id: "navigate", page_id: page.id})
     click_step = StepFixtures.step_struct(%{step_type_id: "click", element_id: element.id})
     clear_step = StepFixtures.step_struct(%{step_type_id: "clear_annotations"})
+    nothing_step = StepFixtures.step_struct(%{step_type_id: nil})
+
     badge_annotation_step =
       StepFixtures.step_struct(%{step_type_id: "apply_annotation", annotation_id: badge_annotation.id})
 
@@ -44,7 +46,8 @@ defmodule Userdocs.ClientFixtures do
         fill_field_step,
         click_step,
         clear_step,
-        badge_annotation_step
+        badge_annotation_step,
+        nothing_step
       ],
       pages: [page],
       screenshots: [screenshot],
@@ -54,15 +57,16 @@ defmodule Userdocs.ClientFixtures do
     }
 
     context = %{
-        navigate: navigate_step,
-        set_size: set_size_step,
-        full_screen_screenshot: full_screen_screenshot_step,
-        element_screenshot: element_screenshot_step,
-        fill_field: fill_field_step,
-        click: click_step,
-        clear: clear_step,
-				badge: badge_annotation_step
-      }
+      navigate: navigate_step,
+      set_size: set_size_step,
+      full_screen_screenshot: full_screen_screenshot_step,
+      element_screenshot: element_screenshot_step,
+      fill_field: fill_field_step,
+      click: click_step,
+      clear: clear_step,
+      badge: badge_annotation_step,
+      nothing: nothing_step
+    }
 
     {data, context}
   end
