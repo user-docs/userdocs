@@ -7,7 +7,7 @@ defmodule BrowserController.StepHandler do
 
   defstruct step: %{}, command: %{}, context: %{}, step_instance: %{}, result: {}
 
-  @@screenshot_commands [:full_screen_screenshot, :element_screenshot]
+  @screenshot_commands [:full_screen_screenshot, :element_screenshot]
 
   @step_preloads [
     :step_type,
