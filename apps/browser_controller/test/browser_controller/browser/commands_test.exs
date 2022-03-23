@@ -146,7 +146,7 @@ defmodule BrowserController.Browser.CommandsTest do
       Browser.execute(browser_pid, {:create_annotation, %{annotation: annotation}})
       annotation = annotation |> Map.put(:x_orientation, "R")
       Browser.execute(browser_pid, {:update_annotation, %{annotation: annotation}})
-      {status, node_id} = Utilities.get_node_id("css", "#userdocs-badge-#{annotation.id}-locator", page_pid)
+      {_status, node_id} = Utilities.get_node_id("css", "#userdocs-badge-#{annotation.id}-locator", page_pid)
       {:ok, attributes} = Utilities.get_attributes(page_pid, node_id)
       assert String.contains?(attributes.class, "ud-x-right")
       Browser.execute(browser_pid, {:remove_annotation, %{annotation: annotation}})
