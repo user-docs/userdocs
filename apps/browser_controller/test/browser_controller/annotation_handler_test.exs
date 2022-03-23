@@ -1,8 +1,6 @@
 defmodule BrowserController.AnnotationsTest do
   use ExUnit.Case
   alias BrowserController.AnnotationHandler
-  alias BrowserController.Browser
-  alias BrowserController.Utilities
   alias Userdocs.AnnotationFixtures
 
   describe "Annotations Handler" do
