@@ -124,7 +124,7 @@ defmodule BrowserController.Browser.Launcher do
     Runtime.enable(page_pid)
     Page.addScriptToEvaluateOnNewDocument(page_pid, %{source: Constants.script(host_url)})
     PageSession.execute_command(page_pid, "Overlay.enable", %{}, [])
-    Page.reload(page_pid)
+    #Page.reload(page_pid)
     Logger.info("#{__MODULE__} finished setting chrome up")
     {:ok, page_pid}
   end
