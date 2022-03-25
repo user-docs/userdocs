@@ -173,7 +173,7 @@ defmodule BrowserController.Browser.Launcher do
       {:ok, page} -> {:ok, page}
       {:error, "No valid page."} ->
         Logger.warning("No valid page")
-        Session.new_page(server) |> IO.inspect()
+        Session.new_page(server)
     end
   end
 
