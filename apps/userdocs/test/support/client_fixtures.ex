@@ -13,7 +13,7 @@ defmodule Userdocs.ClientFixtures do
     navigate_step = StepFixtures.step_struct(%{step_type_id: "navigate", page_id: page.id})
     click_step = StepFixtures.step_struct(%{step_type_id: "click", element_id: element.id})
     clear_step = StepFixtures.step_struct(%{step_type_id: "clear_annotations"})
-    nothing_step = StepFixtures.step_struct(%{step_type_id: nil})
+    nothing_step = StepFixtures.step_struct(%{step_type_id: "do_nothing"})
 
     badge_annotation_step =
       StepFixtures.step_struct(%{step_type_id: "apply_annotation", annotation_id: badge_annotation.id})
@@ -65,7 +65,8 @@ defmodule Userdocs.ClientFixtures do
       click: click_step,
       clear: clear_step,
       badge: badge_annotation_step,
-      nothing: nothing_step
+      nothing: nothing_step,
+      screenshot: screenshot
     }
 
     {data, context}
