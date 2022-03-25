@@ -10,16 +10,15 @@ defmodule BrowserController.Browser.CommandsTest do
 
   setup_all do
     result = BrowserController.ensure_browser_open()
-    BrowserController.execute({:navigate, %{url: @test_page_path}})
+    if !(Utilities.get_url(result.server) =~ "test_page.html") do
+      Browser.execute(result.headed_browser_pid, {:navigate, %{url: @test_page_path}})
+    end
     result
   end
 
   describe "Navigation" do
-    setup do
-      BrowserController.execute({:navigate, %{url: "about:blank"}})
-    end
-
     test "navigates to normal URL properly", %{server: server, headed_browser_pid: browser_pid} do
+      {:ok, _} = Browser.execute(browser_pid, {:navigate, %{url: "about:blank"}})
       {:ok, _} = Browser.execute(browser_pid, {:navigate, %{url: @test_page_path}})
       assert Utilities.get_url(server) =~ "test_page.html"
     end
@@ -33,8 +32,9 @@ defmodule BrowserController.Browser.CommandsTest do
 
   describe "Set size" do
     test "sets size properly", %{headed_browser_pid: browser_pid} do
-      {:ok, result} = Browser.execute(browser_pid, {:set_size, %{width: 40, height: 40}})
-      assert result == %{width: 23, height: 23}
+      {:ok, result} = Browser.execute(browser_pid, {:set_size, %{width: 1000, height: 1000}})
+      assert result == %{width: 1000, height: 1000}
+      {:ok, result} = Browser.execute(browser_pid, {:set_size, %{width: 800, height: 600}})
     end
   end
 
@@ -104,12 +104,13 @@ defmodule BrowserController.Browser.CommandsTest do
   end
 
   describe "Create Annotations" do
-    setup %{headed_browser_pid: pid} = context do
+    setup %{headed_browser_pid: pid, page_pid: page_pid} = context do
       annotations_script =
         Path.join(File.cwd!(), "../userdocs_desktop_web/priv/static/assets/annotations.js")
         |> File.read!()
 
       Browser.execute(pid, {:evaluate_script, %{script: annotations_script}})
+      {:ok, document} = Utilities.get_document(page_pid)
       context
     end
 
@@ -134,7 +135,7 @@ defmodule BrowserController.Browser.CommandsTest do
 
     test "remove_annotation removes the annotation", %{headed_browser_pid: browser_pid, page_pid: page_pid} do
       annotation = AnnotationFixtures.badge_annotation_struct()
-      Browser.execute(browser_pid, {:create_annotation, %{annotation: annotation}})
+      {:ok, _} = Browser.execute(browser_pid, {:create_annotation, %{annotation: annotation}})
       {:ok, _locator_node_id} = Utilities.get_node_id("css", "#userdocs-annotation-1-locator", page_pid)
       Browser.execute(browser_pid, {:remove_annotation, %{annotation: annotation}})
       assert Utilities.get_node_id("css", "#userdocs-annotation-1-locator", page_pid) == {:ok, 0}
@@ -143,13 +144,52 @@ defmodule BrowserController.Browser.CommandsTest do
 
     test "update_annotation updates the annotation", %{headed_browser_pid: browser_pid, page_pid: page_pid} do
       annotation = AnnotationFixtures.badge_annotation_struct()
-      Browser.execute(browser_pid, {:create_annotation, %{annotation: annotation}})
+      {:ok, _} = Browser.execute(browser_pid, {:create_annotation, %{annotation: annotation}})
       annotation = annotation |> Map.put(:x_orientation, "R")
-      Browser.execute(browser_pid, {:update_annotation, %{annotation: annotation}})
+      :timer.sleep(5000)
+      {:ok, _} = Browser.execute(browser_pid, {:update_annotation, %{annotation: annotation}})
       {_status, node_id} = Utilities.get_node_id("css", "#userdocs-badge-#{annotation.id}-locator", page_pid)
       {:ok, attributes} = Utilities.get_attributes(page_pid, node_id)
       assert String.contains?(attributes.class, "ud-x-right")
       Browser.execute(browser_pid, {:remove_annotation, %{annotation: annotation}})
+    end
+  end
+
+  alias BrowserController.Browser.Commands
+
+  describe "ancillary bits" do
+    setup do
+      {data, context} = Userdocs.ClientFixtures.data()
+      Userdocs.LocalOptions.create_local_options(
+        %{
+          image_path: Local.Paths.default_images_path(),
+          image_repo_path: Local.Paths.image_repo_path(),
+          max_retries: 5,
+          browser_timeout: 10_000,
+          user_data_dir_path: Local.Paths.default_user_data_dir_path(),
+          chrome_path: Local.Paths.chromium_path(),
+          magick_path: Local.Paths.imagemagick_executable_path()
+        })
+
+      start_supervised({Client, [mode: :test]})
+      user = Userdocs.UsersFixtures.user_struct(%{})
+      Client.put_in_state(:data, data)
+      Client.put_in_state(:current_user, user)
+      on_exit(fn -> Client.destroy_state() end)
+
+      Map.put(context, :user, user)
+    end
+
+    test "prepare fetches a screenshot on full screen screenshot", %{screenshot: screenshot} do
+      assert Commands.prepare({:full_screen_screenshot, %{screenshot_id: screenshot.id}}) == %{screenshot: screenshot}
+    end
+
+    test "prepare fetches a screenshot on element screenshot", %{screenshot: screenshot} do
+      assert Commands.prepare({:element_screenshot, %{screenshot_id: screenshot.id}}) == %{screenshot: screenshot}
+    end
+
+    test "prepare fetches a screenshot on a full document screenshot", %{screenshot: screenshot} do
+      assert Commands.prepare({:full_document_screenshot, %{screenshot_id: screenshot.id}}) == %{screenshot: screenshot}
     end
   end
 end
