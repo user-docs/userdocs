@@ -25,7 +25,7 @@ defmodule UserdocsDesktopWeb.StepLive.Index do
   def step_preloads() do
     [
       :step_type,
-      :screenshot,
+      :screenshots,
       :page,
       [page: :project],
       :annotation,

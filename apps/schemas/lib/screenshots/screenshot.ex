@@ -42,7 +42,7 @@ defmodule Schemas.Screenshots.Screenshot do
     screenshot
     |> cast(attrs, [:id, :name, :file_name, :status, :base64, :aws_file,
       :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot,
-      :project_id, :score, :page_id, :sterp_id])
+      :project_id, :score, :page_id, :step_id])
     |> foreign_key_constraint(:project_id)
     |> validate_required([:project_id])
   end
@@ -51,7 +51,7 @@ defmodule Schemas.Screenshots.Screenshot do
     screenshot
     |> cast(attrs, [:id, :name, :file_name, :status, :base64, :aws_file,
       :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot,
-      :project_id, :score, :page_id, :sterp_id])
+      :project_id, :score, :page_id, :step_id])
     |> cast_embed(:presigned_urls, with: &PresignedURLs.changeset/2)
     |> validate_required([:project_id])
   end

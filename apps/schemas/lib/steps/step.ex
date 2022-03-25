@@ -18,8 +18,7 @@ defmodule Schemas.Steps.Step do
 
   @derive {Jason.Encoder, only: [
     :id, :order, :name, :text, :width, :height, :margin_all, :margin_top, :margin_bottom,
-    :margin_left, :margin_right, :page_id, :process_id, :element_id, :annotation_id, :step_type_id,
-    :screenshot_id]}
+    :margin_left, :margin_right, :page_id, :process_id, :element_id, :annotation_id, :step_type_id]}
 
   schema "steps" do
     field :order, :integer
@@ -38,8 +37,8 @@ defmodule Schemas.Steps.Step do
     belongs_to :element, Element, on_replace: :update
     belongs_to :annotation, Annotation, on_replace: :update
     belongs_to :step_type, StepType, type: :string
-    belongs_to :screenshot, Screenshot
 
+    has_many :screenshots, Screenshot
     has_one :step_instance, StepInstance
 
     timestamps()
@@ -56,7 +55,7 @@ defmodule Schemas.Steps.Step do
     step
     |> cast(attrs, [:id, :order, :name, :text, :width, :height])
     |> cast(attrs, [:margin_all, :margin_top, :margin_bottom, :margin_left, :margin_right])
-    |> cast(attrs, [:process_id, :page_id, :element_id, :annotation_id, :screenshot_id, :step_type_id])
+    |> cast(attrs, [:process_id, :page_id, :element_id, :annotation_id, :step_type_id])
     |> foreign_key_constraint(:process_id)
     |> foreign_key_constraint(:page_id)
     |> foreign_key_constraint(:element_id)
@@ -70,6 +69,5 @@ defmodule Schemas.Steps.Step do
     |> cast_assoc(:element)
     |> cast_assoc(:annotation)
     |> cast_assoc(:page)
-    |> cast_assoc(:screenshot)
   end
 end
