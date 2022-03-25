@@ -13,7 +13,17 @@ defmodule BrowserController.StepHandlerTest do
       Client.put_in_state(:current_user, user)
       on_exit(fn -> Client.destroy_state() end)
 
-      Map.put(context, :user, user)
+      %{
+        navigate: context.navigate,
+        set_size: context.set_size,
+        full_screen_screenshot: context.full_screen_screenshot,
+        element_screenshot: context.element_screenshot,
+        fill_field: context.fill_field,
+        click: context.click,
+        clear: context.clear,
+        badge: context.badge
+      }
+      |> Map.put(:user, user)
     end
 
     test "creates step instance properly", %{navigate: navigate} do
