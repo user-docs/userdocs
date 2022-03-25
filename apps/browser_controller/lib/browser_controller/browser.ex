@@ -5,7 +5,6 @@ defmodule BrowserController.Browser do
 
   alias BrowserController.Browser.Launcher
   alias BrowserController.Browser.Commands
-  alias BrowserController.Utilities
 
   def open_browser(pid), do: GenServer.call(pid, :open_browser)
   def ensure_open(pid), do: GenServer.call(pid, :ensure_open)
@@ -62,10 +61,10 @@ defmodule BrowserController.Browser do
     {:reply, Commands.apply(page_pid, command), state}
   end
 
-  def handle_call({:start_subscription, _from, %{page_pid: page_pid} = state}),
+  def handle_call(:start_subscription, _from, %{page_pid: page_pid} = state),
     do: {:reply, start_subscription(page_pid), state}
 
-  def handle_call({:stop_subscription, _from, %{page_pid: page_pid} = state}),
+  def handle_call(:stop_subscription, _from, %{page_pid: page_pid} = state),
     do: {:reply, stop_subscription(page_pid), state}
 
   @impl true
@@ -102,12 +101,12 @@ defmodule BrowserController.Browser do
 
   defp start_subscription(page_pid) do
     script = "window.postMessage({action: 'subscribe'}, '*')"
-    Commands.apply(page_pid, {:evaluate_script, script: script})
+    Commands.apply(page_pid, {:evaluate_script, %{script: script}})
   end
 
   defp stop_subscription(page_pid) do
     script = "window.postMessage({action: 'unsubscribe'}, '*')"
-    Commands.apply(page_pid, {:evaluate_script, script: script})
+    Commands.apply(page_pid, {:evaluate_script, %{script: script}})
   end
 
   def broadcast(channel, action, payload) do
