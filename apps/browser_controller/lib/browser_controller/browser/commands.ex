@@ -202,8 +202,7 @@ defmodule BrowserController.Browser.Commands do
     Page.navigate(page_pid, %{url: url})
     receive do
       {:chrome_remote_interface, "Page.frameStoppedLoading", _payload} ->
-        Logger.debug("Page Navigation Finished")
-        IO.inspect("Page Navigation Finished")
+        #Logger.debug("Page Navigation Finished")
         PageSession.unsubscribe(page_pid, "Page.frameStoppedLoading")
     after
       4000 ->
