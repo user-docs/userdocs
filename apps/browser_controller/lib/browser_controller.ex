@@ -2,11 +2,11 @@ defmodule BrowserController do
   require Logger
   use GenServer
 
-
   alias BrowserController.BrowserState
   alias BrowserController.Browser
   alias BrowserController.Queue
   alias BrowserController.StepHandler
+  alias BrowserController.Browser.Commands
 
   defguard is_empty(queue) when queue == {[], []}
   defguard not_running(state) when state.run_state in [:stop, :pause]
@@ -144,22 +144,32 @@ defmodule BrowserController do
   end
 
   def handle_continue(:handle_queue, %{queue: _} = state) do
-    {_queue, state} = Map.pop(state, :queue)
     {command, _} = Queue.dequeue(state)
-
     state = handle_execute(state, command)
 
     {:noreply, state, {:continue, :handle_queue}}
   end
 
   def handle_execute(state, {:execute_step, _attrs} = command) do
-    %{step: _step, command: command, context: _context} = StepHandler.prepare(command)
-    state = handle_execute(state, command)
-
+    with step_handler <- StepHandler.prepare(command),
+         %{command: command} <- step_handler,
+         result <- handle_execute(state, command),
+         state <- handle_execution_result(state, command, result),
+         step_handler <- Map.put(step_handler, :result, result),
+         _result <- StepHandler.finish(step_handler) do
+      state
+    end
   end
 
   def handle_execute(state, command) do
-    case Browser.execute(headed_browser(), command) do
+    context = Commands.prepare(command)
+    result = Browser.execute(headed_browser(), command)
+    Commands.finish(command, result, context)
+    state
+  end
+
+  def handle_execution_result(state, command, result) do
+    case result do
       {:ok, _result} ->
         {_, %{queue: queue} = state} = Queue.dequeue(state)
         broadcast("browser", "queue_updated", %{queue: :queue.to_list(queue)})
@@ -219,7 +229,6 @@ defmodule BrowserController do
     # see GenServer docs for other return types
     {:stop, reason, state}
   end
-
 
   @impl true
   def terminate(reason, state) do
