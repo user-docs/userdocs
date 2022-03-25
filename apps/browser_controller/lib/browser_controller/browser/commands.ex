@@ -48,20 +48,17 @@ defmodule BrowserController.Browser.Commands do
   defp cast_command({:clear_annotations, opts}), do: {:clear_annotations, opts}
 
   defp cast_command({:create_annotation, %{annotation: annotation}}) do
-    head = AnnotationHandler.head()
     body = AnnotationHandler.cast(annotation)
-    IO.puts(body)
-    {:evaluate_script, %{script: head <> "\n" <> body}}
+    {:evaluate_script, %{script: body}}
   end
 
   defp cast_command({:remove_annotation, %{annotation: annotation}}),
-    do: {:evaluate_script, %{script: AnnotationHandler.head() <> "\n" <> AnnotationHandler.remove(annotation)}}
+    do: {:evaluate_script, %{script:  AnnotationHandler.remove(annotation)}}
 
   defp cast_command({:update_annotation, %{annotation: annotation}}) do
     remove = AnnotationHandler.remove(annotation)
     create = AnnotationHandler.cast(annotation)
-    head = AnnotationHandler.head()
-    script = head <> "\n" <> remove <> "\n" <> create
+    script = remove <> "\n" <> create
     {:evaluate_script, %{script: script}}
   end
 
@@ -201,22 +198,15 @@ defmodule BrowserController.Browser.Commands do
 
   defp navigate(page_pid, url) do
     Logger.info("#{__MODULE__} executing navigate command")
-    PageSession.subscribe(page_pid, "Page.frameStartedLoading")
+    PageSession.subscribe(page_pid, "Page.frameStoppedLoading")
     Page.navigate(page_pid, %{url: url})
     receive do
-      {:chrome_remote_interface, "Page.frameStartedLoading", _payload} ->
-        #Logger.debug("Page Navigation started")
-        PageSession.unsubscribe(page_pid, "Page.frameStartedLoading")
-        PageSession.subscribe(page_pid, "Page.frameStoppedLoading")
-        receive do
-          {:chrome_remote_interface, "Page.frameStoppedLoading", _payload} ->
-            #Logger.debug("Page Navigation Finished")
-            PageSession.unsubscribe(page_pid, "Page.frameStoppedLoading")
-            {:ok, %{}}
-        end
+      {:chrome_remote_interface, "Page.frameStoppedLoading", _payload} ->
+        Logger.debug("Page Navigation Finished")
+        IO.inspect("Page Navigation Finished")
+        PageSession.unsubscribe(page_pid, "Page.frameStoppedLoading")
     after
       4000 ->
-        PageSession.unsubscribe(page_pid, "Page.frameStartedLoading")
         PageSession.unsubscribe(page_pid, "Page.frameStoppedLoading")
         {:ok, %{}}
     end
