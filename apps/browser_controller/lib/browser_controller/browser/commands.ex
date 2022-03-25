@@ -10,6 +10,9 @@ defmodule BrowserController.Browser.Commands do
   alias ChromeRemoteInterface.RPC.Runtime
   alias ChromeRemoteInterface.RPC.Emulation
   alias ChromeRemoteInterface.RPC.Input
+  alias ChromeRemoteInterface.RPC.Network
+
+  defguardp screenshot?(cmd) when cmd in [:full_screen_screenshot, :element_screenshot, :full_document_screenshot, :single_white_pixel, :single_black_pixel]
 
   def apply(page_pid, command) do
     command
@@ -17,49 +20,74 @@ defmodule BrowserController.Browser.Commands do
     |> execute_command(page_pid)
   end
 
-  def cast_command({:navigate, opts}), do: {:navigate, opts}
-  def cast_command({:highlight, opts}), do: {:highlight, opts}
-  def cast_command({:hide_highlight, opts}), do: {:hide_highlight, opts}
-  def cast_command({:full_screen_screenshot, opts}), do: {:full_screen_screenshot, opts}
-  def cast_command({:element_screenshot, opts}), do: {:element_screenshot, opts}
-  def cast_command({:full_document_screenshot, opts}), do: {:full_document_screenshot, opts}
-  def cast_command({:set_size, opts}), do: {:set_size, opts}
-  def cast_command({:fill_field, opts}), do: {:fill_field, opts}
-  def cast_command({:click, opts}), do: {:click, opts}
-  def cast_command({:evaluate_script, opts}), do: {:evaluate_script, opts}
-  def cast_command({:full_screen_svg, opts}), do: {:full_screen_svg, opts}
-  def cast_command({:clear_annotations, opts}), do: {:clear_annotations, opts}
-  def cast_command({:do_nothing, opts}), do: {:do_nothing, opts}
 
-  def cast_command({:create_annotation, %{annotation: annotation}}),
-    do: {:evaluate_script, %{script: AnnotationHandler.cast(annotation)}}
+  def prepare({command, %{screenshot_id: screenshot_id}}) when screenshot?(command) do
+    %{screenshot: Client.get_screenshot!(screenshot_id)}
+  end
 
-  def cast_command({:remove_annotation, %{annotation: annotation}}),
-    do: {:evaluate_script, %{script: AnnotationHandler.remove(annotation)}}
+  def prepare({_command_name, _opts}), do: %{}
 
-  def cast_command({:update_annotation, %{annotation: annotation}}) do
+  def finish({command, _opts} = _command, {:ok, base64}, context) when screenshot?(command) do
+    %{screenshot: screenshot} = context
+    Client.update_screenshot(screenshot, %{base64: base64})
+  end
+
+  def finish(_command, result, _context), do: result
+
+  defp cast_command({:navigate, opts}), do: {:navigate, opts}
+  defp cast_command({:highlight, opts}), do: {:highlight, opts}
+  defp cast_command({:hide_highlight, opts}), do: {:hide_highlight, opts}
+  defp cast_command({:full_screen_screenshot, opts}), do: {:full_screen_screenshot, opts}
+  defp cast_command({:element_screenshot, opts}), do: {:element_screenshot, opts}
+  defp cast_command({:full_document_screenshot, opts}), do: {:full_document_screenshot, opts}
+  defp cast_command({:set_size, opts}), do: {:set_size, opts}
+  defp cast_command({:fill_field, opts}), do: {:fill_field, opts}
+  defp cast_command({:click, opts}), do: {:click, opts}
+  defp cast_command({:evaluate_script, opts}), do: {:evaluate_script, opts}
+  defp cast_command({:full_screen_svg, opts}), do: {:full_screen_svg, opts}
+  defp cast_command({:clear_annotations, opts}), do: {:clear_annotations, opts}
+
+  defp cast_command({:create_annotation, %{annotation: annotation}}) do
+    head = AnnotationHandler.head()
+    body = AnnotationHandler.cast(annotation)
+    IO.puts(body)
+    {:evaluate_script, %{script: head <> "\n" <> body}}
+  end
+
+  defp cast_command({:remove_annotation, %{annotation: annotation}}),
+    do: {:evaluate_script, %{script: AnnotationHandler.head() <> "\n" <> AnnotationHandler.remove(annotation)}}
+
+  defp cast_command({:update_annotation, %{annotation: annotation}}) do
     remove = AnnotationHandler.remove(annotation)
     create = AnnotationHandler.cast(annotation)
-    script = remove <> "\n" <> create
+    head = AnnotationHandler.head()
+    script = head <> "\n" <> remove <> "\n" <> create
     {:evaluate_script, %{script: script}}
   end
 
-  def execute_command({:navigate, %{url: url}}, page_pid), do: navigate(page_pid, url)
-  def execute_command({:highlight, %{strategy: strategy, selector: selector}}, page_pid), do: highlight(page_pid, strategy, selector)
-  def execute_command({:hide_highlight, %{selector: selector}}, page_pid), do: hide_highlight(page_pid, selector)
-  def execute_command({:full_document_screenshot, %{width: width}}, page_pid), do: full_document_screenshot(page_pid, width)
-  def execute_command({:set_size, %{width: width, height: height}}, page_pid), do: set_size(page_pid, width, height)
-  def execute_command({:full_screen_screenshot, _opts}, page_pid), do: full_screen_screenshot(page_pid)
-  def execute_command({:click, %{strategy: strategy, selector: selector}}, page_pid), do: click(page_pid, strategy, selector)
-  def execute_command({:evaluate_script, %{script: script}}, page_pid), do: evaluate_script(page_pid, script)
-  def execute_command({:clear_annotations, _opts}, page_pid), do: clear_annotations(page_pid)
-  def execute_command({:fill_field, %{strategy: strategy, selector: selector, text: text}}, page_pid),
+  defp cast_command({:do_nothing, opts}), do: {:do_nothing, opts}
+  defp cast_command({:single_white_pixel, opts}), do: {:single_white_pixel, opts}
+
+  defp execute_command({:navigate, %{url: url}}, page_pid), do: navigate(page_pid, url)
+  defp execute_command({:highlight, %{strategy: strategy, selector: selector}}, page_pid), do: highlight(page_pid, strategy, selector)
+  defp execute_command({:hide_highlight, %{selector: selector}}, page_pid), do: hide_highlight(page_pid, selector)
+  defp execute_command({:full_document_screenshot, %{width: width}}, page_pid), do: full_document_screenshot(page_pid, width)
+  defp execute_command({:set_size, %{width: width, height: height}}, page_pid), do: set_size(page_pid, width, height)
+  defp execute_command({:full_screen_screenshot, _opts}, page_pid), do: full_screen_screenshot(page_pid)
+  defp execute_command({:click, %{strategy: strategy, selector: selector}}, page_pid), do: click(page_pid, strategy, selector)
+  defp execute_command({:evaluate_script, %{script: script}}, page_pid), do: evaluate_script(page_pid, script)
+  defp execute_command({:clear_annotations, _opts}, page_pid), do: clear_annotations(page_pid)
+  defp execute_command({:fill_field, %{strategy: strategy, selector: selector, text: text}}, page_pid),
     do: fill_field(page_pid, strategy, selector, text)
 
-  def execute_command({:element_screenshot, %{selector: selector, strategy: strategy}}, page_pid),
+  defp execute_command({:element_screenshot, %{selector: selector, strategy: strategy}}, page_pid),
     do: element_screenshot(page_pid, strategy, selector)
 
-  def execute_command({:do_nothing, _}, _page_pid), do: {:warn, "This command did nothing."}
+  defp execute_command({:do_nothing, _}, _page_pid), do: {:ok, "This command did nothing."}
+  defp execute_command({:warn, _}, _page_pid), do: {:warn, "This command did nothing."}
+  defp execute_command({:error, _}, _page_pid), do: {:error, "This command did nothing."}
+  defp execute_command({:single_white_pixel, _page_pid}), do: {:ok, "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAFiUAABYlAUlSJPAAAAAMSURBVBhXY/j//z8ABf4C/qc1gYQAAAAASUVORK5CYII="}
+  defp execute_command({:single_black_pixel, _page_pid}), do: {:ok, "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAFiUAABYlAUlSJPAAAAANSURBVBhXY8jPz/8PAATrAk3xWKD8AAAAAElFTkSuQmCC"}
 
   # def execute_command({:full_document_screenshot, %{on_complete: on_complete, width: width}}, page_pid) do
   #   Logger.info("#{__MODULE__} executing full document screenshot command with on_complete callback")
@@ -187,7 +215,10 @@ defmodule BrowserController.Browser.Commands do
             {:ok, %{}}
         end
     after
-      4000 -> {:ok, %{}}
+      4000 ->
+        PageSession.unsubscribe(page_pid, "Page.frameStartedLoading")
+        PageSession.unsubscribe(page_pid, "Page.frameStoppedLoading")
+        {:ok, %{}}
     end
   end
 
@@ -281,10 +312,13 @@ defmodule BrowserController.Browser.Commands do
   end
 
   defp evaluate_script(page_pid, script) do
-    with {:ok, _result} <- Runtime.evaluate(page_pid, %{expression: script}) do
-      {:ok, %{}}
-    else
-      {:error, error_object} -> cast_error(error_object)
+    case Runtime.evaluate(page_pid, %{expression: script}) do
+      {:ok, %{"result" => %{"exceptionDetails" => %{"exception" => %{"description" => description}}}} = result} ->
+        {:error, description}
+      {:ok, %{"result" => %{"result" => %{"description" => description}}}} ->
+        {:ok, description}
+      {:ok, %{"result" => %{"result" => _result}}} ->
+        {:ok, %{}}
     end
   end
 
