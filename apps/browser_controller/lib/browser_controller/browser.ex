@@ -84,8 +84,13 @@ defmodule BrowserController.Browser do
     {:noreply, Map.put(state, :page_pid, nil)}
   end
 
+  def handle_info({:EXIT, from, :normal}, %{page_pid: from} = state) do
+    Logger.info("#{__MODULE__} handling a chrome closed exit subscription callback from #{inspect(from)}")
+    {:noreply, Map.put(state, :page_pid, nil)}
+  end
+
   def handle_info({:EXIT, from, :normal}, state) do
-    Logger.info("#{__MODULE__} handlinga normal exit subscription callback from #{inspect(from)}")
+    Logger.debug("#{__MODULE__} handling a normal exit subscription callback from #{inspect(from)}")
     {:noreply, state}
   end
 
