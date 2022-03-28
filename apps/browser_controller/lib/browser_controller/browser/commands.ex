@@ -1,16 +1,15 @@
 defmodule BrowserController.Browser.Commands do
   require Logger
 
+  alias BrowserController.Browser.NetworkActivityMonitor
   alias BrowserController.Utilities
   alias BrowserController.AnnotationHandler
 
   alias ChromeRemoteInterface.RPC.Page
   alias ChromeRemoteInterface.RPC.DOM
-  alias ChromeRemoteInterface.PageSession
   alias ChromeRemoteInterface.RPC.Runtime
   alias ChromeRemoteInterface.RPC.Emulation
   alias ChromeRemoteInterface.RPC.Input
-  alias ChromeRemoteInterface.RPC.Network
 
   defguardp screenshot?(cmd) when cmd in [:full_screen_screenshot, :element_screenshot, :full_document_screenshot, :single_white_pixel, :single_black_pixel]
 
@@ -180,7 +179,7 @@ defmodule BrowserController.Browser.Commands do
   #   Logger.info("Height: #{height} dpi: #{dpi}")
   #   zoom_factor = 1.25
   #   height_inches = height/dpi*zoom_factor
-  #   opts = %{marginTop: 0, marginBottom: 0, marginLeft: 0, marginRight: 0, printBackground: true, preferCSSPageSize: true, displayHeaderFooter: true, paperHeight: height_inches}
+  #   opts = %{marginTop: 0, marginBottom: 0, marginLeft: 0, marginRight: 0, printBackground: true, prefe rCSSPageSize: true, displayHeaderFooter: true, paperHeight: height_inches}
   #   case Page.printToPDF(page_pid, opts) do
   #     {:ok, %{"result" => %{"data" => base64}}} ->
   #       input_location = "C:\\test\\test.pdf"
@@ -198,16 +197,17 @@ defmodule BrowserController.Browser.Commands do
 
   defp navigate(page_pid, url) do
     Logger.info("#{__MODULE__} executing navigate command")
-    PageSession.subscribe(page_pid, "Page.frameStoppedLoading")
-    Page.navigate(page_pid, %{url: url})
-    receive do
-      {:chrome_remote_interface, "Page.frameStoppedLoading", _payload} ->
-        #Logger.debug("Page Navigation Finished")
-        PageSession.unsubscribe(page_pid, "Page.frameStoppedLoading")
-    after
-      4000 ->
-        PageSession.unsubscribe(page_pid, "Page.frameStoppedLoading")
-        {:ok, %{}}
+    case Page.navigate(page_pid, %{url: url}) do
+      {:ok, %{"result" => %{"errorText" => error_text}}} ->
+        {:error, error_text}
+      {:ok, _} ->
+        GenServer.start_link(NetworkActivityMonitor, [page_pid: page_pid, parent_pid: self()])
+        receive do
+          {:ok, :network_idle} ->
+            {:ok, :navigation_successful}
+          {:error, :navigation_failed} ->
+            {:error, :navigation_failed}
+        end
     end
   end
 
@@ -218,6 +218,7 @@ defmodule BrowserController.Browser.Commands do
          {:ok, _} <- DOM.highlightNode(page_pid, %{nodeId: node_id, highlightConfig: opts}) do
       {:ok, "Node Highlighted"}
     else
+      {:error, message} -> {:error, message}
       {:ok, 0} -> {:warn, "Node not found in browser"}
     end
   end

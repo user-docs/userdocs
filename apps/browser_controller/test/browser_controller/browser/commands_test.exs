@@ -9,11 +9,14 @@ defmodule BrowserController.Browser.CommandsTest do
   @test_page_path Path.join([:code.priv_dir(:browser_controller), "static", "html", "test_page.html"])
 
   setup_all do
-    result = BrowserController.ensure_browser_open()
-    if !(Utilities.get_url(result.server) =~ "test_page.html") do
-      Browser.execute(result.headed_browser_pid, {:navigate, %{url: @test_page_path}})
+    BrowserController.ensure_browser_open()
+  end
+
+  setup %{headed_browser_pid: pid, server: server} do
+    if !(Utilities.get_url(server) =~ "test_page.html") do
+      Browser.execute(pid, {:navigate, %{url: @test_page_path}})
     end
-    result
+    :ok
   end
 
   describe "Navigation" do
@@ -21,6 +24,16 @@ defmodule BrowserController.Browser.CommandsTest do
       {:ok, _} = Browser.execute(browser_pid, {:navigate, %{url: "about:blank"}})
       {:ok, _} = Browser.execute(browser_pid, {:navigate, %{url: @test_page_path}})
       assert Utilities.get_url(server) =~ "test_page.html"
+    end
+
+    test "fails navigation for a bogus url", %{headed_browser_pid: browser_pid} do
+      assert {:error, "net::ERR_NAME_NOT_RESOLVED"} =
+        Browser.execute(browser_pid, {:navigate, %{url: "https://asdf3e33fushdg%29%2A%21/#&%)*&"}})
+    end
+
+    test "navigates to a complicated site", %{server: server, headed_browser_pid: browser_pid} do
+      Browser.execute(browser_pid, {:navigate, %{url: "https://www.microsoft.com"}})
+      assert Utilities.get_url(server) =~ "www.microsoft.com"
     end
   end
 
@@ -34,7 +47,7 @@ defmodule BrowserController.Browser.CommandsTest do
     test "sets size properly", %{headed_browser_pid: browser_pid} do
       {:ok, result} = Browser.execute(browser_pid, {:set_size, %{width: 1000, height: 1000}})
       assert result == %{width: 1000, height: 1000}
-      {:ok, result} = Browser.execute(browser_pid, {:set_size, %{width: 800, height: 600}})
+      Browser.execute(browser_pid, {:set_size, %{width: 800, height: 600}})
     end
   end
 
