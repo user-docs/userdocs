@@ -15,6 +15,8 @@ defmodule BrowserController.Utilities do
     case DOM.querySelector(page_pid, %{nodeId: root_node_id, selector: selector}) do
       {:ok, %{"result" => %{"nodeId" => node_id}}} ->
         {:ok, node_id}
+      {:error, %{"error" => %{"message" => message}}} ->
+        {:error, message}
       result -> Logger.error("#{__MODULE__}.get_node_id returned #{inspect(result)}")
     end
   end
