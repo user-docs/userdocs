@@ -90,15 +90,18 @@ defmodule BrowserController do
 
   @impl true
   def handle_cast({:play}, state) do
-    {:noreply, handle_play(state), {:continue, :handle_queue}}
+    handle_play(state)
+    |> maybe_continue()
   end
 
   def handle_cast({:pause}, state) do
-    {:noreply, handle_pause(state)}
+    handle_pause(state)
+    |> maybe_continue()
   end
 
   def handle_cast({:stop}, state) do
-    {:noreply, handle_stop(state)}
+    handle_stop(state)
+    |> maybe_continue()
   end
 
   def handle_cast({:clear_queue}, state) do
@@ -112,6 +115,8 @@ defmodule BrowserController do
   def handle_cast({:execute, command}, state) when not_running(state) and is_empty(state.queue) do
     {:noreply, state |> Queue.enqueue(command) |> handle_play(), {:continue, :handle_queue}}
   end
+
+  def handle_cast({:execute, _command}, state), do: {:noreply, state}
 
   def handle_cast({:execute, {:execute_process, attrs}}, state) do
     {:noreply, state |> Queue.enqueue_process(attrs) |> handle_play(), {:continue, :handle_queue}}
@@ -146,8 +151,7 @@ defmodule BrowserController do
   def handle_continue(:handle_queue, %{queue: _} = state) do
     {command, _} = Queue.dequeue(state)
     state = handle_execute(state, command)
-
-    {:noreply, state, {:continue, :handle_queue}}
+    maybe_continue(state)
   end
 
   def handle_execute(state, {:execute_step, _attrs} = command) do
@@ -165,7 +169,7 @@ defmodule BrowserController do
     context = Commands.prepare(command)
     result = Browser.execute(headed_browser(), command)
     Commands.finish(command, result, context)
-    state
+    handle_execution_result(state, command, result)
   end
 
   def handle_execution_result(state, command, result) do
@@ -272,4 +276,7 @@ defmodule BrowserController do
       payload: payload
     })
   end
+
+  def maybe_continue(%{run_state: :play} = state), do: {:noreply, state, {:continue, :handle_queue}}
+  def maybe_continue(%{run_state: _} = state), do: {:noreply, state}
 end
