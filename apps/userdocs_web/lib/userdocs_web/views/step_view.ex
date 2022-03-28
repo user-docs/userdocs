@@ -27,8 +27,7 @@ defmodule UserdocsWeb.API.StepView do
       page_id: step.page_id,
       element_id: step.element_id,
       annotation_id: step.annotation_id,
-      step_type_id: step.step_type_id,
-      screenshot_id: step.screenshot_id
+      step_type_id: step.step_type_id
     }
   end
 end
