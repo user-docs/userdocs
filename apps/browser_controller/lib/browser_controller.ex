@@ -90,17 +90,17 @@ defmodule BrowserController do
 
   @impl true
   def handle_cast({:play}, state) do
-    handle_play(state)
+    set_play(state)
     |> maybe_continue()
   end
 
   def handle_cast({:pause}, state) do
-    handle_pause(state)
+    set_pause(state)
     |> maybe_continue()
   end
 
   def handle_cast({:stop}, state) do
-    handle_stop(state)
+    set_stop(state)
     |> maybe_continue()
   end
 
@@ -113,13 +113,13 @@ defmodule BrowserController do
   end
 
   def handle_cast({:execute, command}, state) when not_running(state) and is_empty(state.queue) do
-    {:noreply, state |> Queue.enqueue(command) |> handle_play(), {:continue, :handle_queue}}
+    {:noreply, state |> Queue.enqueue(command) |> set_execute(), {:continue, :handle_queue}}
   end
 
   def handle_cast({:execute, _command}, state), do: {:noreply, state}
 
   def handle_cast({:execute, {:execute_process, attrs}}, state) do
-    {:noreply, state |> Queue.enqueue_process(attrs) |> handle_play(), {:continue, :handle_queue}}
+    {:noreply, state |> Queue.enqueue_process(attrs) |> set_execute(), {:continue, :handle_queue}}
   end
 
   def handle_cast({:handle_command, {:execute_process, _}}, state) do
@@ -127,17 +127,22 @@ defmodule BrowserController do
     {:noreply, state}
   end
 
-  defp handle_play(state) do
+  defp set_play(state) do
     Browser.stop_extension_subscription(headed_browser())
     Queue.play(state)
   end
 
-  defp handle_pause(state) do
+  defp set_execute(state) do
+    Browser.stop_extension_subscription(headed_browser())
+    Queue.play(state)
+  end
+
+  defp set_pause(state) do
     Browser.start_extension_subscription(headed_browser())
     Queue.pause(state)
   end
 
-  defp handle_stop(state) do
+  defp set_stop(state) do
     Browser.start_extension_subscription(headed_browser())
     Queue.stop(state)
   end
@@ -157,7 +162,7 @@ defmodule BrowserController do
   def handle_execute(state, {:execute_step, _attrs} = command) do
     with step_handler <- StepHandler.prepare(command),
          %{command: command} <- step_handler,
-         result <- handle_execute(state, command),
+         result <- execute_command(command),
          state <- handle_execution_result(state, command, result),
          step_handler <- Map.put(step_handler, :result, result),
          _result <- StepHandler.finish(step_handler) do
@@ -166,10 +171,15 @@ defmodule BrowserController do
   end
 
   def handle_execute(state, command) do
+    result = execute_command(command)
+    handle_execution_result(state, command, result)
+  end
+
+  def execute_command(command) do
     context = Commands.prepare(command)
     result = Browser.execute(headed_browser(), command)
     Commands.finish(command, result, context)
-    handle_execution_result(state, command, result)
+    result
   end
 
   def handle_execution_result(state, command, result) do
@@ -186,12 +196,15 @@ defmodule BrowserController do
         state
 
       {:error, message} ->
-        %{queue: queue} = state
-        state = Queue.pause(state)
-        %{run_state: new_run_state} = state
+        %{queue: queue, run_state: run_state} = state
+        state =
+          case run_state do
+            :execute -> state |> Queue.pause() |> Queue.clear()
+            :play -> state |> Queue.pause()
+          end
         broadcast("browser", "queue_updated", %{queue: :queue.to_list(queue)})
         broadcast("browser", "execution_error", %{command: command, message: message})
-        broadcast("browser", "run_state_updated", %{run_state: new_run_state})
+        broadcast("browser", "run_state_updated", %{run_state: state.run_state})
         state
     end
   end

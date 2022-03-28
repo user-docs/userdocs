@@ -56,6 +56,11 @@ defmodule BrowserController.Queue do
     Map.put(state, :run_state, :play)
   end
 
+  def execute(state) do
+    broadcast("browser", "run_state_updated", %{run_state: :play})
+    Map.put(state, :run_state, :execute)
+  end
+
   def pause(state) do
     broadcast("browser", "run_state_updated", %{run_state: :pause})
     Map.put(state, :run_state, :pause)
