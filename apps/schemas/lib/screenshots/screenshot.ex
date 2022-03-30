@@ -14,7 +14,7 @@ defmodule Schemas.Screenshots.Screenshot do
   @primary_key {:id, Ecto.UUID, autogenerate: false}
   @derive {Jason.Encoder, only: [
     :id, :name, :base64, :aws_screenshot, :file_name, :status,
-    :aws_provisional_screenshot, :aws_diff_screenshot, :project_id,
+    :aws_provisional_screenshot, :aws_diff_screenshot,
     :presigned_urls, :score, :page_id, :step_id
   ]}
   schema "screenshots" do
@@ -42,18 +42,15 @@ defmodule Schemas.Screenshots.Screenshot do
     screenshot
     |> cast(attrs, [:id, :name, :file_name, :status, :base64, :aws_file,
       :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot,
-      :project_id, :score, :page_id, :step_id])
-    |> foreign_key_constraint(:project_id)
-    |> validate_required([:project_id])
+      :score, :page_id, :step_id])
   end
 
   def api_changeset(screenshot, attrs) do
     screenshot
     |> cast(attrs, [:id, :name, :file_name, :status, :base64, :aws_file,
       :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot,
-      :project_id, :score, :page_id, :step_id])
+      :score, :page_id, :step_id])
     |> cast_embed(:presigned_urls, with: &PresignedURLs.changeset/2)
-    |> validate_required([:project_id])
   end
 end
 

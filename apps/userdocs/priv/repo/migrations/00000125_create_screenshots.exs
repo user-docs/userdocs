@@ -13,14 +13,12 @@ defmodule Userdocs.Repo.Migrations.CreateScreenshots do
       add :status, :string
       add :score, :float
       add :presigned_urls, :jsonb
-      add :project_id, references(:projects, on_delete: :nilify_all, type: :uuid)
       add :page_id, references(:pages, on_delete: :nilify_all, type: :uuid)
       add :step_id, references(:steps, on_delete: :delete_all, type: :uuid)
 
       timestamps()
     end
 
-    create index(:screenshots, [:project_id])
     create index(:screenshots, [:page_id])
   end
 end
