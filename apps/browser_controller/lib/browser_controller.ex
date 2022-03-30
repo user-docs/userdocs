@@ -116,11 +116,11 @@ defmodule BrowserController do
     {:noreply, state |> Queue.enqueue(command) |> set_execute(), {:continue, :handle_queue}}
   end
 
-  def handle_cast({:execute, _command}, state), do: {:noreply, state}
-
   def handle_cast({:execute, {:execute_process, attrs}}, state) do
     {:noreply, state |> Queue.enqueue_process(attrs) |> set_execute(), {:continue, :handle_queue}}
   end
+
+  def handle_cast({:execute, _command}, state), do: {:noreply, state}
 
   def handle_cast({:handle_command, {:execute_process, _}}, state) do
     Logger.warn("Handling unimplemented Execute Process Command")
@@ -134,7 +134,7 @@ defmodule BrowserController do
 
   defp set_execute(state) do
     Browser.stop_extension_subscription(headed_browser())
-    Queue.play(state)
+    Queue.execute(state)
   end
 
   defp set_pause(state) do
@@ -154,9 +154,10 @@ defmodule BrowserController do
   end
 
   def handle_continue(:handle_queue, %{queue: _} = state) do
+    Logger.info("#{__MODULE__} handling queue item")
     {command, _} = Queue.dequeue(state)
-    state = handle_execute(state, command)
-    maybe_continue(state)
+    handle_execute(state, command)
+    |> maybe_continue()
   end
 
   def handle_execute(state, {:execute_step, _attrs} = command) do
@@ -176,10 +177,10 @@ defmodule BrowserController do
   end
 
   def execute_command(command) do
+    Logger.info("#{__MODULE__} executing normal command")
     context = Commands.prepare(command)
     result = Browser.execute(headed_browser(), command)
     Commands.finish(command, result, context)
-    result
   end
 
   def handle_execution_result(state, command, result) do
@@ -196,13 +197,12 @@ defmodule BrowserController do
         state
 
       {:error, message} ->
-        %{queue: queue, run_state: run_state} = state
         state =
-          case run_state do
-            :execute -> state |> Queue.pause() |> Queue.clear()
+          case state.run_state do
+            :execute -> state |> Queue.clear() |> Queue.pause()
             :play -> state |> Queue.pause()
           end
-        broadcast("browser", "queue_updated", %{queue: :queue.to_list(queue)})
+        broadcast("browser", "queue_updated", %{queue: :queue.to_list(state.queue)})
         broadcast("browser", "execution_error", %{command: command, message: message})
         broadcast("browser", "run_state_updated", %{run_state: state.run_state})
         state
