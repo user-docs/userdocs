@@ -1,7 +1,6 @@
 defmodule BrowserController.Browser.NetworkActivityMonitor do
   require Logger
   use GenServer
-  alias ChromeRemoteInterface.RPC.Network
   alias ChromeRemoteInterface.PageSession
 
   @idle_timeout 500
@@ -24,7 +23,6 @@ defmodule BrowserController.Browser.NetworkActivityMonitor do
     page_pid = Keyword.get(opts, :page_pid)
     parent_pid = Keyword.get(opts, :parent_pid)
     timer = Process.send_after(self(), :idle, @idle_timeout)
-    Network.enable(page_pid)
     subscribe_all(@network_events ++ @failure_events, page_pid)
     {:ok, %{page_pid: page_pid, parent_pid: parent_pid, timer: timer}}
   end
@@ -56,7 +54,6 @@ defmodule BrowserController.Browser.NetworkActivityMonitor do
   @impl true
   def terminate(:normal, %{page_pid: page_pid, timer: timer}) do
     unsubscribe_all(@network_events ++ @failure_events, page_pid)
-    Network.disable(page_pid)
     Process.cancel_timer(timer)
   end
 

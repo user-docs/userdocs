@@ -1,14 +1,15 @@
 defmodule BrowserController.Browser.Launcher do
   require Logger
 
-  alias ChromeRemoteInterface.Session
-  alias ChromeRemoteInterface.PageSession
-  alias ChromeRemoteInterface.Session
   alias ChromeRemoteInterface.RPC.Browser
   alias ChromeRemoteInterface.RPC.Page
   alias ChromeRemoteInterface.RPC.DOM
   alias ChromeRemoteInterface.RPC.Runtime
+  alias ChromeRemoteInterface.RPC.Network
   alias ChromeRemoteInterface.Server
+  alias ChromeRemoteInterface.Session
+  alias ChromeRemoteInterface.PageSession
+  alias ChromeRemoteInterface.Session
 
   alias BrowserController.Constants
   alias Local.Paths
@@ -120,6 +121,7 @@ defmodule BrowserController.Browser.Launcher do
   def setup_chrome(page_pid, host_url) do
     Logger.info("#{__MODULE__} setting chrome up")
     Page.enable(page_pid)
+    Network.enable(page_pid)
     DOM.enable(page_pid)
     Runtime.enable(page_pid)
     Page.addScriptToEvaluateOnNewDocument(page_pid, %{source: Constants.script(host_url)})
