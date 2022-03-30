@@ -10,6 +10,7 @@ defmodule BrowserController do
 
   defguard is_empty(queue) when queue == {[], []}
   defguard not_running(state) when state.run_state in [:stop, :pause]
+  defguard is_running(state) when state.run_state in [:play, :execute]
 
   def start_link(default), do: GenServer.start_link(__MODULE__, default, name: __MODULE__)
 
@@ -186,6 +187,7 @@ defmodule BrowserController do
   def handle_execution_result(state, command, result) do
     case result do
       {:ok, _result} ->
+        Logger.info("handle_execution_result")
         {_, %{queue: queue} = state} = Queue.dequeue(state)
         broadcast("browser", "queue_updated", %{queue: :queue.to_list(queue)})
         state
@@ -290,6 +292,6 @@ defmodule BrowserController do
     })
   end
 
-  def maybe_continue(%{run_state: :play} = state), do: {:noreply, state, {:continue, :handle_queue}}
+  def maybe_continue(state) when is_running(state), do: {:noreply, state, {:continue, :handle_queue}}
   def maybe_continue(%{run_state: _} = state), do: {:noreply, state}
 end
