@@ -17,6 +17,7 @@ defmodule Schemas.Teams.Team do
     has_many :projects, Project
     has_many :team_users, TeamUser
 
+    field :type, Ecto.Enum, values: [:personal, :enterprise]
     field :css, :string
     field :aws_region, :string
     field :aws_bucket, :string
@@ -36,7 +37,7 @@ defmodule Schemas.Teams.Team do
   @doc false
   def changeset(team, attrs) do
     team
-    |> cast(attrs, [:name, :aws_bucket, :aws_region, :aws_access_key_id, :aws_secret_access_key, :css])
+    |> cast(attrs, [:name, :aws_bucket, :aws_region, :aws_access_key_id, :aws_secret_access_key, :css, :type])
     |> cast_assoc(:team_users)
     |> cast_assoc(:projects)
     |> handle_users(attrs)
@@ -47,7 +48,7 @@ defmodule Schemas.Teams.Team do
 
   def api_changeset(team, attrs) do
     team
-    |> cast(attrs, [:id, :name, :css, :aws_bucket, :aws_region, :aws_access_key_id, :aws_secret_access_key])
+    |> cast(attrs, [:id, :name, :css, :aws_bucket, :aws_region, :aws_access_key_id, :aws_secret_access_key, :type])
     |> cast_assoc(:projects, with: &Project.api_changeset/2)
   end
 
