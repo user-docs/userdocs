@@ -114,7 +114,7 @@ defmodule BrowserController.StepHandler do
     expression = AnnotationHandler.cast(annotation)
     {:evaluate_expression, %{expression: expression}}
   end
-  defp cast_step(%Step{step_type_id: nil}, _context), do: {:do_nothing, %{}}
+  defp cast_step(%Step{step_type_id: "do_nothing"}, _context), do: {:do_nothing, %{}}
 
   def broadcast_step_update(step) do
     broadcast("data", "update", step)
