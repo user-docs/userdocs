@@ -62,7 +62,10 @@ defmodule BrowserController.Browser.Commands do
   end
 
   defp cast_command({:do_nothing, opts}), do: {:do_nothing, opts}
+  defp cast_command({:warn, opts}), do: {:warn, opts}
+  defp cast_command({:error, opts}), do: {:error, opts}
   defp cast_command({:single_white_pixel, opts}), do: {:single_white_pixel, opts}
+  defp cast_command({:single_black_pixel, opts}), do: {:single_black_pixel, opts}
 
   defp execute_command({:navigate, %{url: url}}, page_pid), do: navigate(page_pid, url)
   defp execute_command({:highlight, %{strategy: strategy, selector: selector}}, page_pid), do: highlight(page_pid, strategy, selector)
