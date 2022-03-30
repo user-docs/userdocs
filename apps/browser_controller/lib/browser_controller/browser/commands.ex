@@ -85,8 +85,8 @@ defmodule BrowserController.Browser.Commands do
   defp execute_command({:do_nothing, _}, _page_pid), do: {:ok, "This command did nothing."}
   defp execute_command({:warn, _}, _page_pid), do: {:warn, "This command did nothing."}
   defp execute_command({:error, _}, _page_pid), do: {:error, "This command did nothing."}
-  defp execute_command({:single_white_pixel, _page_pid}), do: {:ok, "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAFiUAABYlAUlSJPAAAAAMSURBVBhXY/j//z8ABf4C/qc1gYQAAAAASUVORK5CYII="}
-  defp execute_command({:single_black_pixel, _page_pid}), do: {:ok, "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAFiUAABYlAUlSJPAAAAANSURBVBhXY8jPz/8PAATrAk3xWKD8AAAAAElFTkSuQmCC"}
+  defp execute_command({:single_white_pixel, _}, _page_pid), do: {:ok, "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAFiUAABYlAUlSJPAAAAAMSURBVBhXY/j//z8ABf4C/qc1gYQAAAAASUVORK5CYII="}
+  defp execute_command({:single_black_pixel, _}, _page_pid), do: {:ok, "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAFiUAABYlAUlSJPAAAAANSURBVBhXY8jPz/8PAATrAk3xWKD8AAAAAElFTkSuQmCC"}
 
   # def execute_command({:full_document_screenshot, %{on_complete: on_complete, width: width}}, page_pid) do
   #   Logger.info("#{__MODULE__} executing full document screenshot command with on_complete callback")
