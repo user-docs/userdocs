@@ -1,6 +1,7 @@
 defmodule BrowserController.Browser.LauncherTest do
   use BrowserController.DataCase
   alias BrowserController.Browser.Launcher
+  alias BrowserController.Browser.Commands
 
   @test_page_path Path.join([:code.priv_dir(:browser_controller), "static", "html", "test_page.html"])
   @team_css "/styles/team_css_overrides.css"
@@ -17,15 +18,9 @@ defmodule BrowserController.Browser.LauncherTest do
       :close_browser
     ]
 
-    defp validate_opened(page_pid) do
-      {:ok, document} = BrowserController.Utilities.get_document(page_pid)
-      assert document =~ @team_css
-      assert document =~ @annotations
-    end
-
     test "ensure open starts the browser with css and annotations javascript, and closes properly" do
       {:ok, %{server: server, page_pid: page_pid}} = Launcher.ensure_open(@opts)
-      BrowserController.execute({:navigate, %{url: @test_page_path}}, server, page_pid)
+      Commands.apply(page_pid, {:navigate, %{url: @test_page_path}})
       {:ok, document} = BrowserController.Utilities.get_document(page_pid)
       assert document =~ @team_css
       assert document =~ @annotations
@@ -41,8 +36,10 @@ defmodule BrowserController.Browser.LauncherTest do
       {:ok, %{page_pid: page_pid}} = Launcher.ensure_open(@opts)
       Launcher.disconnect_chrome(page_pid)
       {:ok, %{server: server, page_pid: page_pid}} = Launcher.init(@opts)
-      validate_opened(page_pid)
-      BrowserController.execute({:navigate, %{url: @test_page_path}}, server, page_pid)
+      Commands.apply(page_pid, {:navigate, %{url: @test_page_path}})
+      {:ok, document} = BrowserController.Utilities.get_document(page_pid)
+      assert document =~ @team_css
+      assert document =~ @annotations
       Launcher.stop(server, page_pid, @opts)
     end
 
