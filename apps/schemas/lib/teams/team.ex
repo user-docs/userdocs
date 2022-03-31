@@ -17,7 +17,7 @@ defmodule Schemas.Teams.Team do
     has_many :projects, Project
     has_many :team_users, TeamUser
 
-    field :type, Ecto.Enum, values: [:personal, :enterprise]
+    field :type, Ecto.Enum, values: [:personal, :team, :enterprise]
     field :css, :string
     field :aws_region, :string
     field :aws_bucket, :string
