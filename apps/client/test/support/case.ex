@@ -30,6 +30,6 @@ defmodule Client.Case do
       Ecto.Adapters.SQL.Sandbox.stop_owner(pid)
       Ecto.Adapters.SQL.Sandbox.stop_owner(local_pid)
     end)
-    {:ok, %{}}
+    {:ok, %{pid: pid, local_pid: local_pid}}
   end
 end
