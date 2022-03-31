@@ -1,4 +1,4 @@
-defmodule ClientTest.Steps do
+defmodule ClientTest.StepInstances do
   use ExUnit.Case
   use Client.Case
   alias Userdocs.ProjectsFixtures
