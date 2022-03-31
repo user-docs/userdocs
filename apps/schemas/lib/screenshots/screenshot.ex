@@ -28,7 +28,6 @@ defmodule Schemas.Screenshots.Screenshot do
     field :status, Ecto.Enum, values: [:ok, :difference, :size_difference]
     field :score, :float
 
-    belongs_to :project, Project
     belongs_to :page, Page
     belongs_to :step, Step
 
