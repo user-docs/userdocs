@@ -3,15 +3,17 @@ defmodule Userdocs.TeamsFixtures do
   alias Userdocs.Teams
   alias Userdocs.TeamUsers
 
-  def team_attrs(:valid) do
+  def team_attrs(:valid, attrs) do
     %{
       name: UUID.uuid4(),
       aws_bucket: "userdocs-test",
       aws_access_key_id: "AKIAT5VKLWBUOAYXO656",
       aws_secret_access_key: "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",
       aws_region: "us-east-2",
-      css: "{test: value}"
+      css: "{test: value}",
+      type: :team
     }
+    |> Map.merge(attrs)
   end
   def team_attrs(:invalid) do
     %{
@@ -23,9 +25,9 @@ defmodule Userdocs.TeamsFixtures do
     }
   end
 
-  def team(opts) do
+  def team(attrs \\ %{}, opts) do
     {:ok, team} =
-      team_attrs(:valid)
+      team_attrs(:valid, attrs)
       |> Teams.create_team(opts)
     team
   end
