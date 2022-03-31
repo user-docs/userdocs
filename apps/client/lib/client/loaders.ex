@@ -99,8 +99,8 @@ defmodule Client.Loaders do
     |> StateHandlers.load(annotations, Annotation, state_opts)
     |> StateHandlers.load(element_annotations, ElementAnnotation, state_opts)
   end
-  def load_project_data(state, %{access_token: token, state_opts: state_opts, project: %Project{__meta__: %{state: :loaded}, id: project_id}}) do
-    opts = %{filters: %{project_id: project_id}, access_token: token, context: %{repo: Userdocs.LocalRepo}}
+  def load_project_data(state, %{state_opts: state_opts, project: %Project{__meta__: %{state: :loaded}, id: project_id}}) do
+    opts = %{filters: %{project_id: project_id}, context: %{repo: Userdocs.LocalRepo}}
     [
       pages,
       processes,
