@@ -10,8 +10,25 @@ defmodule Userdocs.ClientFixtures do
 
   @local_opts %{context: %{repo: Userdocs.LocalRepo}}
 
+  def base_client(initial_state \\ %{}) do
+    team = TeamsFixtures.team(%{type: :personal}, @local_opts)
+    strategy = WebFixtures.strategy(@local_opts)
+    project = ProjectsFixtures.project(team.id, strategy.id, @local_opts)
+
+    context = %{
+      team: team,
+      strategy: strategy,
+      project: project
+    }
+    Map.merge(initial_state, context)
+  end
+
+  def page(context),
+    do: Map.put(context, :page, WebFixtures.page(context.project.id, @local_opts))
+  def page_screenshot(context),
+    do: Map.put(context, :page_screenshot, ScreenshotFixtures.screenshot(%{page_id: context.page.id}, @local_opts))
+
   def local_data() do
-    Userdocs.Tokens.delete_all(@local_opts)
     team = TeamsFixtures.team(@local_opts)
     strategy = WebFixtures.strategy(@local_opts)
     project = ProjectsFixtures.project(team.id, strategy.id, @local_opts)
