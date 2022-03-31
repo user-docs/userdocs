@@ -34,9 +34,8 @@ defmodule BrowserController.Browser.NetworkActivityMonitor do
     {:noreply, Map.put(state, :timer, timer)}
   end
 
-  def handle_info({:chrome_remote_interface, event_name, p}, state) when event_name in @failure_events do
+  def handle_info({:chrome_remote_interface, event_name, _payload}, state) when event_name in @failure_events do
     Logger.info("Navigation failed because #{event_name}")
-    IO.inspect(p)
     %{parent_pid: parent_pid, timer: timer} = state
     Process.cancel_timer(timer)
     Process.send(parent_pid, {:error, :navigation_failed}, [])
