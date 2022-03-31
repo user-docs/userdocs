@@ -24,7 +24,7 @@ defmodule Userdocs.ContextsTest do
 
   defp valid_attrs(%{user: user, team: team, project: project}),
     do: %{user_id: user.id, team_id: team.id, project_id: project.id}
-  defp invalid_attrs(), do: %{user_id: UUID.uuid4(), team_id: UUID.uuid4(), project_id: UUID.uuid4()}
+  defp invalid_attrs(), do: %{user_id: "", team_id: "", project_id: ""}
 
   describe "Contexts" do
     setup [

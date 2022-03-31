@@ -21,8 +21,7 @@ defmodule Schemas.Users.Context do
   def changeset(context, attrs) do
     context
     |> cast(attrs, [:user_id, :team_id, :project_id])
-    |> foreign_key_constraint(:team_id)
-    |> foreign_key_constraint(:project_id)
+    |> validate_required([:team_id, :project_id])
   end
 
   @doc false
