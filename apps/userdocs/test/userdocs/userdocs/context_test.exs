@@ -44,7 +44,7 @@ defmodule Userdocs.ContextsTest do
 
     test "get_context!/1 returns the context with given id", context do
       context = context(valid_attrs(context))
-      assert Contexts.get_context!(context.id, @opts) == context
+      assert Contexts.get_context!(context.user_id, @opts) == context
     end
 
     test "create_context/1 with valid data creates a context", context do
@@ -70,13 +70,13 @@ defmodule Userdocs.ContextsTest do
       context = context(valid_attrs(context))
       attrs = invalid_attrs()
       assert {:error, %Ecto.Changeset{}} = Contexts.update_context(context, attrs, @opts)
-      assert context == Contexts.get_context!(context.id, @opts)
+      assert context == Contexts.get_context!(context.user_id, @opts)
     end
 
     test "delete_context/1 deletes the context", context do
       context = context(valid_attrs(context))
       assert {:ok, %Context{}} = Contexts.delete_context(context, @opts)
-      assert_raise Ecto.NoResultsError, fn -> Contexts.get_context!(context.id, @opts) end
+      assert_raise Ecto.NoResultsError, fn -> Contexts.get_context!(context.user_id, @opts) end
     end
   end
 end

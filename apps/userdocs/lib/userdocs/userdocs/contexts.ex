@@ -17,6 +17,10 @@ defmodule Userdocs.Contexts do
     RepoHandler.get!(Context, id, opts)
   end
 
+  def get_context(id, opts) do
+    RepoHandler.get(Context, id, opts)
+  end
+
   def create_context(attrs \\ %{}, opts) do
     %Context{}
     |> Context.changeset(attrs)
