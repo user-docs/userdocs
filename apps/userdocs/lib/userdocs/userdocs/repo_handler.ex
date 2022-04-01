@@ -4,12 +4,20 @@ defmodule Userdocs.RepoHandler do
     repo.all(query)
   end
 
+  def get(schema, id, %{context: %{repo: repo}}) do
+    repo.get(schema, id)
+  end
+
   def get!(schema, id, %{context: %{repo: repo}}) do
     repo.get!(schema, id)
   end
 
   def one!(query, %{context: %{repo: repo}}) do
     repo.one!(query)
+  end
+
+  def one(query, %{context: %{repo: repo}}) do
+    repo.one(query)
   end
 
   def update(query, %{context: %{repo: repo}}) do
