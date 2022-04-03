@@ -14,17 +14,18 @@ defmodule Client.Loaders do
   alias Schemas.Annotations.Annotation
   alias Schemas.Elements.ElementAnnotation
 
-  def apply(state, %{user: %User{selected_project_id: nil}} = opts) do
-    state
-    |> load_base_data(opts)
-  end
 
-  def apply(state, %{user: %User{selected_project_id: id}, state_opts: state_opts} = opts) do
+  def apply(%{context: %{project_id: id}} = state, %{user: %User{}, state_opts: state_opts} = opts) do
     state = load_base_data(state, opts)
     project = State.Projects.get_project!(id, state, state_opts)
     opts = Map.put(opts, :project, project)
     state
     |> load_project_data(opts)
+  end
+
+  def apply(state, %{user: %User{}} = opts) do
+    state
+    |> load_base_data(opts)
   end
 
   def load_base_data(state, %{access_token: token, state_opts: state_opts, user: user}) do
@@ -89,7 +90,6 @@ defmodule Client.Loaders do
       ]
       |> Task.await_many()
 
-
     state
     |> StateHandlers.load(pages, Page, state_opts)
     |> StateHandlers.load(processes, Process, state_opts)
@@ -128,6 +128,5 @@ defmodule Client.Loaders do
     |> StateHandlers.load(steps, Step, state_opts)
     |> StateHandlers.load(elements, Element, state_opts)
     |> StateHandlers.load(annotations, Annotation, state_opts)
-    |> StateHandlers.load(element_annotations, ElementAnnotation, state_opts)
   end
 end
