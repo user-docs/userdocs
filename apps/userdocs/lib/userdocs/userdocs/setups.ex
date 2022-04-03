@@ -1,6 +1,7 @@
 defmodule Userdocs.Setups do
   require Logger
 
+  def handle_setup_result(_, %{setup_status: %{}} = state, _), do: {:noreply, state}
   def handle_setup_result({:halt = status, message}, state, task_key) do
     %{setup_status: setup_status, topic: topic} = state
     setup_status = update_setup_status(setup_status, status, task_key, message)
