@@ -16,7 +16,8 @@ defmodule UserdocsWeb.API.TeamView do
       name: team.name,
       css: team.css,
       aws_region: team.aws_region,
-      aws_bucket: team.aws_bucket
+      aws_bucket: team.aws_bucket,
+      type: team.type
     }
   end
 end
