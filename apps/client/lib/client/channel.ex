@@ -6,6 +6,7 @@ defmodule Client.Channel do
   def connect(user, team, access_token) do
     Logger.debug("#{__MODULE__} connecting to channel")
     with {:ok, socket} <- connect_socket(access_token),
+         :ok <- wait_until_connected(socket),
          {:ok, _response, user_channel} <- join_user_channel(socket, user.id),
          {:ok, _response, team_channel} <- join_team_channel(socket, team.id)
     do
