@@ -47,7 +47,7 @@ defmodule Userdocs.MixProject do
       {:bamboo, "~> 2.2.0"},
       {:ex_aws, "~> 2.2"},
       {:ex_aws_s3, "~> 2.3"},
-      {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
       {:ex_doc, "~> 0.22", only: :dev, runtime: false},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:flex_logger, "~> 0.2", only: [:dev]},
