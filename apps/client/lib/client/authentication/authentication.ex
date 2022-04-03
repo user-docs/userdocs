@@ -31,20 +31,20 @@ defmodule Client.Authentication do
 
   def check_token_store(tokens) do
     case tokens do
+      [%Token{token: "default"}, %Token{token: "default"}, %Token{token: "default"}] ->
+        {:error, "No Tokens"}
+
       [%Token{id: "access"} = a, %Token{id: "renewal"} = r, %Token{id: "user_id"} = uid] ->
         {:ok, %{access_token: a.token, renewal_token: r.token, user_id: uid.token}}
-
-      [%Token{token: "default"}, %Token{token: "default"}, %Token{token: "default"}] ->
-        {:error, :no_tokens}
 
       [] ->
         Logger.debug("#{__MODULE__} tokens don't exist")
         Tokens.create_all("default", "default", "default", @opts)
-        {:error, :no_tokens}
+        {:error, "No Tokens"}
     end
   end
 
-  def try_access_token({:error, :no_tokens}), do: {:error, :no_tokens}
+  def try_access_token({:error, "No Tokens"}), do: {:error, "No Tokens"}
   def try_access_token({:ok, %{access_token: access_token, renewal_token: renewal_token}}) do
     Logger.debug("#{__MODULE__} trying access token")
     case fetch_current_user(access_token) do
@@ -57,7 +57,7 @@ defmodule Client.Authentication do
     end
   end
 
-  def try_renewal_token({:error, :no_tokens}), do: {:error, :no_tokens}
+  def try_renewal_token({:error, "No Tokens"}), do: {:error, "No Tokens"}
   def try_renewal_token({:ok, _user} = state), do: state
   def try_renewal_token({:nok, %{renewal_token: renewal_token}}) do
     Logger.debug("Trying to renew session")
