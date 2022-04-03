@@ -18,13 +18,16 @@ defmodule Client do
   alias Schemas.Annotations.Annotation
   alias Schemas.Elements.ElementAnnotation
   alias Schemas.StepInstances.StepInstance
+  alias Schemas.Users.Context
 
   alias PhoenixClient.{Message, Socket}
   alias Client.Channel
   alias Client.Authentication
   alias Client.Subscription
+  alias Client.Initialize
   alias Local.Paths
   alias Userdocs.Setups
+  alias Userdocs.Contexts
 
   @timeout 10_000
   @types [
@@ -47,22 +50,10 @@ defmodule Client do
 
   @topic "client"
   @state_opts [data_type: :list, strategy: :by_type, location: :data, types: @types]
+  @local_opts %{context: %{repo: Userdocs.LocalRepo}}
 
-  if Mix.env() == :test do
-    @setup_status %{
-      initialize_state: %{order: 1, status: nil, next_task: :authenticate, title: "Initial State"},
-      authenticate: %{order: 2, status: nil, next_task: :connect_channel, title: "Authenticate"},
-      connect_channel: %{order: 3, status: nil, next_task: :complete, title: "Connecting"}
-    }
-  else
-    @setup_status %{
-      initialize_state: %{order: 1, status: nil, next_task: :check_tokens, title: "Initial State"},
-      check_tokens: %{order: 2, status: nil, next_task: :authenticate, title: "Tokens"},
-      authenticate: %{order: 3, status: nil, next_task: :connect_channel, title: "Authenticate"},
-      connect_channel: %{order: 4, status: nil, next_task: :load_data, title: "Connecting"},
-      load_data: %{order: 5, status: nil, next_task: :complete, title: "Load Data"}
-    }
-  end
+  defguardp is_local(team) when team.type in [:personal]
+  defguardp is_remote(state) when state.current_team.type in [:team, :enterprise]
 
   def start_link(args), do: GenServer.start_link(__MODULE__, Enum.into(args, %{}), name: __MODULE__)
 
@@ -95,13 +86,13 @@ defmodule Client do
   def delete_team_user(id, opts \\ %{}), do: GenServer.call(__MODULE__, {:delete_team_user, id, opts}, @timeout)
 
   def load_teams(opts), do: GenServer.call(__MODULE__, {:load_teams, opts}, @timeout)
-  def list_teams(opts), do: GenServer.call(__MODULE__, {:list_teams, opts}, @timeout)
+  def list_teams(opts \\ []), do: GenServer.call(__MODULE__, {:list_teams, opts}, @timeout)
   def get_team!(id, opts \\[]), do: GenServer.call(__MODULE__, {:get_team!, id, opts}, @timeout)
   def create_team(attrs), do: GenServer.call(__MODULE__, {:create_team, attrs}, @timeout)
   def update_team(team, attrs), do: GenServer.call(__MODULE__, {:update_team, team, attrs}, @timeout)
   def delete_team(id, opts), do: GenServer.call(__MODULE__, {:delete_team, id, opts}, @timeout)
 
-  def load_projects(opts), do: GenServer.call(__MODULE__, {:load_projects, opts}, @timeout)
+  def load_projects(opts \\ %{}), do: GenServer.call(__MODULE__, {:load_projects, opts}, @timeout)
   def list_projects(), do: GenServer.call(__MODULE__, {:list_projects, []}, @timeout)
   def list_projects(opts), do: GenServer.call(__MODULE__, {:list_projects, opts}, @timeout)
   def get_project!(id), do: GenServer.call(__MODULE__, {:get_project!, id, []}, @timeout)
@@ -189,57 +180,24 @@ defmodule Client do
 
   def init_state(), do: GenServer.call(__MODULE__, :init_state, @timeout)
   def destroy_state(), do: GenServer.cast(__MODULE__, :destroy_state)
+  def update_context(attrs), do: GenServer.cast(__MODULE__, {:update_context, attrs})
 
   # Server (callbacks)
 
   @impl true
   def init(%{mode: :test}), do: {:ok, initialize_state(%{topic: @topic})}
   def init(_) do
-    {:ok, %{setup_status: @setup_status, topic: @topic}, {:continue, :initialize_state}}
+    Phoenix.PubSub.subscribe(Userdocs.PubSub, "data")
+    state = %{setup_status: Initialize.setup_status(), topic: @topic, context: %Context{}}
+    {:ok, state, {:continue, :initialize_state}}
   end
 
   @impl true
-  def handle_continue(:initialize_state, state) do
-    state = initialize_state(state)
-
-    {:ok, "State Initialized"}
-    |> Setups.handle_setup_result(state, :initialize_state)
-  end
-  def handle_continue(:check_tokens, state) do
-    %{context: %{repo: Userdocs.LocalRepo}}
-    |> Userdocs.Tokens.list_tokens()
-    |> Authentication.check_token_store()
-    |> case do
-      {:ok, _tokens} -> {:ok, "Tokens Exist"}
-      {:error, e} -> {:error, e}
-    end
-    |> Setups.handle_setup_result(state, :check_tokens)
-  end
-  def handle_continue(:authenticate, state) do
-    case Authentication.init() do
-      {:error, message} ->
-        IO.puts("Authentication error")
-        {:halt, message}
-        |> Setups.handle_setup_result(state, :authenticate)
-
-      {:ok, user} ->
-        state = Map.put(state, :current_user, user)
-        {:ok, "Authenticated"}
-        |> Setups.handle_setup_result(state, :authenticate)
-    end
-  end
+  def handle_continue(:initialize_state, state), do: Initialize.initialize_state(state, @state_opts)
+  def handle_continue(:check_tokens, state), do: Initialize.check_tokens(state, @local_opts)
+  def handle_continue(:authenticate, state), do: Initialize.authenticate(state, @local_opts)
+  def handle_continue(:fetch_context, state), do: Initialize.fetch_context(state, @local_opts)
   def handle_continue(:connect_channel, %{current_user: user} = state) do
-    case Channel.connect(user, access_token()) do
-      {:ok, channel_info} ->
-        Logger.info("Client.Init Channel Connected")
-        state = Map.merge(state, channel_info)
-        {:ok, "Client connected"}
-        |> Setups.handle_setup_result(state, :connect_channel)
-
-      _ ->
-        {:error, "Client.Init Channel Failed to Connect"}
-        |> Setups.handle_setup_result(state, :connect_channel)
-    end
   end
   def handle_continue(:load_data, %{state_opts: state_opts, current_user: user} = state) do
     opts = %{user: user, state_opts: state_opts, access_token: access_token()}
@@ -270,16 +228,17 @@ defmodule Client do
     end
   end
   def handle_call(:tokens, _from, state) do
-    [at, rt, uid] = Userdocs.Tokens.list_tokens(%{context: %{repo: Userdocs.LocalRepo}})
+    [at, rt, uid] = Userdocs.Tokens.list_tokens(@local_opts)
     {:reply, {:ok, %{access_token: at.token, renewal_token: rt.token, user_id: uid.token}}, state}
   end
-  def handle_call(:connect, _from,
-  %{socket: socket, user_channel: uc, team_channel: tc, current_user: user} = state) do
-    {status, channel_info} = Channel.maybe_reconnect(socket, uc, tc, user, access_token())
+  def handle_call(:connect, _from, %{socket: socket, user_channel: uc, team_channel: tc, current_user: user} = state) do
+    team = get_current_team(state)
+    {status, channel_info} = Channel.maybe_reconnect(socket, uc, tc, user, team, access_token())
     {:reply, status, Map.merge(state, channel_info)}
   end
   def handle_call(:connect, _from, %{current_user: user} = state) do
-    {status, channel_info} = Channel.connect(user, access_token())
+    team = get_current_team(state)
+    {status, channel_info} = Channel.connect(user, team, access_token())
     {:reply, status, Map.merge(state, channel_info)}
   end
   def handle_call(:connected?, _from, %{socket: socket} = state) do
@@ -289,19 +248,22 @@ defmodule Client do
     Logger.error("Socket not on #{__MODULE__}.state")
     {:reply, false, state}
   end
-  def handle_call(:current_user, _from, %{current_user: user} = state), do: {:reply, user, state}
+
   def handle_call(:current_user_id, _from, %{current_user: user} = state), do: {:reply, user.id, state}
-  def handle_call(:current_user, _from, state), do: {:reply, %{selected_team: %{css: "{}"}}, state} # This clause handles cases where the app is looking for the current user before it's been set, may need some augmentation
-  def handle_call(:current_project, _from, %{state_opts: state_opts, current_user: %User{selected_project_id: project_id}} = state) when project_id != nil do
-    result = State.Projects.get_project!(project_id, state, state_opts)
-    {:reply, result, state}
+  def handle_call(:current_user_id, _from,state), do: {:reply, nil, state}
+  def handle_call(:current_user, _from, %{current_user: user} = state), do: {:reply, user, state}
+  def handle_call(:current_user, _from, state), do: {:reply, nil, state}
+
+  def handle_call(:current_project, _from, state) when state.context.project_id != nil do
+    {:reply, {:ok, get_current_project(state)}, state}
   end
-  def handle_call(:current_project, _from, _state), do: nil
-  def handle_call(:current_team, _from, %{state_opts: state_opts, current_user: %User{selected_team_id: team_id}} = state) when team_id != nil do
-    result = State.Teams.get_team!(team_id, state, state_opts)
-    {:reply, result, state}
+  def handle_call(:current_project, _from, _state), do: {:error, nil}
+
+  def handle_call(:current_team, _from, state) when state.context.team_id != nil do
+    {:reply, {:ok, get_current_team(state)}, state}
   end
-  def handle_call(:current_team, _from, _state), do: nil
+  def handle_call(:current_team, _from, _state), do: {:error, nil}
+
   def handle_call(:data, _from, %{data: data} = state), do: {:reply, data, state}
   def handle_call(:data, _from, state), do: {:reply, nil, state}
   def handle_call({:put_in_state, key, data}, _from, state), do: {:reply, :ok, Map.put(state, key, data)}
@@ -310,6 +272,7 @@ defmodule Client do
     :ok = Channel.disconnect(socket, uc, tc)
     {:reply, :ok, state |> Map.drop([:socket, :user_channel, :team_channel])}
   end
+  def handle_call(:disconnect, _from, state), do: {:reply, :ok, state}
 
   def handle_call(:load, _from, %{current_user: user, state_opts: state_opts} = state) do
     opts = %{access_token: access_token(), state_opts: state_opts, user: user}
@@ -359,7 +322,7 @@ defmodule Client do
   def handle_call({:update_step_instance, step_instance, attrs}, _from, state) do
     {:reply, Userdocs.StepInstances.update_step_instance(step_instance, attrs), state}
   end
-  def handle_call({:delete_step_instance, id, opts}, _from, state) do
+  def handle_call({:delete_step_instance, id, _opts}, _from, state) do
     step_instance = Userdocs.StepInstances.get_step_instance!(id)
     {:reply, Userdocs.StepInstances.delete_step_instance(step_instance), state}
   end
@@ -428,17 +391,30 @@ defmodule Client do
   end
 
   # Projects
-  def handle_call({:load_projects, opts}, _from, %{state_opts: state_opts} = state) do
-    remote_projects = Client.Projects.list_projects(include_token(opts))
-    state = StateHandlers.load(state, remote_projects, Project, state_opts)
-    {:reply, :ok, state}
+  def handle_call({:load_projects, opts}, _from, state) do
+    case is_remote?(state) do
+      true ->
+        remote_projects = Client.Projects.list_projects(include_token(opts))
+        state = StateHandlers.load(state, remote_projects, Project, state.state_opts)
+        {:reply, :ok, state}
+
+      false ->
+        projects = Userdocs.Projects.list_projects(local_opts(opts))
+        state = StateHandlers.load(state, projects, Project, state.state_opts)
+        {:reply, :ok, state}
+    end
   end
+
   def handle_call({:list_projects, opts}, _from, state),
     do: {:reply, State.Projects.list_projects(state, kw_opts(opts, state)), state}
   def handle_call({:get_project!, id, opts}, _from, state),
     do: {:reply, State.Projects.get_project!(id, state, kw_opts(opts, state)), state}
-  def handle_call({:create_project, attrs}, _from, state),
+
+  def handle_call({:create_project, attrs}, _from, state) when is_remote(state),
     do: {:reply, Client.Projects.create_project(attrs, %{access_token: access_token()}), state}
+  def handle_call({:create_project, attrs}, _from, state) when is_local(state),
+    do: {:reply, Userdocs.Projects.create_project(attrs, local_opts()), state}
+
   def handle_call({:update_project, project, attrs}, _from, state),
     do: {:reply, Client.Projects.update_project(project, attrs, %{access_token: access_token()}), state}
   def handle_call({:delete_project, id, opts}, _from, state),
@@ -458,9 +434,9 @@ defmodule Client do
     result = Client.Screenshots.create_screenshot(attrs, screenshot_opts())
     {:reply, result, state}
   end
-  def handle_call({:update_screenshot, screenshot, attrs}, _from, state) do
-    result = Client.Screenshots.update_screenshot(screenshot, attrs, screenshot_opts())
-    {:reply, result, state}
+  def handle_call({:update_screenshot, screenshot, attrs}, _from, %{mode: mode} = state) do
+    IO.puts("Update screenshot with mode #{mode}, object status is #{screenshot.__meta__.state}")
+    {:reply, Client.Screenshots.update_screenshot(screenshot, attrs, screenshot_opts(%{mode: mode})), state}
   end
   def handle_call({:approve_screenshot, screenshot, opts}, _from, state),
     do: {:reply, Client.Screenshots.approve_screenshot(screenshot, screenshot_opts(opts)), state}
@@ -587,11 +563,52 @@ defmodule Client do
 
   @impl true
   def handle_cast(:destroy_state, state), do: {:noreply, Map.delete(state, :data)}
+  def handle_cast({:update_context, attrs}, %{
+    current_user: %{id: user_id} = user,
+    context: %{team_id: team_id, project_id: project_id},
+    user_channel: user_channel,
+    team_channel: team_channel,
+    state_opts: state_opts,
+    socket: socket
+  } = state) do
+    team_id = Map.get(attrs, :team_id, team_id)
+    project_id = Map.get(attrs, :project_id, project_id)
+    attrs = %{project_id: project_id, team_id: team_id}
+
+    {:ok, context} =
+      Userdocs.Contexts.get_context!(user_id, @local_opts)
+      |> Userdocs.Contexts.update_context(attrs, @local_opts)
+
+    state = Map.put(state, :context, context)
+
+    opts = %{access_token: access_token(), state_opts: state_opts, user: user}
+    state = Client.Loaders.apply(state, opts)
+
+    team = State.Teams.get_team!(team_id, state, state_opts)
+
+    :ok = Channel.disconnect(socket, user_channel, team_channel)
+    {:ok, channel_info} = Channel.connect(user, team, access_token())
+
+    {:noreply, Map.merge(state, channel_info)}
+  end
+  def handle_cast({:update_context, attrs}, %{
+    current_user: %{id: user_id},
+    context: %{team_id: team_id, project_id: project_id}
+  } = state) do
+    team_id = Map.get(attrs, :team_id, team_id)
+    project_id = Map.get(attrs, :project_id, project_id)
+    attrs = %{project_id: project_id, team_id: team_id}
+    {:ok, context} =
+      Userdocs.Contexts.get_context!(user_id, @local_opts)
+      |> Userdocs.Contexts.update_context(attrs, @local_opts)
+
+    {:noreply, Map.put(state, :context, context)}
+  end
 
 
   @impl true
   def handle_info(%Message{event: "update", payload: %{"attrs" => attrs, "type" => "Schemas.Users.User"}}, state) do
-    Logger.debug("Incoming User Struct, Attrs: #{inspect attrs}, pid: #{inspect self()}")
+    Logger.warning("Incoming User Struct, Attrs: #{inspect attrs}, pid: #{inspect self()}")
     Phoenix.PubSub.broadcast(Userdocs.PubSub, "data", {"update_user", attrs})
     #UserdocsDesktopWeb.Endpoint.broadcast("data", "update_user", attrs)
     {:ok, user} = Userdocs.Users.create_prepared_user(attrs)
@@ -607,7 +624,12 @@ defmodule Client do
     {:noreply, Subscription.handle_event(state, event, object, state_opts)}
   end
   def handle_info(%Message{event: event, payload: payload}, state) do
-    Logger.debug("Incoming Message, Event: #{event}, Payload: #{inspect payload}")
+    Logger.info("Incoming Message, Event: #{event}, Payload: #{inspect payload}")
+    {:noreply, state}
+  end
+
+  def handle_info(%{event: event, payload: payload}, state) do
+    Logger.info("Incoming Local Message, Event: #{event}, Payload: #{inspect payload}")
     {:noreply, state}
   end
 
@@ -624,12 +646,16 @@ defmodule Client do
     |> include_token()
   end
 
+  defp local_opts(opts \\ %{}) do
+    Map.merge(@local_opts, opts)
+  end
+
   def include_token(opts) do
     Map.put(opts, :access_token, access_token())
   end
 
   def access_token() do
-    %{context: %{repo: Userdocs.LocalRepo}}
+    @local_opts
     |> Userdocs.Tokens.access()
     |> Map.get(:token)
   end
@@ -644,4 +670,29 @@ defmodule Client do
 
   def object_counts(%{data: data}), do:
     Enum.reduce(data, %{}, fn({k, v}, acc) -> Map.put(acc, k, Enum.count(v)) end)
+
+  def is_remote?(state) do
+    case get_current_team(state) do
+      %{type: type} when type in [:personal] -> false
+      %{type: type} when type in [:team, :enterprise] -> true
+      nil ->
+        Logger.error("Team id is probably nil #{inspect state.context}")
+        false
+    end
+  end
+
+  def get_current_team(state) do
+    %{state_opts: state_opts, context: %Context{team_id: team_id}} = state
+    State.Teams.get_team!(team_id, state, state_opts)
+  end
+
+  def get_current_project(state) do
+    %{state_opts: state_opts, context: %Context{project_id: project_id}} = state
+    State.Projects.get_project!(project_id, state, state_opts)
+  end
+
+  def maybe_join_team_channel(%{context: %{team_id: nil}}), do: {:ok, nil}
+  def maybe_join_team_channel(%{socket: socket, context: %{team_id: team_id}}) do
+    Channel.join_team_channel(socket, team_id)
+  end
 end
