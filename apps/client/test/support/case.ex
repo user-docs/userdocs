@@ -19,17 +19,7 @@ defmodule Client.Case do
 
   using do
     quote do
-      import Client.Case
-    end
-  end
 
-  setup tags do
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Userdocs.Repo, shared: not tags[:async])
-    local_pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Userdocs.LocalRepo, shared: not tags[:async])
-    on_exit(fn ->
-      Ecto.Adapters.SQL.Sandbox.stop_owner(pid)
-      Ecto.Adapters.SQL.Sandbox.stop_owner(local_pid)
-    end)
-    {:ok, %{pid: pid, local_pid: local_pid}}
+    end
   end
 end
