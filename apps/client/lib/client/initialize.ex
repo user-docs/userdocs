@@ -116,8 +116,6 @@ defmodule Client.Initialize do
         %{current_user: user, access_token: token, context: %{team_id: team_id}} = state,
         state_opts
       ) do
-        IO.inspect(team_id)
-        IO.inspect(state.data)
     with %Team{} = team <- State.Teams.get_team!(team_id, state, state_opts),
          {:ok, channel_info} <- Channel.connect(user, team, token) do
       state = Map.merge(state, channel_info)
@@ -125,11 +123,11 @@ defmodule Client.Initialize do
     else
       nil ->
         {state, :error, "Failed to fetch team"}
-      e ->
-        IO.inspect(e)
+      _e ->
         {state, :error, "Client.Init Channel Failed to Connect"}
     end
   end
+  def do_connect_channel(_, _), do: {:error, "Insufficient Data to Connect"}
 
   defp handle_result({state, status, message}, task_key),
     do: Setups.handle_setup_result({status, message}, state, task_key)
