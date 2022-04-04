@@ -30,17 +30,33 @@ defmodule Client.LocalCase do
 
       @local_opts %{context: %{repo: Userdocs.LocalRepo}}
 
-      defp create_local_strategy(_), do: %{strategy: WebFixtures.strategy(@local_opts)}
+      defp create_local_strategy(_), do: %{local_strategy: WebFixtures.strategy(@local_opts)}
+      defp create_local_team(_), do: %{local_team: TeamsFixtures.team(%{type: :personal}, @local_opts)}
 
-      defp create_local_project(%{team: team, strategy: strategy}),
-        do: %{project: ProjectsFixtures.project(team.id, strategy.id, @local_opts)}
+      defp create_local_project(%{local_team: team, local_strategy: strategy}),
+        do: %{local_project: ProjectsFixtures.project(team.id, strategy.id, @local_opts)}
 
-      defp create_context(%{user: user, team: team}),
-        do: %{context: ContextsFixtures.context(%{user_id: user.id, team_id: team.id}, @local_opts)}
+      defp create_remote_context(%{user: user, remote_team: team, remote_project: project}),
+        do: %{remote_context: ContextsFixtures.context(%{user_id: user.id, team_id: team.id, project_id: project.id}, @local_opts)}
+
+      defp create_local_context(%{user: user, local_team: team, local_project: project}),
+        do: %{local_context: ContextsFixtures.context(%{user_id: user.id, team_id: team.id, project_id: project.id}, @local_opts)}
 
       defp create_local_tokens(%{access_token: at, renewal_token: rt, user: user}) do
         Tokens.create_all(at, rt, user.id, @local_opts)
         :ok
+      end
+
+      defp put_remote_context_data(%{user: user, remote_team: team, remote_project: project, remote_context: context}) do
+        data = Client.state() |> Map.get(:data) |> Map.put(:teams, [team]) |> Map.put(:projects, [project])
+        Client.put_in_state(:data, data)
+        Client.put_in_state(:context, context)
+      end
+
+      defp put_local_context_data(%{user: user, local_team: team, local_project: project, local_context: context}) do
+        data = Client.state() |> Map.get(:data) |> Map.put(:teams, [team]) |> Map.put(:projects, [project])
+        Client.put_in_state(:data, data)
+        Client.put_in_state(:context, context)
       end
     end
   end

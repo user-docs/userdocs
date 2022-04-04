@@ -37,15 +37,15 @@ defmodule Client.RemoteCase do
 
       defp create_password(_), do: %{password: UUID.uuid4()}
       defp create_user(%{password: password}), do: %{user: UsersFixtures.confirmed_user(password)}
-      defp create_team(_), do: %{team: TeamsFixtures.team(@remote_opts)}
+      defp create_remote_team(_), do: %{remote_team: TeamsFixtures.team(@remote_opts)}
 
-      defp create_team_user(%{user: user, team: team}),
+      defp create_team_user(%{user: user, remote_team: team}),
         do: %{team_user: TeamsFixtures.team_user(user.id, team.id, @remote_opts)}
 
-      defp create_remote_strategy(_), do: %{strategy: WebFixtures.strategy(@remote_opts)}
+      defp create_remote_strategy(_), do: %{remote_strategy: WebFixtures.strategy(@remote_opts)}
 
-      defp create_remote_project(%{team: team, strategy: strategy}),
-        do: %{project: ProjectsFixtures.project(team.id, strategy.id, @remote_opts)}
+      defp create_remote_project(%{remote_team: team, remote_strategy: strategy}),
+        do: %{remote_project: ProjectsFixtures.project(team.id, strategy.id, @remote_opts)}
 
       defp create_remote_tokens(%{user: user}) do
         pow_config = [
@@ -76,6 +76,21 @@ defmodule Client.RemoteCase do
         )
 
         %{access_token: signed_access_token, renewal_token: signed_renewal_token}
+      end
+
+      defp put_access_token_in_state(%{access_token: token}) do
+        Client.put_in_state(:access_token, token)
+        :ok
+      end
+
+      defp put_user_in_state(%{user: user}) do
+        Client.put_in_state(:current_user, user)
+        :ok
+      end
+
+      defp connect_client(_) do
+        Client.connect()
+        :ok
       end
 
       defp sign_token(conn, token, config),
