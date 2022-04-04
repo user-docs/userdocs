@@ -53,7 +53,7 @@ defmodule Client.Loaders do
         Task.async(fn -> Client.Strategies.list_strategies(token_only) end),
         Task.async(fn -> Client.AnnotationTypes.list_annotation_types(token_only) end),
         Task.async(fn -> Client.StepTypes.list_step_types(token_only) end),
-        Task.async(fn -> Client.Projects.list_projects(opts) end),
+        Task.async(fn -> Client.Remote.Projects.list_projects(opts) end),
         Task.async(fn -> Userdocs.Projects.list_projects(local_opts)  end),
       ]
       |> Task.await_many()

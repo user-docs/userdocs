@@ -1,39 +1,44 @@
 defmodule Client.Projects do
-  @moduledoc """
-  The Projects context.
-  """
-  require Logger
-  alias Client.Requests
-  alias Userdocs.Projects
+  import Client.Helpers
+  import Client.Constants
+  alias Client.Remote
   alias Schemas.Projects.Project
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/projects"
 
-  @doc "Returns the list of projects."
-  def list_projects(%{access_token: access_token} = opts) do
-    params =  Map.take(opts, [:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => projects_attrs}} = Requests.send(request_fun, access_token, params)
-    Projects.create_project_structs(projects_attrs)
+  def load_projects(state, opts) do
+    case is_remote?(state) do
+      true -> load_remote_projects(state, merge_token(opts, state))
+      false -> load_local_projects(state, merge_local_opts(opts))
+    end
   end
 
-  @doc "Creates a project."
-  def create_project(attrs, %{access_token: access_token}) do
-    params = %{project: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => project_attrs}} = Requests.send(request_fun, access_token, params)
-    Projects.create_project_struct(project_attrs)
+  defp load_remote_projects(state, opts) do
+    projects = Client.Remote.Projects.list_projects(opts)
+    StateHandlers.load(state, projects, Project, state_opts())
   end
 
-  @doc "Updates a project."
-  def update_project(%Project{} = project, attrs, %{access_token: access_token}) do
-    request_fun = Requests.build_update(@url, project.id)
-    {:ok, %{"data" => project_attrs}} = Requests.send(request_fun, access_token, %{project: attrs})
-    Projects.create_project_struct(project_attrs)
+  defp load_local_projects(state, opts) do
+    projects = Userdocs.Projects.list_projects(opts)
+    StateHandlers.load(state, projects, Project, state_opts())
   end
 
-  @doc "Deletes a project."
-  def delete_project(id, %{access_token: access_token}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
+  def create_project(attrs, state) do
+    case is_remote?(state) do
+      true -> Remote.Projects.create_project(attrs, state)
+      false -> Userdocs.Projects.create_project(attrs, local_opts())
+    end
+  end
+
+  def update_project(project, attrs, state) do
+    case is_remote?(state) do
+      true -> Remote.Projects.update_project(project, attrs, state)
+      false -> Userdocs.Projects.update_project(project, attrs, local_opts())
+    end
+  end
+
+  def delete_project(id, state) do
+    case is_remote?(state) do
+      true -> Remote.Projects.delete_project(id, state)
+      false -> Userdocs.Projects.delete_project(id, local_opts())
+    end
   end
 end
