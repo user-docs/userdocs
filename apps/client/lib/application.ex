@@ -7,7 +7,7 @@ defmodule Client.Application do
     opts = [strategy: :one_for_one, name: Client.Supervisor]
     Logger.info("Starting #{__MODULE__}")
     children = [
-      Client
+      Client.Server
     ]
     Supervisor.start_link(children, opts)
   end
