@@ -19,7 +19,10 @@ defmodule Client.Case do
 
   using do
     quote do
-
+      def initialize_state(_) do
+        Client.init_state()
+        :ok
+      end
     end
   end
 end

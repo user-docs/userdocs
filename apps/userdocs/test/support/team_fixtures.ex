@@ -25,6 +25,11 @@ defmodule Userdocs.TeamsFixtures do
     }
   end
 
+  def team_struct(attrs \\ %{}) do
+    {:ok, team} = team_attrs(:valid, attrs) |> Teams.create_team_struct()
+    team
+  end
+
   def team(attrs \\ %{}, opts) do
     {:ok, team} =
       team_attrs(:valid, attrs)

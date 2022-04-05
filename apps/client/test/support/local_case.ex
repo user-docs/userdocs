@@ -36,10 +36,10 @@ defmodule Client.LocalCase do
       defp create_local_project(%{local_team: team, local_strategy: strategy}),
         do: %{local_project: ProjectsFixtures.project(team.id, strategy.id, @local_opts)}
 
-      defp create_remote_context(%{user: user, remote_team: team, remote_project: project}),
+      defp create_remote_user_context(%{user: user, remote_team: team, remote_project: project}),
         do: %{remote_context: ContextsFixtures.context(%{user_id: user.id, team_id: team.id, project_id: project.id}, @local_opts)}
 
-      defp create_local_context(%{user: user, local_team: team, local_project: project}),
+      defp create_local_user_context(%{user: user, local_team: team, local_project: project}),
         do: %{local_context: ContextsFixtures.context(%{user_id: user.id, team_id: team.id, project_id: project.id}, @local_opts)}
 
       defp create_local_tokens(%{access_token: at, renewal_token: rt, user: user}) do

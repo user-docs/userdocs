@@ -35,6 +35,11 @@ defmodule Userdocs.UsersFixtures do
     }
   end
 
+  def user_struct() do
+    {:ok, user} = Users.create_user_struct(user_attrs(:valid, UUID.uuid4()))
+    user
+  end
+
   def user(password \\ UUID.uuid4()) do
     {:ok, user} =
       user_attrs(:valid, password)

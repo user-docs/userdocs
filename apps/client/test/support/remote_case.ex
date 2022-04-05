@@ -27,6 +27,7 @@ defmodule Client.RemoteCase do
       alias Userdocs.ProjectsFixtures
       alias Userdocs.WebFixtures
       alias Userdocs.TeamsFixtures
+      alias Userdocs.AutomationFixtures
 
       @remote_opts %{context: %{repo: Userdocs.Repo}}
 
@@ -47,6 +48,12 @@ defmodule Client.RemoteCase do
       defp create_remote_project(%{remote_team: team, remote_strategy: strategy}),
         do: %{remote_project: ProjectsFixtures.project(team.id, strategy.id, @remote_opts)}
 
+      defp create_remote_page(%{remote_project: project}),
+        do: %{remote_page: WebFixtures.page(project.id, @remote_opts)}
+
+      defp create_remote_process(%{remote_project: project}),
+        do: %{remote_process: AutomationFixtures.process(project.id, @remote_opts)}
+
       defp create_remote_tokens(%{user: user}) do
         pow_config = [
           mod: UserdocsWeb.API.Auth.Plug,
@@ -56,7 +63,10 @@ defmodule Client.RemoteCase do
 
         backend = Pow.Config.get(pow_config, :cache_store_backend, Pow.Store.Backend.EtsCache)
         store_config = [backend: backend, pow_config: pow_config]
-        secret_key_base = Application.get_env(:userdocs_web, UserdocsWeb.Endpoint)[:secret_key_base]
+
+        secret_key_base =
+          Application.get_env(:userdocs_web, UserdocsWeb.Endpoint)[:secret_key_base]
+
         conn = %Plug.Conn{secret_key_base: secret_key_base}
         access_token = Pow.UUID.generate()
         renewal_token = Pow.UUID.generate()
@@ -100,9 +110,11 @@ defmodule Client.RemoteCase do
 
   setup tags do
     pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Userdocs.Repo, shared: not tags[:async])
+
     on_exit(fn ->
       Ecto.Adapters.SQL.Sandbox.stop_owner(pid)
     end)
+
     {:ok, %{pid: pid}}
   end
 end

@@ -1,12 +1,37 @@
 defmodule ClientTest.InitializeTest do
   use Client.RemoteCase
   use Client.LocalCase
+  import Client.Constants
+
   alias Client.Initialize
   alias Userdocs.Tokens
   alias Userdocs.Contexts
 
   @types [Schemas.Users.User]
   @state_opts [data_type: :list, strategy: :by_type, location: :data, types: @types]
+
+  def object_counts(%{data: data}),
+    do: Enum.reduce(data, %{}, fn {k, v}, acc -> Map.put(acc, k, Enum.count(v)) end)
+
+  def final_counts() do
+    %{
+      annotation_types: 0,
+      annotations: 0,
+      element_annotations: 0,
+      elements: 0,
+      pages: 0,
+      processes: 0,
+      projects: 1,
+      screenshots: 0,
+      step_instances: 0,
+      step_types: 0,
+      steps: 0,
+      strategies: 1,
+      team_users: 1,
+      teams: 1,
+      users: 1
+    }
+  end
 
   describe "Initialize State" do
     test "sets up the data map" do
@@ -83,15 +108,15 @@ defmodule ClientTest.InitializeTest do
       :ensure_web_started,
       :create_password,
       :create_user,
-      :create_team,
+      :create_remote_team,
       :create_team_user,
       :create_remote_strategy,
       :create_remote_project,
-      :create_context
+      :create_remote_user_context
     ]
 
     test "Connects with correct user and token", test_context do
-      %{user: user, team: team, context: context} = test_context
+      %{user: user, remote_team: team, remote_context: context} = test_context
       %{access_token: at, renewal_token: rt} = create_remote_tokens(test_context)
       create_local_tokens(%{access_token: at, renewal_token: rt, user: user})
       state = %{current_user: user, access_token: at, context: context, data: %{teams: [team]}}
@@ -102,6 +127,36 @@ defmodule ClientTest.InitializeTest do
 
     test "returns error with insufficient info" do
       assert Initialize.do_connect_channel(%{}, @state_opts) == {:error, "Insufficient Data to Connect"}
+    end
+  end
+
+  describe "Integration" do
+    setup [
+      :ensure_web_started,
+      :create_password,
+      :create_user,
+      :create_remote_team,
+      :create_team_user,
+      :create_remote_strategy,
+      :create_remote_project,
+      :create_remote_user_context,
+      :create_remote_tokens,
+      :create_local_tokens
+    ]
+
+    test "works together", context do
+      %{access_token: at, remote_context: context} = context
+      assert {state, :ok, _} = Initialize.do_initialize_state(%{}, state_opts())
+      assert {state, :ok, _} = Initialize.do_check_tokens(state, local_opts())
+      assert {state, :ok, _} = Initialize.do_authenticate(state, local_opts())
+      assert {state, :ok, _} = Initialize.do_load_user(state)
+      assert {state, :ok, _} = Initialize.do_fetch_context(state, local_opts())
+      assert {state, :ok, _} = Initialize.do_connect_channel(state, state_opts())
+      assert {state, :ok, _} = Initialize.do_load_project(state)
+
+      assert object_counts(state) == final_counts()
+      assert state.access_token == at
+      assert context == state.context
     end
   end
 end
