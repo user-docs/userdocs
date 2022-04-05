@@ -1,8 +1,12 @@
 defmodule Client.Initialize do
-  alias Userdocs.Setups
-  alias Userdocs.Tokens
+  import Client.Constants
+
   alias Client.Authentication
   alias Client.Channel
+  alias Client.StateSupport
+  alias Client.Loaders
+  alias Userdocs.Setups
+  alias Userdocs.Tokens
   alias Userdocs.Contexts
   alias Schemas.Users.Context
   alias Schemas.Teams.Team
@@ -19,21 +23,22 @@ defmodule Client.Initialize do
           title: "Initial State"
         },
         check_tokens: %{order: 2, status: nil, next_task: :authenticate, title: "Tokens"},
-        authenticate: %{order: 3, status: nil, next_task: :fetch_context, title: "Authenticate"},
+        authenticate: %{order: 3, status: nil, next_task: :load_user, title: "Authenticate"},
+        load_user: %{order: 4, status: nil, next_task: :fetch_context, title: "Load User Data"},
         fetch_context: %{
-          order: 4,
+          order: 5,
           status: nil,
           next_task: :connect_channel,
           title: "Fetch Context"
         },
-        connect_channel: %{order: 5, status: nil, next_task: :load_data, title: "Connecting"},
-        load_data: %{order: 6, status: nil, next_task: :complete, title: "Load Data"}
+        connect_channel: %{order: 6, status: nil, next_task: :load_project, title: "Connecting"},
+        load_project: %{order: 7, status: nil, next_task: :complete, title: "Load Project"}
       }
     end
   end
 
-  def initialize_state(state, opts) do
-    do_initialize_state(state, opts)
+  def initialize_state(state) do
+    do_initialize_state(state, state_opts())
     |> handle_result(:initialize_state)
   end
 
@@ -41,13 +46,13 @@ defmodule Client.Initialize do
     state =
       state
       |> Map.put(:state_opts, opts)
-      |> StateHandlers.initialize(opts)
+      |> StateSupport.initialize()
 
     {state, :ok, "State Initialized"}
   end
 
-  def check_tokens(state, opts) do
-    do_check_tokens(state, opts)
+  def check_tokens(state) do
+    do_check_tokens(state, local_opts())
     |> handle_result(:check_tokens)
   end
 
@@ -61,8 +66,8 @@ defmodule Client.Initialize do
     end
   end
 
-  def authenticate(state, local_opts) do
-    do_authenticate(state, local_opts)
+  def authenticate(state) do
+    do_authenticate(state, local_opts())
     |> handle_result(:authenticate)
   end
 
@@ -84,8 +89,16 @@ defmodule Client.Initialize do
     end
   end
 
-  def fetch_context(state, local_opts) do
-    do_fetch_context(state, local_opts)
+  def load_user(state) do
+    do_load_user(state)
+    |> handle_result(:load_user)
+  end
+
+  def do_load_user(state), do: {Loaders.load_base_data(state), :ok, "User Loaded"}
+
+
+  def fetch_context(state) do
+    do_fetch_context(state, local_opts())
     |> handle_result(:fetch_context)
   end
 
@@ -107,8 +120,8 @@ defmodule Client.Initialize do
     end
   end
 
-  def connect_channel(state, state_opts) do
-    do_connect_channel(state, state_opts)
+  def connect_channel(state) do
+    do_connect_channel(state, state_opts())
     |> handle_result(:connect_channel)
   end
 
@@ -128,6 +141,13 @@ defmodule Client.Initialize do
     end
   end
   def do_connect_channel(_, _), do: {:error, "Insufficient Data to Connect"}
+
+  def load_project(state) do
+    do_load_project(state)
+    |> handle_result(:load_project)
+  end
+
+  def do_load_project(state), do: {Loaders.load_project_data(state), :ok, "Project Loaded"}
 
   defp handle_result({state, status, message}, task_key),
     do: Setups.handle_setup_result({status, message}, state, task_key)
