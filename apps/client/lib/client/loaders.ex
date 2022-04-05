@@ -1,4 +1,7 @@
 defmodule Client.Loaders do
+  import Client.Constants
+  import Client.APISupport
+
   alias Schemas.Users.User
   alias Schemas.Teams.TeamUser
   alias Schemas.Teams.Team
@@ -15,23 +18,20 @@ defmodule Client.Loaders do
   alias Schemas.Elements.ElementAnnotation
 
 
-  def apply(%{context: %{project_id: id}} = state, %{user: %User{}, state_opts: state_opts} = opts) do
-    state = load_base_data(state, opts)
-    project = State.Projects.get_project!(id, state, state_opts)
-    opts = Map.put(opts, :project, project)
+  def apply(%{context: %{project_id: _, team_id: _}, current_user: _} = state) do
     state
-    |> load_project_data(opts)
+    |> load_base_data()
+    |> load_project_data()
   end
 
-  def apply(state, %{user: %User{}} = opts) do
+  def apply(%{current_user: %User{}} = state) do
     state
-    |> load_base_data(opts)
+    |> load_base_data()
   end
 
-  def load_base_data(state, %{access_token: token, state_opts: state_opts, user: user}) do
+  def load_base_data(%{access_token: token, current_user: user} = state) do
     opts = %{filters: %{user_id: user.id}, access_token: token}
     team_user_opts = %{filters: %{opposite_user_id: user.id}, access_token: token}
-    local_opts = %{context: %{repo: Userdocs.LocalRepo}}
     token_only = %{access_token: token}
 
     [
@@ -49,26 +49,36 @@ defmodule Client.Loaders do
         Task.async(fn -> Client.Users.list_users(opts) end),
         Task.async(fn -> Client.TeamUsers.list_team_users(team_user_opts) end),
         Task.async(fn -> Client.Teams.list_teams(opts) end),
-        Task.async(fn -> Userdocs.Teams.list_teams(local_opts)  end),
+        Task.async(fn -> Userdocs.Teams.list_teams(local_opts())  end),
         Task.async(fn -> Client.Strategies.list_strategies(token_only) end),
         Task.async(fn -> Client.AnnotationTypes.list_annotation_types(token_only) end),
         Task.async(fn -> Client.StepTypes.list_step_types(token_only) end),
         Task.async(fn -> Client.Remote.Projects.list_projects(opts) end),
-        Task.async(fn -> Userdocs.Projects.list_projects(local_opts)  end),
+        Task.async(fn -> Userdocs.Projects.list_projects(local_opts())  end),
       ]
       |> Task.await_many()
 
     state
-    |> StateHandlers.load(users, User, state_opts)
-    |> StateHandlers.load(team_users, TeamUser, state_opts)
-    |> StateHandlers.load(remote_teams ++ local_teams, Team, state_opts)
-    |> StateHandlers.load(remote_projects ++ local_projects, Project, state_opts)
-    |> StateHandlers.load(strategies, Strategy, state_opts)
-    |> StateHandlers.load(annotation_types, AnnotationType, state_opts)
-    |> StateHandlers.load(step_types, StepType, state_opts)
+    |> StateHandlers.load(users, User, state_opts())
+    |> StateHandlers.load(team_users, TeamUser, state_opts())
+    |> StateHandlers.load(remote_teams ++ local_teams, Team, state_opts())
+    |> StateHandlers.load(remote_projects ++ local_projects, Project, state_opts())
+    |> StateHandlers.load(strategies, Strategy, state_opts())
+    |> StateHandlers.load(annotation_types, AnnotationType, state_opts())
+    |> StateHandlers.load(step_types, StepType, state_opts())
   end
 
-  def load_project_data(state, %{access_token: token, state_opts: state_opts, project: %Project{__meta__: %{state: :built}, id: project_id}}) do
+  def load_project_data(%{context: %{project_id: project_id, team_id: team_id}} = state) do
+    with %Project{} = project <- State.Projects.get_project!(project_id, state, state_opts()),
+         %Team{} = team <- State.Teams.get_team!(team_id, state, state_opts()) do
+      case is_remote_team?(team) do
+        true -> load_remote_project_data(state, project.id)
+        false -> load_local_project_data(state, project_id)
+      end
+    end
+  end
+
+  def load_remote_project_data(%{access_token: token} = state, project_id) do
     opts = %{filters: %{project_id: project_id}, access_token: token}
     [
       pages,
@@ -91,15 +101,15 @@ defmodule Client.Loaders do
       |> Task.await_many()
 
     state
-    |> StateHandlers.load(pages, Page, state_opts)
-    |> StateHandlers.load(processes, Process, state_opts)
-    |> StateHandlers.load(screenshots, Screenshot, state_opts)
-    |> StateHandlers.load(steps, Step, state_opts)
-    |> StateHandlers.load(elements, Element, state_opts)
-    |> StateHandlers.load(annotations, Annotation, state_opts)
-    |> StateHandlers.load(element_annotations, ElementAnnotation, state_opts)
+    |> StateHandlers.load(pages, Page, state_opts())
+    |> StateHandlers.load(processes, Process, state_opts())
+    |> StateHandlers.load(screenshots, Screenshot, state_opts())
+    |> StateHandlers.load(steps, Step, state_opts())
+    |> StateHandlers.load(elements, Element, state_opts())
+    |> StateHandlers.load(annotations, Annotation, state_opts())
+    |> StateHandlers.load(element_annotations, ElementAnnotation, state_opts())
   end
-  def load_project_data(state, %{state_opts: state_opts, project: %Project{__meta__: %{state: :loaded}, id: project_id}}) do
+  def load_local_project_data(state, project_id) do
     opts = %{filters: %{project_id: project_id}, context: %{repo: Userdocs.LocalRepo}}
     [
       pages,
@@ -122,11 +132,12 @@ defmodule Client.Loaders do
       |> Task.await_many()
 
     state
-    |> StateHandlers.load(pages, Page, state_opts)
-    |> StateHandlers.load(processes, Process, state_opts)
-    |> StateHandlers.load(screenshots, Screenshot, state_opts)
-    |> StateHandlers.load(steps, Step, state_opts)
-    |> StateHandlers.load(elements, Element, state_opts)
-    |> StateHandlers.load(annotations, Annotation, state_opts)
+    |> StateHandlers.load(pages, Page, state_opts())
+    |> StateHandlers.load(processes, Process, state_opts())
+    |> StateHandlers.load(screenshots, Screenshot, state_opts())
+    |> StateHandlers.load(steps, Step, state_opts())
+    |> StateHandlers.load(elements, Element, state_opts())
+    |> StateHandlers.load(annotations, Annotation, state_opts())
+    |> StateHandlers.load(element_annotations, ElementAnnotation, state_opts())
   end
 end
