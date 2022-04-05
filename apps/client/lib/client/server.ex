@@ -3,10 +3,12 @@ defmodule Client.Server do
 
   require Logger
   use GenServer
+  import Client.Constants
+  import Client.StateSupport
+
   alias Schemas.Users.User
   alias Schemas.Teams.TeamUser
   alias Schemas.Teams.Team
-  alias Schemas.Projects.Project
   alias Schemas.Strategies.Strategy
   alias Schemas.Annotations.AnnotationType
   alias Schemas.Steps.StepType
@@ -26,8 +28,6 @@ defmodule Client.Server do
   alias Client.Subscription
   alias Client.Initialize
   alias Local.Paths
-  alias Userdocs.Setups
-  alias Userdocs.Contexts
 
 
   @types [
@@ -54,7 +54,7 @@ defmodule Client.Server do
   def start_link(args), do: GenServer.start_link(__MODULE__, Enum.into(args, %{}), name: __MODULE__)
 
   @impl true
-  def init(%{mode: :test}), do: {:ok, initialize_state(%{topic: @topic})}
+  def init(%{mode: :test}), do: {:ok, initialize(%{topic: @topic})}
   def init(_) do
     Phoenix.PubSub.subscribe(Userdocs.PubSub, "data")
     state = %{setup_status: Initialize.setup_status(), topic: @topic, context: %Context{}}
@@ -62,24 +62,14 @@ defmodule Client.Server do
   end
 
   @impl true
-  def handle_continue(:initialize_state, state), do: Initialize.initialize_state(state, @state_opts)
-  def handle_continue(:check_tokens, state), do: Initialize.check_tokens(state, @local_opts)
-  def handle_continue(:authenticate, state), do: Initialize.authenticate(state, @local_opts)
-  def handle_continue(:fetch_context, state), do: Initialize.fetch_context(state, @local_opts)
-  def handle_continue(:connect_channel, state), do: Initialize.connect_channel(state, @state_opts)
-  def handle_continue(:load_data, %{state_opts: state_opts, current_user: user} = state) do
-    opts = %{user: user, state_opts: state_opts, access_token: access_token()}
-    state = Client.Loaders.apply(state, opts)
-    {:ok, "Data Loaded"}
-    |> Setups.handle_setup_result(state, :load_data)
-  end
+  def handle_continue(:initialize_state, state), do: Initialize.initialize_state(state)
+  def handle_continue(:check_tokens, state), do: Initialize.check_tokens(state)
+  def handle_continue(:authenticate, state), do: Initialize.authenticate(state)
+  def handle_continue(:load_user, state), do: Initialize.load_user(state)
+  def handle_continue(:fetch_context, state), do: Initialize.fetch_context(state)
+  def handle_continue(:connect_channel, state), do: Initialize.connect_channel(state)
+  def handle_continue(:load_projecct, state), do: Initialize.load_project(state)
   def handle_continue(:complete, state), do: {:noreply, state}
-
-  def initialize_state(state) do
-    state
-    |> Map.put(:state_opts, @state_opts)
-    |> StateHandlers.initialize(@state_opts)
-  end
 
   @impl true
   def handle_call(:status, _from, %{setup_status: setup_status} = state), do: {:reply, setup_status, state}
@@ -134,8 +124,12 @@ defmodule Client.Server do
 
   def handle_call(:data, _from, %{data: data} = state), do: {:reply, data, state}
   def handle_call(:data, _from, state), do: {:reply, nil, state}
+
+  def handle_call({:put_in_state, new_state}, _from, _state), do: {:reply, :ok, new_state}
   def handle_call({:put_in_state, key, data}, _from, state), do: {:reply, :ok, Map.put(state, key, data)}
+
   def handle_call(:state, _from, state), do: {:reply, state, state}
+
   def handle_call(:disconnect, _from, %{socket: socket, user_channel: uc, team_channel: tc} = state) do
     :ok = Channel.disconnect(socket, uc, tc)
     {:reply, :ok, state |> Map.drop([:socket, :user_channel, :team_channel])}
@@ -148,6 +142,8 @@ defmodule Client.Server do
     {:reply, object_counts(state), state}
   end
   def handle_call(:load, _from, state), do: {:reply, {:error, "Could not load client, no user"}, state}
+
+  def handle_call(:counts, _from, state), do: {:reply, object_counts(state), state}
 
   # Annotation Types
   def handle_call({:load_annotation_types, opts}, _from, %{state_opts: state_opts} = state) do
@@ -417,8 +413,8 @@ defmodule Client.Server do
   end
 
   def handle_call(:init_state, _from, %{data: _} = state), do: {:reply, :ok, state}
-  def handle_call(:init_state, _from, %{state_opts: state_opts} = state),
-    do: {:reply, :ok, StateHandlers.initialize(state, state_opts)}
+  def handle_call(:init_state, _from, state),
+    do: {:reply, :ok, StateHandlers.initialize(state, state_opts())}
 
   @impl true
   def handle_cast(:destroy_state, state), do: {:noreply, Map.delete(state, :data)}
@@ -523,8 +519,8 @@ defmodule Client.Server do
     Enum.into(opts, [])
     |> kw_opts(state)
   end
-  def kw_opts(opts, %{state_opts: state_opts}) do
-    Keyword.merge(opts, state_opts)
+  def kw_opts(opts, _) do
+    Keyword.merge(opts, @state_opts)
   end
 
   def object_counts(%{data: data}), do:
@@ -541,8 +537,8 @@ defmodule Client.Server do
   end
 
   def get_current_team(state) do
-    %{state_opts: state_opts, context: %Context{team_id: team_id}} = state
-    State.Teams.get_team!(team_id, state, state_opts)
+    %{context: %Context{team_id: team_id}} = state
+    State.Teams.get_team!(team_id, state, @state_opts)
   end
 
   def get_current_project(state) do
