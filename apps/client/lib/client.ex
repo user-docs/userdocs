@@ -18,12 +18,14 @@ defmodule Client do
   def current_project(), do: GenServer.call(__MODULE__.Server, :current_project, @timeout)
   def current_team(), do: GenServer.call(__MODULE__.Server, :current_team, @timeout)
   def data(), do: GenServer.call(__MODULE__.Server, :data, @timeout)
+  def put_in_state(data), do: GenServer.call(__MODULE__.Server, {:put_in_state, data}, @timeout)
   def put_in_state(key, data), do: GenServer.call(__MODULE__.Server, {:put_in_state, key, data}, @timeout)
   def state(), do: GenServer.call(__MODULE__.Server, :state, @timeout)
   def disconnect(), do: GenServer.call(__MODULE__.Server, :disconnect, @timeout)
 
   def load(), do: GenServer.call(__MODULE__.Server, :load, @timeout)
   def load(data), do: GenServer.call(__MODULE__.Server, {:load, data}, @timeout)
+  def counts(data), do: GenServer.call(__MODULE__.Server, :counts, @timeout)
 
   def init_state(), do: GenServer.call(__MODULE__.Server, :init_state, @timeout)
   def destroy_state(), do: GenServer.cast(__MODULE__.Server, :destroy_state)
