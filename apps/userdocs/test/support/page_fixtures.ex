@@ -14,7 +14,7 @@ defmodule Userdocs.PageFixtures do
 
   def page_attrs(attrs) do
     %{
-      url: "http://google.com.com",
+      url: "http://google.com",
       name: UUID.uuid4(),
       project_id: UUID.uuid4()
     }

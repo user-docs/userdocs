@@ -305,8 +305,8 @@ defmodule Client.Server do
   def handle_call({:list_pages, opts}, _from, state),
     do: {:reply, State.Pages.list_pages(state, kw_opts(opts, state)), state}
 
-  def handle_call({:find_page_by_path, id, opts}, _from, state),
-    do: {:reply, State.Pages.find_page_by_path(id, state, kw_opts(opts, state)), state}
+  def handle_call({:find_page_by_path, href, opts}, _from, state),
+    do: {:reply, State.Pages.find_page_by_path(state, kw_opts(opts, state), href), state}
 
   def handle_call({:get_page!, id, opts}, _from, state),
     do: {:reply, State.Pages.get_page!(id, state, kw_opts(opts, state)), state}

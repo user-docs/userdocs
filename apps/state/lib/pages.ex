@@ -18,6 +18,7 @@ defmodule State.Pages do
     |> maybe_preload(opts[:preloads], state, opts)
   end
 
+  def find_page_by_path(_, _, nil), do: nil
   def find_page_by_path(state, opts, uri) do
     uri = URI.parse(uri)
     list_pages(state, opts)

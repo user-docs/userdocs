@@ -14,15 +14,33 @@ defmodule ClientTest.Pages do
     end
   end
 
-  describe "Server Lists" do
+  describe "Server Gets" do
     setup do
-      %{page: %Schemas.Pages.Page{}}
+      %{page: %Schemas.Pages.Page{url: "https://www.google.com"}}
     end
 
     test "Lists Pages", %{page: page} do
       Client.put_in_state(:data, %{pages: [page]})
       [result] = Client.list_pages()
       assert result.id == page.id
+    end
+
+    test "Gets Page", %{page: page} do
+      Client.put_in_state(:data, %{pages: [page]})
+      result = Client.get_page!(page.id)
+      assert result == page
+    end
+
+    test "Gets Page by url", %{page: page} do
+      Client.put_in_state(:data, %{pages: [page]})
+      result = Client.find_page_by_path(page.url)
+      assert result == page
+    end
+
+    test "Gets Page by url returns nil when url is nil", %{page: page} do
+      Client.put_in_state(:data, %{pages: [page]})
+      result = Client.find_page_by_path(nil)
+      assert result == nil
     end
   end
 
