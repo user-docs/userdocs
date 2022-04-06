@@ -9,7 +9,7 @@ defmodule ClientTest.TeamsTest do
   def this_create_remote_user_context(%{user: user, remote_team: team}),
     do: %{remote_context: ContextsFixtures.context(%{user_id: user.id, team_id: team.id, project_id: nil}, local_opts())}
 
-  defp this_put_remote_context_data(%{user: user, remote_team: team, remote_context: context}) do
+  defp this_put_remote_context_data(%{remote_team: team, remote_context: context}) do
     data = Client.state() |> Map.get(:data) |> Map.put(:teams, [team])
     Client.put_in_state(:data, data)
     Client.put_in_state(:context, context)
@@ -53,11 +53,11 @@ defmodule ClientTest.TeamsTest do
 
     test "Loads", %{user: user, remote_team: team} do
       Client.load_teams(%{filters: %{user_id: user.id}})
-      %{teams: [result]} = Client.data() |> IO.inspect()
+      %{teams: [result]} = Client.data()
       assert result.id == team.id
     end
 
-    test "creates", %{remote_team: team} do
+    test "creates" do
       attrs = TeamsFixtures.team_attrs(:valid, %{})
       assert {:ok, %{id: team_id}} = Client.create_team(attrs)
       assert %{id: ^team_id} = Userdocs.Teams.get_team!(team_id, @remote_opts)
@@ -99,7 +99,6 @@ defmodule ClientTest.TeamsTest do
     ]
 
     test "create_team/2 creates a team", context do
-      %{local_team: team} = context
       Client.put_in_state(context)
       %{name: name} = attrs = TeamsFixtures.team_attrs(:valid, %{})
       assert {:ok, %{id: team_id}} = Client.create_team(attrs)

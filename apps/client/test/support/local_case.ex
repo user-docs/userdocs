@@ -47,6 +47,9 @@ defmodule Client.LocalCase do
         :ok
       end
 
+      defp create_local_page(%{local_project: project}),
+        do: %{local_page: WebFixtures.page(project.id, @local_opts)}
+
       defp put_remote_context_data(%{user: user, remote_team: team, remote_project: project, remote_context: context}) do
         data = Client.state() |> Map.get(:data) |> Map.put(:teams, [team]) |> Map.put(:projects, [project])
         Client.put_in_state(:data, data)

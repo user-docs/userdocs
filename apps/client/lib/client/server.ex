@@ -297,30 +297,28 @@ defmodule Client.Server do
     do: {:reply, Client.Screenshots.delete_screenshot(id, screenshot_opts(opts)), state}
 
 
-  # Pages
-  def handle_call({:load_pages, opts}, _from, %{state_opts: state_opts} = state) do
-    pages = Client.Pages.list_pages(include_token(opts))
-    state = StateHandlers.load(state, pages, Page, state_opts)
-    {:reply, :ok, state}
-  end
+  alias Client.Pages
+
+  def handle_call({:load_pages, opts}, _from, state),
+    do: {:reply, :ok, Pages.load_pages(state, opts)}
+
   def handle_call({:list_pages, opts}, _from, state),
     do: {:reply, State.Pages.list_pages(state, kw_opts(opts, state)), state}
+
+  def handle_call({:find_page_by_path, id, opts}, _from, state),
+    do: {:reply, State.Pages.find_page_by_path(id, state, kw_opts(opts, state)), state}
+
   def handle_call({:get_page!, id, opts}, _from, state),
     do: {:reply, State.Pages.get_page!(id, state, kw_opts(opts, state)), state}
-  def handle_call({:find_page_by_path, href, opts}, _from, state),
-    do: {:reply, State.Pages.find_page_by_path(state, kw_opts(opts, state), href), state}
-  def handle_call({:create_page, attrs}, _from, state) do
-    {:reply, Client.Pages.create_page(attrs, %{access_token: access_token()}), state}
-  end
-  def handle_call({:update_page, page, attrs}, _from, state) do
-    {:reply, Client.Pages.update_page(page, attrs, %{access_token: access_token()}), state}
-  end
-  def handle_call({:upsert_page_screenshot, page, base64}, _from, state) do
-    result = Client.Pages.upsert_page_screenshot(page, base64, screenshot_opts())
-    {:reply, result, state}
-  end
-  def handle_call({:delete_page, id, opts}, _from, state),
-    do: {:reply, Client.Pages.delete_page(id, include_token(opts)), state}
+
+  def handle_call({:create_page, attrs}, _from, state),
+    do: {:reply, Pages.create_page(attrs, state), state}
+
+  def handle_call({:update_page, page, attrs}, _from, state),
+    do: {:reply, Pages.update_page(page, attrs, state), state}
+
+  def handle_call({:delete_page, id}, _from, state),
+    do: {:reply, Pages.delete_page(id, state), state}
 
   # Processes
   def handle_call({:load_processes, opts}, _from, %{state_opts: state_opts} = state) do

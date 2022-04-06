@@ -85,14 +85,14 @@ defmodule Client do
   def delete_step(id), do: GenServer.call(__MODULE__.Server, {:delete_step, id, %{}}, @timeout)
   def delete_step(id, opts), do: GenServer.call(__MODULE__.Server, {:delete_step, id, opts}, @timeout)
 
-  def load_pages(opts), do: GenServer.call(__MODULE__.Server, {:load_pages, opts}, @timeout)
+  def load_pages(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_pages, opts}, @timeout)
   def list_pages(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_pages, opts}, @timeout)
   def get_page!(id, opts \\ []), do: GenServer.call(__MODULE__.Server, {:get_page!, id, opts}, @timeout)
   def find_page_by_path(href, opts \\ []), do: GenServer.call(__MODULE__.Server, {:find_page_by_path, href, opts}, @timeout)
   def create_page(attrs), do: GenServer.call(__MODULE__.Server, {:create_page, attrs}, @timeout)
   def update_page(page, attrs), do: GenServer.call(__MODULE__.Server, {:update_page, page, attrs}, @timeout)
   def upsert_page_screenshot(page, base64), do: GenServer.call(__MODULE__.Server, {:upsert_page_screenshot, page, base64}, @timeout)
-  def delete_page(id, opts), do: GenServer.call(__MODULE__.Server, {:delete_page, id, opts}, @timeout)
+  def delete_page(id), do: GenServer.call(__MODULE__.Server, {:delete_page, id}, @timeout)
 
   def load_elements(opts), do: GenServer.call(__MODULE__.Server, {:load_elements, opts}, @timeout)
   def list_elements(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_elements, opts}, @timeout)
