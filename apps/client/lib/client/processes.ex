@@ -1,37 +1,23 @@
 defmodule Client.Processes do
-  require Logger
+  import Client.APISupport
+  import Client.Constants
   alias Schemas.Processes.Process
-  alias Client.Requests
-  alias Userdocs.Processes
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/processes"
 
+  @callback list_processes(map()) :: list(Process)
+  @callback create_process(map(), map()) :: {:ok, Process} | {:error, Ecto.Changeset}
+  @callback update_process(Process, map(), map()) :: {:ok, Process} | {:error, Ecto.Changeset}
+  @callback delete_process(binary(), map()) :: {:ok, Process} | {:error, Ecto.Changeset}
 
-  @doc "Returns the list of processes."
-  def list_processes(%{access_token: access_token} = opts) do
-    params =  Map.take(opts, [:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => processes_attrs}} = Requests.send(request_fun, access_token, params)
-    Processes.create_process_structs(processes_attrs)
-  end
+  def create_process(attrs, state),
+    do: Module.concat(impl(state), "Processes").create_process(attrs, local_or_remote_opts(state))
 
-  @doc "Creates a process."
-  def create_process(attrs, %{access_token: access_token}) do
-    params = %{process: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => process_attrs}} = Requests.send(request_fun, access_token, params)
-    Processes.create_process_struct(process_attrs)
-  end
+  def update_process(process, attrs, state),
+    do: Module.concat(impl(state), "Processes").update_process(process, attrs, local_or_remote_opts(state))
 
-  @doc "Updates a process."
-  def update_process(%Process{} = process, attrs, %{access_token: access_token}) do
-    request_fun = Requests.build_update(@url, process.id)
-    {:ok, %{"data" => process_attrs}} = Requests.send(request_fun, access_token, %{process: attrs})
-    Processes.create_process_struct(process_attrs)
-  end
+  def delete_process(id, state), do: Module.concat(impl(state), "Processes").delete_process(id, local_or_remote_opts(state))
 
-  @doc "Deletes a process."
-  def delete_process(id, %{access_token: access_token}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
+  def load_processes(state, opts) do
+    processes = Module.concat(impl(state), "Processes").list_processes(local_or_remote_opts(state, opts))
+    StateHandlers.load(state, processes, Process, state_opts())
   end
 end

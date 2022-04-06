@@ -26,6 +26,7 @@ defmodule Client.RemoteCase do
       alias Userdocs.ContextsFixtures
       alias Userdocs.ProjectsFixtures
       alias Userdocs.WebFixtures
+      alias Userdocs.PageFixtures
       alias Userdocs.TeamsFixtures
       alias Userdocs.AutomationFixtures
 
@@ -49,7 +50,7 @@ defmodule Client.RemoteCase do
         do: %{remote_project: ProjectsFixtures.project(team.id, strategy.id, @remote_opts)}
 
       defp create_remote_page(%{remote_project: project}),
-        do: %{remote_page: WebFixtures.page(project.id, @remote_opts)}
+        do: %{remote_page: PageFixtures.page(%{project_id: project.id}, @remote_opts)}
 
       defp create_remote_process(%{remote_project: project}),
         do: %{remote_process: AutomationFixtures.process(project.id, @remote_opts)}

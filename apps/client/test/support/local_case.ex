@@ -27,6 +27,8 @@ defmodule Client.LocalCase do
       alias Userdocs.ProjectsFixtures
       alias Userdocs.WebFixtures
       alias Userdocs.TeamsFixtures
+      alias Userdocs.PageFixtures
+      alias Userdocs.AutomationFixtures
 
       @local_opts %{context: %{repo: Userdocs.LocalRepo}}
 
@@ -48,7 +50,11 @@ defmodule Client.LocalCase do
       end
 
       defp create_local_page(%{local_project: project}),
-        do: %{local_page: WebFixtures.page(project.id, @local_opts)}
+        do: %{local_page: PageFixtures.page(%{project_id: project.id}, @local_opts)}
+
+
+      defp create_local_process(%{local_project: project}),
+        do: %{local_process: AutomationFixtures.process(project.id, @local_opts)}
 
       defp put_remote_context_data(%{user: user, remote_team: team, remote_project: project, remote_context: context}) do
         data = Client.state() |> Map.get(:data) |> Map.put(:teams, [team]) |> Map.put(:projects, [project])

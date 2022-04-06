@@ -320,24 +320,25 @@ defmodule Client.Server do
   def handle_call({:delete_page, id}, _from, state),
     do: {:reply, Pages.delete_page(id, state), state}
 
-  # Processes
-  def handle_call({:load_processes, opts}, _from, %{state_opts: state_opts} = state) do
-    processes = Client.Processes.list_processes(include_token(opts))
-    state = StateHandlers.load(state, processes, Process, state_opts)
-    {:reply, :ok, state}
-  end
-  def handle_call({:list_processes, opts}, _from, state) do
-    {:reply, State.Processes.list_processes(state, kw_opts(opts, state)), state}
-  end
+  alias Client.Processes
+
+  def handle_call({:load_processes, opts}, _from, state),
+    do: {:reply, :ok, Processes.load_processes(state, opts)}
+
+  def handle_call({:list_processes, opts}, _from, state),
+    do: {:reply, State.Processes.list_processes(state, kw_opts(opts, state)), state}
+
   def handle_call({:get_process!, id, opts}, _from, state),
     do: {:reply, State.Processes.get_process!(id, state, kw_opts(opts, state)), state}
-  def handle_call({:create_process, attrs}, _from, state) do
-    {:reply, Client.Processes.create_process(attrs, %{access_token: access_token()}), state}
-  end
+
+  def handle_call({:create_process, attrs}, _from, state),
+    do: {:reply, Processes.create_process(attrs, state), state}
+
   def handle_call({:update_process, process, attrs}, _from, state),
-    do: {:reply, Client.Processes.update_process(process, attrs, %{access_token: access_token()}), state}
-  def handle_call({:delete_process, id, opts}, _from, state),
-    do: {:reply, Client.Processes.delete_process(id, include_token(opts)), state}
+    do: {:reply, Processes.update_process(process, attrs, state), state}
+
+  def handle_call({:delete_process, id}, _from, state),
+    do: {:reply, Processes.delete_process(id, state), state}
 
   # Steps
   def handle_call({:load_steps, opts}, _from, %{state_opts: state_opts} = state) do
