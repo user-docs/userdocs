@@ -1,38 +1,24 @@
 defmodule Client.Teams do
-  @moduledoc "The Teams context."
-
-  require Logger
-  alias Client.Requests
-  alias Userdocs.Teams
+  import Client.APISupport
+  import Client.Constants
   alias Schemas.Teams.Team
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/teams"
 
-  @doc "Returns the list of teams."
-  def list_teams(%{access_token: access_token} = opts) do
-    params = opts |> Map.take([:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => team_attrs}} = Requests.send(request_fun, access_token, params)
-    Teams.create_team_structs(team_attrs)
-  end
+  @callback list_teams(map()) :: list(Team)
+  @callback create_team(map(), map()) :: {:ok, Team} | {:error, Ecto.Changeset}
+  @callback update_team(Team, map(), map()) :: {:ok, Team} | {:error, Ecto.Changeset}
+  @callback delete_team(binary(), map()) :: {:ok, Team} | {:error, Ecto.Changeset}
 
-  @doc "Creates a team."
-  def create_team(attrs, %{access_token: access_token}) do
-    params = %{team: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => team_attrs}} = Requests.send(request_fun, access_token, params)
-    Teams.create_team_struct(team_attrs)
-  end
+  def create_team(attrs, state),
+    do: Module.concat(impl(state), "Teams").create_team(attrs, local_or_remote_opts(state))
 
-  @doc "Updates a team."
-  def update_team(%Team{} = team, attrs, %{access_token: access_token}) do
-    request_fun = Requests.build_update(@url, team.id)
-    {:ok, %{"data" => team_attrs}} = Requests.send(request_fun, access_token, %{team: attrs})
-    Teams.create_team_struct(team_attrs)
-  end
+  def update_team(team, attrs, state),
+    do: Module.concat(impl(state), "Teams").update_team(team, attrs, local_or_remote_opts(state))
 
-  @doc "Deletes a team."
-  def delete_team(id, %{access_token: access_token}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
+  def delete_team(id, state),
+    do: Module.concat(impl(state), "Teams").delete_team(id, local_or_remote_opts(state))
+
+  def load_teams(state, opts) do
+    teams = Module.concat(impl(state), "Teams").list_teams(local_or_remote_opts(state, opts))
+    StateHandlers.load(state, teams, Team, state_opts())
   end
 end

@@ -40,12 +40,12 @@ defmodule Client do
   def list_team_users(opts), do: GenServer.call(__MODULE__.Server, {:list_team_users, opts}, @timeout)
   def delete_team_user(id, opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:delete_team_user, id, opts}, @timeout)
 
-  def load_teams(opts), do: GenServer.call(__MODULE__.Server, {:load_teams, opts}, @timeout)
+  def load_teams(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_teams, opts}, @timeout)
   def list_teams(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_teams, opts}, @timeout)
   def get_team!(id, opts \\[]), do: GenServer.call(__MODULE__.Server, {:get_team!, id, opts}, @timeout)
   def create_team(attrs), do: GenServer.call(__MODULE__.Server, {:create_team, attrs}, @timeout)
   def update_team(team, attrs), do: GenServer.call(__MODULE__.Server, {:update_team, team, attrs}, @timeout)
-  def delete_team(id, opts), do: GenServer.call(__MODULE__.Server, {:delete_team, id, opts}, @timeout)
+  def delete_team(id), do: GenServer.call(__MODULE__.Server, {:delete_team, id}, @timeout)
 
   def load_projects(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_projects, opts}, @timeout)
   def list_projects(), do: GenServer.call(__MODULE__.Server, {:list_projects, []}, @timeout)

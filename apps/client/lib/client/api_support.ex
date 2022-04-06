@@ -4,8 +4,8 @@ defmodule Client.APISupport do
 
   def impl(state) do
     case is_remote?(state) do
-      true -> Client.Remote.Projects
-      false -> Userdocs.Projects
+      true -> Client.Remote
+      false -> Userdocs
     end
   end
 

@@ -68,7 +68,7 @@ defmodule Client.Server do
   def handle_continue(:load_user, state), do: Initialize.load_user(state)
   def handle_continue(:fetch_context, state), do: Initialize.fetch_context(state)
   def handle_continue(:connect_channel, state), do: Initialize.connect_channel(state)
-  def handle_continue(:load_projecct, state), do: Initialize.load_project(state)
+  def handle_continue(:load_project, state), do: Initialize.load_project(state)
   def handle_continue(:complete, state), do: {:noreply, state}
 
   @impl true
@@ -220,29 +220,25 @@ defmodule Client.Server do
   def handle_call({:delete_team_user, id, opts}, _from, state),
     do: {:reply, Client.TeamUsers.delete_team_user(id, include_token(opts)), state}
 
-  # Teams
-  def handle_call({:load_teams, opts}, _from, %{state_opts: state_opts} = state) do
-    teams = Client.Teams.list_teams(include_token(opts))
-    state = StateHandlers.load(state, teams, Team, state_opts)
-    {:reply, :ok, state}
-  end
-  def handle_call({:list_teams, opts}, _from, state) do
-    {:reply, State.Teams.list_teams(state, kw_opts(opts, state)), state}
-  end
-  def handle_call({:get_team!, id, opts}, _from, state) do
-    {:reply, State.Teams.get_team!(id, state, kw_opts(opts, state)), state}
-  end
-  def handle_call({:create_team, attrs}, _from, state) do
-    {:reply, Client.Teams.create_team(attrs, %{access_token: access_token()}), state}
-  end
-  def handle_call({:update_team, team, attrs}, _from, state) do
-    result = Client.Teams.update_team(team, attrs, %{access_token: access_token()})
-    {:reply, result, state}
-  end
-  def handle_call({:delete_team, id, opts}, _from, state) do
-    response = Client.Teams.delete_team(id, include_token(opts))
-    {:reply, response, state}
-  end
+  alias Client.Teams
+
+  def handle_call({:load_teams, opts}, _from, state),
+    do: {:reply, :ok, Teams.load_teams(state, opts)}
+
+  def handle_call({:list_teams, opts}, _from, state),
+    do: {:reply, State.Teams.list_teams(state, kw_opts(opts, state)), state}
+
+  def handle_call({:get_team!, id, opts}, _from, state),
+    do: {:reply, State.Teams.get_team!(id, state, kw_opts(opts, state)), state}
+
+  def handle_call({:create_team, attrs}, _from, state),
+    do: {:reply, Teams.create_team(attrs, state), state}
+
+  def handle_call({:update_team, team, attrs}, _from, state),
+    do: {:reply, Teams.update_team(team, attrs, state), state}
+
+  def handle_call({:delete_team, id}, _from, state),
+    do: {:reply, Teams.delete_team(id, state), state}
 
   alias Client.Projects
 
