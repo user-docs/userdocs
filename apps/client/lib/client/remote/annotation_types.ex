@@ -1,4 +1,4 @@
-defmodule Client.AnnotationTypes do
+defmodule Client.Remote.AnnotationTypes do
   require Logger
   alias Client.Requests
   alias Userdocs.AnnotationTypes
