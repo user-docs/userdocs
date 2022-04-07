@@ -340,6 +340,26 @@ defmodule Client.Server do
   def handle_call({:delete_process, id}, _from, state),
     do: {:reply, Processes.delete_process(id, state), state}
 
+  alias Client.Steps
+
+  def handle_call({:load_steps, opts}, _from, state),
+    do: {:reply, :ok, Steps.load_steps(state, opts)}
+
+  def handle_call({:list_steps, opts}, _from, state),
+    do: {:reply, State.Steps.list_steps(state, kw_opts(opts, state)), state}
+
+  def handle_call({:get_step!, id, opts}, _from, state),
+    do: {:reply, State.Steps.get_step!(id, state, kw_opts(opts, state)), state}
+
+  def handle_call({:create_step, attrs}, _from, state),
+    do: {:reply, Steps.create_step(attrs, state), state}
+
+  def handle_call({:update_step, step, attrs}, _from, state),
+    do: {:reply, Steps.update_step(step, attrs, state), state}
+
+  def handle_call({:delete_step, id}, _from, state),
+    do: {:reply, Steps.delete_step(id, state), state}
+    """
   # Steps
   def handle_call({:load_steps, opts}, _from, %{state_opts: state_opts} = state) do
     steps = Client.Steps.list_steps(include_token(opts))
@@ -360,7 +380,7 @@ defmodule Client.Server do
     do: {:reply, Client.Steps.update_step(step, attrs, %{access_token: access_token()}), state}
   def handle_call({:delete_step, id, opts}, _from, state),
     do: {:reply, Client.Steps.delete_step(id, include_token(opts)), state}
-
+"""
   # Elements
   def handle_call({:load_elements, opts}, _from, %{state_opts: state_opts} = state) do
     elements = Client.Elements.list_elements(include_token(opts))

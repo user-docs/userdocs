@@ -56,6 +56,9 @@ defmodule Client.LocalCase do
       defp create_local_process(%{local_project: project}),
         do: %{local_process: AutomationFixtures.process(project.id, @local_opts)}
 
+      defp create_local_step(%{local_process: process, local_page: page}),
+        do: %{local_step: AutomationFixtures.step(page.id, process.id, @local_opts)}
+
       defp put_remote_context_data(%{user: user, remote_team: team, remote_project: project, remote_context: context}) do
         data = Client.state() |> Map.get(:data) |> Map.put(:teams, [team]) |> Map.put(:projects, [project])
         Client.put_in_state(:data, data)

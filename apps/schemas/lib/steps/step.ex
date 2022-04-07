@@ -61,7 +61,6 @@ defmodule Schemas.Steps.Step do
     |> foreign_key_constraint(:element_id)
     |> foreign_key_constraint(:annotation_id)
     |> foreign_key_constraint(:step_type_id)
-    |> foreign_key_constraint(:screenshot_id)
   end
 
   def assoc_changeset(changeset) do

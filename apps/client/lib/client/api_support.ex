@@ -20,7 +20,7 @@ defmodule Client.APISupport do
 
   def merge_local_opts(opts), do: Map.merge(opts, local_opts())
 
-  def is_remote?(state), do: get_current_team(state) |> is_remote_team?()
+  def is_remote?(state), do: state |> get_current_team() |> is_remote_team?()
 
   def is_remote_team?(%{type: type}) when type in [:personal], do: false
   def is_remote_team?(%{type: type}) when type in [:team, :enterprise], do: true

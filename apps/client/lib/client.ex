@@ -76,14 +76,13 @@ defmodule Client do
   def update_process(process, attrs), do: GenServer.call(__MODULE__.Server, {:update_process, process, attrs}, @timeout)
   def delete_process(id), do: GenServer.call(__MODULE__.Server, {:delete_process, id}, @timeout)
 
-  def load_steps(opts), do: GenServer.call(__MODULE__.Server, {:load_steps, opts}, @timeout)
-  def list_steps(opts), do: GenServer.call(__MODULE__.Server, {:list_steps, opts}, @timeout)
+  def load_steps(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_steps, opts}, @timeout)
+  def list_steps(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_steps, opts}, @timeout)
   def get_step!(id), do: GenServer.call(__MODULE__.Server, {:get_step!, id, []}, @timeout)
   def get_step!(id, opts), do: GenServer.call(__MODULE__.Server, {:get_step!, id, opts}, @timeout)
   def create_step(attrs), do: GenServer.call(__MODULE__.Server, {:create_step, attrs}, @timeout)
   def update_step(step, attrs), do: GenServer.call(__MODULE__.Server, {:update_step, step, attrs}, @timeout)
-  def delete_step(id), do: GenServer.call(__MODULE__.Server, {:delete_step, id, %{}}, @timeout)
-  def delete_step(id, opts), do: GenServer.call(__MODULE__.Server, {:delete_step, id, opts}, @timeout)
+  def delete_step(id), do: GenServer.call(__MODULE__.Server, {:delete_step, id}, @timeout)
 
   def load_pages(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_pages, opts}, @timeout)
   def list_pages(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_pages, opts}, @timeout)

@@ -55,6 +55,9 @@ defmodule Client.RemoteCase do
       defp create_remote_process(%{remote_project: project}),
         do: %{remote_process: AutomationFixtures.process(project.id, @remote_opts)}
 
+      defp create_remote_step(%{remote_process: process, remote_page: page}),
+        do: %{remote_step: AutomationFixtures.step(page.id, process.id, @remote_opts)}
+
       defp create_remote_tokens(%{user: user}) do
         pow_config = [
           mod: UserdocsWeb.API.Auth.Plug,

@@ -226,7 +226,8 @@ defmodule UserdocsDesktopWeb.StepLive.Index do
     {:noreply, socket}
   end
   def handle_event("delete", %{"id" => id}, socket) do
-    Client.delete_step(id)
+    Client.get_step!(id)
+    |> Client.delete_step()
     {:noreply, socket}
   end
   def handle_event("reorder_start", %{"id" => step_id}, socket) do

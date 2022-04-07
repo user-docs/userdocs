@@ -2,7 +2,6 @@ defmodule ClientTest.Processes do
   use Client.RemoteCase
   use Client.LocalCase
   use Client.Case
-  alias Userdocs.ProcessesFixtures
   alias Userdocs.UsersFixtures
   alias Userdocs.TeamsFixtures
   alias Userdocs.WebFixtures
@@ -17,6 +16,12 @@ defmodule ClientTest.Processes do
   describe "Server Lists" do
     setup do
       %{process: %Schemas.Processes.Process{}}
+    end
+
+    test "Gets Process", %{process: process} do
+      Client.put_in_state(:data, %{processes: [process]})
+      result = Client.get_process!(process.id)
+      assert result == process
     end
 
     test "Lists Processes", %{process: process} do

@@ -1,39 +1,23 @@
 defmodule Client.Steps do
-  @moduledoc """
-  The Steps context.
-  """
-  require Logger
-  alias Client.Requests
-  alias Userdocs.Steps
+  import Client.APISupport
+  import Client.Constants
   alias Schemas.Steps.Step
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/steps"
 
-  @doc "Returns the list of steps."
-  def list_steps(%{access_token: access_token} = opts) do
-    params =  Map.take(opts, [:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => steps_attrs}} = Requests.send(request_fun, access_token, params)
-    Steps.create_step_structs(steps_attrs)
-  end
+  @callback list_steps(map()) :: list(Step)
+  @callback create_step(map(), map()) :: {:ok, Step} | {:error, Ecto.Changeset}
+  @callback update_step(Step, map(), map()) :: {:ok, Step} | {:error, Ecto.Changeset}
+  @callback delete_step(binary(), map()) :: {:ok, Step} | {:error, Ecto.Changeset}
 
-  @doc "Creates a step."
-  def create_step(attrs, %{access_token: access_token}) do
-    params = %{step: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => step_attrs}} = Requests.send(request_fun, access_token, params)
-    Steps.create_step_struct(step_attrs)
-  end
+  def create_step(attrs, state),
+    do: Module.concat(impl(state), "Steps").create_step(attrs, local_or_remote_opts(state)) # TODO: subsume Module.concat into impl
 
-  @doc "Updates a step."
-  def update_step(%Step{} = step, attrs, %{access_token: access_token}) do
-    request_fun = Requests.build_update(@url, step.id)
-    {:ok, %{"data" => step_attrs}} = Requests.send(request_fun, access_token, %{step: attrs})
-    Steps.create_step_struct(step_attrs)
-  end
+  def update_step(step, attrs, state),
+    do: Module.concat(impl(state), "Steps").update_step(step, attrs, local_or_remote_opts(state))
 
-  @doc "Deletes a step."
-  def delete_step(id, %{access_token: access_token}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
+  def  delete_step(id, state), do: Module.concat(impl(state), "Steps").delete_step(id, local_or_remote_opts(state))
+
+  def load_steps(state, opts) do
+    steps = Module.concat(impl(state), "Steps").list_steps(local_or_remote_opts(state, opts))
+    StateHandlers.load(state, steps, Step, state_opts())
   end
 end
