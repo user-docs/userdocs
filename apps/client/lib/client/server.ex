@@ -359,47 +359,26 @@ defmodule Client.Server do
 
   def handle_call({:delete_step, id}, _from, state),
     do: {:reply, Steps.delete_step(id, state), state}
-    """
-  # Steps
-  def handle_call({:load_steps, opts}, _from, %{state_opts: state_opts} = state) do
-    steps = Client.Steps.list_steps(include_token(opts))
-    state = StateHandlers.load(state, steps, Step, state_opts)
-    {:reply, :ok, state}
-  end
-  def handle_call({:list_steps, opts}, _from, state) do
-    {:reply, State.Steps.list_steps(state, kw_opts(opts, state)), state}
-  end
-  def handle_call({:get_step!, id, opts}, _from, state) do
-    {:reply, State.Steps.get_step!(id, state, kw_opts(opts, state)), state}
-  end
 
-  def handle_call({:create_step, attrs}, _from, state) do
-    {:reply, Client.Steps.create_step(attrs, %{access_token: access_token()}), state}
-  end
-  def handle_call({:update_step, step, attrs}, _from, state),
-    do: {:reply, Client.Steps.update_step(step, attrs, %{access_token: access_token()}), state}
-  def handle_call({:delete_step, id, opts}, _from, state),
-    do: {:reply, Client.Steps.delete_step(id, include_token(opts)), state}
-"""
-  # Elements
-  def handle_call({:load_elements, opts}, _from, %{state_opts: state_opts} = state) do
-    elements = Client.Elements.list_elements(include_token(opts))
-    state = StateHandlers.load(state, elements, Element, state_opts)
-    {:reply, :ok, state}
-  end
-  def handle_call({:list_elements, opts}, _from, state) ,
+  alias Client.Elements
+
+  def handle_call({:load_elements, opts}, _from, state),
+    do: {:reply, :ok, Elements.load_elements(state, opts)}
+
+  def handle_call({:list_elements, opts}, _from, state),
     do: {:reply, State.Elements.list_elements(state, kw_opts(opts, state)), state}
+
   def handle_call({:get_element!, id, opts}, _from, state),
     do: {:reply, State.Elements.get_element!(id, state, kw_opts(opts, state)), state}
-  def handle_call({:find_element, field, value, opts}, _from, state),
-    do: {:reply, State.Elements.find_element(state, kw_opts(opts, state), field, value), state}
-  def handle_call({:create_element, attrs}, _from, state) do
-    {:reply, Client.Elements.create_element(attrs, %{access_token: access_token()}), state}
-  end
-  def handle_call({:update_element, element, attrs}, _from, state),
-    do: {:reply, Client.Elements.update_element(element, attrs, %{access_token: access_token()}), state}
-  def handle_call({:delete_element, id, opts}, _from, state),
-    do: {:reply, Client.Elements.delete_element(id, include_token(opts)), state}
+
+  def handle_call({:create_element, attrs}, _from, state),
+    do: {:reply, Elements.create_element(attrs, state), state}
+
+  def handle_call({:update_element, step, attrs}, _from, state),
+    do: {:reply, Elements.update_element(step, attrs, state), state}
+
+  def handle_call({:delete_element, id}, _from, state),
+    do: {:reply, Elements.delete_element(id, state), state}
 
   # Annotations
   def handle_call({:load_annotations, opts}, _from, %{state_opts: state_opts} = state) do

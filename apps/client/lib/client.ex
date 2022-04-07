@@ -45,7 +45,7 @@ defmodule Client do
   def get_team!(id, opts \\[]), do: GenServer.call(__MODULE__.Server, {:get_team!, id, opts}, @timeout)
   def create_team(attrs), do: GenServer.call(__MODULE__.Server, {:create_team, attrs}, @timeout)
   def update_team(team, attrs), do: GenServer.call(__MODULE__.Server, {:update_team, team, attrs}, @timeout)
-  def delete_team(id), do: GenServer.call(__MODULE__.Server, {:delete_team, id}, @timeout)
+  def delete_team(team), do: GenServer.call(__MODULE__.Server, {:delete_team, team}, @timeout)
 
   def load_projects(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_projects, opts}, @timeout)
   def list_projects(), do: GenServer.call(__MODULE__.Server, {:list_projects, []}, @timeout)
@@ -54,7 +54,7 @@ defmodule Client do
   def get_project!(id, opts), do: GenServer.call(__MODULE__.Server, {:get_project!, id, opts}, @timeout)
   def create_project(attrs), do: GenServer.call(__MODULE__.Server, {:create_project, attrs}, @timeout)
   def update_project(project, attrs), do: GenServer.call(__MODULE__.Server, {:update_project, project, attrs}, @timeout)
-  def delete_project(id), do: GenServer.call(__MODULE__.Server, {:delete_project, id}, @timeout)
+  def delete_project(project), do: GenServer.call(__MODULE__.Server, {:delete_project, project}, @timeout)
 
   def load_screenshots(opts), do: GenServer.call(__MODULE__.Server, {:load_screenshots, opts}, @timeout)
   def list_screenshots(), do: GenServer.call(__MODULE__.Server, {:list_screenshots, []}, @timeout)
@@ -65,8 +65,7 @@ defmodule Client do
   def update_screenshot(screenshot, attrs), do: GenServer.call(__MODULE__.Server, {:update_screenshot, screenshot, attrs}, @timeout)
   def approve_screenshot(screenshot, opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:approve_screenshot, screenshot, opts}, @timeout)
   def reject_screenshot(screenshot, opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:approve_screenshot, screenshot, opts}, @timeout)
-  def delete_screenshot(id), do: GenServer.call(__MODULE__.Server, {:delete_screenshot, id, %{}}, @timeout)
-  def delete_screenshot(id, opts), do: GenServer.call(__MODULE__.Server, {:delete_screenshot, id, opts}, @timeout)
+  def delete_screenshot(screenshot), do: GenServer.call(__MODULE__.Server, {:delete_screenshot, screenshot}, @timeout)
 
   def load_processes(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_processes, opts}, @timeout)
   def list_processes(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_processes, opts}, @timeout)
@@ -74,7 +73,7 @@ defmodule Client do
   def get_process!(id, opts), do: GenServer.call(__MODULE__.Server, {:get_process!, id, opts}, @timeout)
   def create_process(attrs), do: GenServer.call(__MODULE__.Server, {:create_process, attrs}, @timeout)
   def update_process(process, attrs), do: GenServer.call(__MODULE__.Server, {:update_process, process, attrs}, @timeout)
-  def delete_process(id), do: GenServer.call(__MODULE__.Server, {:delete_process, id}, @timeout)
+  def delete_process(process), do: GenServer.call(__MODULE__.Server, {:delete_process, process}, @timeout)
 
   def load_steps(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_steps, opts}, @timeout)
   def list_steps(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_steps, opts}, @timeout)
@@ -82,7 +81,7 @@ defmodule Client do
   def get_step!(id, opts), do: GenServer.call(__MODULE__.Server, {:get_step!, id, opts}, @timeout)
   def create_step(attrs), do: GenServer.call(__MODULE__.Server, {:create_step, attrs}, @timeout)
   def update_step(step, attrs), do: GenServer.call(__MODULE__.Server, {:update_step, step, attrs}, @timeout)
-  def delete_step(id), do: GenServer.call(__MODULE__.Server, {:delete_step, id}, @timeout)
+  def delete_step(step), do: GenServer.call(__MODULE__.Server, {:delete_step, step}, @timeout)
 
   def load_pages(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_pages, opts}, @timeout)
   def list_pages(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_pages, opts}, @timeout)
@@ -91,16 +90,16 @@ defmodule Client do
   def create_page(attrs), do: GenServer.call(__MODULE__.Server, {:create_page, attrs}, @timeout)
   def update_page(page, attrs), do: GenServer.call(__MODULE__.Server, {:update_page, page, attrs}, @timeout)
   def upsert_page_screenshot(page, base64), do: GenServer.call(__MODULE__.Server, {:upsert_page_screenshot, page, base64}, @timeout)
-  def delete_page(id), do: GenServer.call(__MODULE__.Server, {:delete_page, id}, @timeout)
+  def delete_page(page), do: GenServer.call(__MODULE__.Server, {:delete_page, page}, @timeout)
 
-  def load_elements(opts), do: GenServer.call(__MODULE__.Server, {:load_elements, opts}, @timeout)
+  def load_elements(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_elements, opts}, @timeout)
   def list_elements(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_elements, opts}, @timeout)
   def get_element!(id, opts \\ []), do: GenServer.call(__MODULE__.Server, {:get_element!, id, opts}, @timeout)
   def find_element(field, value), do: GenServer.call(__MODULE__.Server, {:find_element, field, value, %{}}, @timeout)
   def find_element(field, value, opts), do: GenServer.call(__MODULE__.Server, {:find_element, field, value, opts}, @timeout)
   def create_element(attrs), do: GenServer.call(__MODULE__.Server, {:create_element, attrs}, @timeout)
   def update_element(element, attrs), do: GenServer.call(__MODULE__.Server, {:update_element, element, attrs}, @timeout)
-  def delete_element(id, opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:delete_element, id, opts}, @timeout)
+  def delete_element(element), do: GenServer.call(__MODULE__.Server, {:delete_element, element}, @timeout)
 
   def load_annotations(opts), do: GenServer.call(__MODULE__.Server, {:load_annotations, opts}, @timeout)
   def list_annotations(), do: GenServer.call(__MODULE__.Server, {:list_annotations, []}, @timeout)
