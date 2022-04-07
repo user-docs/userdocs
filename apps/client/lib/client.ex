@@ -102,8 +102,7 @@ defmodule Client do
   def delete_element(element), do: GenServer.call(__MODULE__.Server, {:delete_element, element}, @timeout)
 
   def load_annotations(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_annotations, opts}, @timeout)
-  def list_annotations(), do: GenServer.call(__MODULE__.Server, {:list_annotations, []}, @timeout)
-  def list_annotations(opts), do: GenServer.call(__MODULE__.Server, {:list_annotations, opts}, @timeout)
+  def list_annotations(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_annotations, opts}, @timeout)
   def get_annotation!(id), do: GenServer.call(__MODULE__.Server, {:get_annotation!, id, []}, @timeout)
   def get_annotation!(id, opts), do: GenServer.call(__MODULE__.Server, {:get_annotation!, id, opts}, @timeout)
   def create_annotation(attrs), do: GenServer.call(__MODULE__.Server, {:create_annotation, attrs}, @timeout)
@@ -115,8 +114,8 @@ defmodule Client do
   def load_strategies(opts), do: GenServer.call(__MODULE__.Server, {:load_strategies, opts}, @timeout)
   def list_strategies(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_strategies, opts}, @timeout)
 
-  def load_annotation_types(opts), do: GenServer.call(__MODULE__.Server, {:load_annotation_types, opts}, @timeout)
-  def list_annotation_types(opts), do: GenServer.call(__MODULE__.Server, {:list_annotation_types, opts}, @timeout)
+  def load_annotation_types(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_annotation_types, opts}, @timeout)
+  def list_annotation_types(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_annotation_types, opts}, @timeout)
   def get_annotation_type!(id), do: GenServer.call(__MODULE__.Server, {:get_annotation_type!, id, []}, @timeout)
   def get_annotation_type!(id, opts), do: GenServer.call(__MODULE__.Server, {:get_annotation_type!, id, opts}, @timeout)
 

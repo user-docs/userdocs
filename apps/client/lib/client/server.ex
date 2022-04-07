@@ -145,15 +145,14 @@ defmodule Client.Server do
 
   def handle_call(:counts, _from, state), do: {:reply, object_counts(state), state}
 
-  # Annotation Types
-  def handle_call({:load_annotation_types, opts}, _from, %{state_opts: state_opts} = state) do
-    annotation_types = Client.AnnotationTypes.list_annotation_types(include_token(opts))
-    state = StateHandlers.load(state, annotation_types, AnnotationType, state_opts)
-    {:reply, :ok, state}
-  end
-  def handle_call({:list_annotation_types, opts}, _from, state) do
-    {:reply, State.AnnotationTypes.list_annotation_types(state, kw_opts(opts, state)), state}
-  end
+  alias Client.AnnotationTypes
+
+  def handle_call({:load_annotation_types, opts}, _from, state),
+    do: {:reply, :ok, AnnotationTypes.load_annotation_types(state, opts)}
+
+  def handle_call({:list_annotation_types, opts}, _from, state),
+    do: {:reply, State.AnnotationTypes.list_annotation_types(state, kw_opts(opts, state)), state}
+
   def handle_call({:get_annotation_type!, id, opts}, _from, state),
     do: {:reply, State.AnnotationTypes.get_annotation_type!(id, state, kw_opts(opts, state)), state}
 

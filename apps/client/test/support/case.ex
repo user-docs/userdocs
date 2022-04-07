@@ -23,6 +23,11 @@ defmodule Client.Case do
         Client.init_state()
         :ok
       end
+
+      defp put_context_in_client(context) do
+        Client.put_in_state(context)
+        :ok
+      end
     end
   end
 end
