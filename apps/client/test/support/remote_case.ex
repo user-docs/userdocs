@@ -41,8 +41,8 @@ defmodule Client.RemoteCase do
       defp create_user(%{password: password}), do: %{user: UsersFixtures.confirmed_user(password)}
       defp create_remote_team(_), do: %{remote_team: TeamsFixtures.team(@remote_opts)}
 
-      defp create_team_user(%{user: user, remote_team: team}),
-        do: %{team_user: TeamsFixtures.team_user(user.id, team.id, @remote_opts)}
+      defp create_remote_team_user(%{user: user, remote_team: team}),
+        do: %{remote_team_user: TeamsFixtures.team_user(user.id, team.id, @remote_opts)}
 
       defp create_remote_strategy(_), do: %{remote_strategy: WebFixtures.strategy(@remote_opts)}
 
@@ -60,6 +60,9 @@ defmodule Client.RemoteCase do
 
       defp create_remote_element(%{remote_page: page, remote_strategy: strategy}),
         do: %{remote_element: WebFixtures.element(page.id, strategy.id, @remote_opts)}
+
+      defp create_remote_annotation(%{remote_page: page}),
+        do: %{remote_annotation: WebFixtures.annotation(page.id, @remote_opts)}
 
       defp create_remote_tokens(%{user: user}) do
         pow_config = [

@@ -1,33 +1,23 @@
 defmodule Client.Annotations do
-  @moduledoc "The Annotations context."
-  require Logger
+  import Client.APISupport
+  import Client.Constants
   alias Schemas.Annotations.Annotation
-  alias Client.Requests
-  alias Userdocs.Annotations
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/annotations"
 
-  def list_annotations(%{access_token: access_token} = opts) do
-    params =  Map.take(opts, [:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => pages_attrs}} = Requests.send(request_fun, access_token, params)
-    Annotations.create_annotation_structs(pages_attrs)
-  end
+  @callback list_annotations(map()) :: list(Annotation)
+  @callback create_annotation(map(), map()) :: {:ok, Annotation} | {:error, Ecto.Changeset}
+  @callback update_annotation(Annotation, map(), map()) :: {:ok, Annotation} | {:error, Ecto.Changeset}
+  @callback delete_annotation(binary(), map()) :: {:ok, Annotation} | {:error, Ecto.Changeset}
 
-  def create_annotation(attrs, %{access_token: access_token}) do
-    params = %{annotation: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => annotation_attrs}} = Requests.send(request_fun, access_token, params)
-    Annotations.create_annotation_struct(annotation_attrs)
-  end
+  def create_annotation(attrs, state),
+    do: Module.concat(impl(state), "Annotations").create_annotation(attrs, local_or_remote_opts(state)) # TODO: subsume Module.concat into impl
 
-  def update_annotation(%Annotation{} = annotation, attrs, %{access_token: access_token}) do
-    request_fun = Requests.build_update(@url, annotation.id)
-    {:ok, %{"data" => annotation_attrs}} = Requests.send(request_fun, access_token, %{annotation: attrs})
-    Annotations.create_annotation_struct(annotation_attrs)
-  end
+  def update_annotation(annotation, attrs, state),
+    do: Module.concat(impl(state), "Annotations").update_annotation(annotation, attrs, local_or_remote_opts(state))
 
-  def delete_annotation(%Annotation{} = annotation, %{access_token: access_token}) do
-    request = Requests.build_delete(@url, annotation.id)
-    Requests.send(request, access_token, nil)
+  def  delete_annotation(%Annotation{} = annotation, state), do: Module.concat(impl(state), "Annotations").delete_annotation(annotation, local_or_remote_opts(state))
+
+  def load_annotations(state, opts) do
+    annotations = Module.concat(impl(state), "Annotations").list_annotations(local_or_remote_opts(state, opts))
+    StateHandlers.load(state, annotations, Annotation, state_opts())
   end
 end

@@ -101,14 +101,14 @@ defmodule Client do
   def update_element(element, attrs), do: GenServer.call(__MODULE__.Server, {:update_element, element, attrs}, @timeout)
   def delete_element(element), do: GenServer.call(__MODULE__.Server, {:delete_element, element}, @timeout)
 
-  def load_annotations(opts), do: GenServer.call(__MODULE__.Server, {:load_annotations, opts}, @timeout)
+  def load_annotations(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_annotations, opts}, @timeout)
   def list_annotations(), do: GenServer.call(__MODULE__.Server, {:list_annotations, []}, @timeout)
   def list_annotations(opts), do: GenServer.call(__MODULE__.Server, {:list_annotations, opts}, @timeout)
   def get_annotation!(id), do: GenServer.call(__MODULE__.Server, {:get_annotation!, id, []}, @timeout)
   def get_annotation!(id, opts), do: GenServer.call(__MODULE__.Server, {:get_annotation!, id, opts}, @timeout)
   def create_annotation(attrs), do: GenServer.call(__MODULE__.Server, {:create_annotation, attrs}, @timeout)
   def update_annotation(annotation, attrs), do: GenServer.call(__MODULE__.Server, {:update_annotation, annotation, attrs}, @timeout)
-  def delete_annotation(id, opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:delete_annotation, id, opts}, @timeout)
+  def delete_annotation(annotation), do: GenServer.call(__MODULE__.Server, {:delete_annotation, annotation}, @timeout)
 
   def load_element_annotations(opts), do: GenServer.call(__MODULE__.Server, {:load_element_annotations, opts}, @timeout)
 

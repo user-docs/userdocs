@@ -380,24 +380,25 @@ defmodule Client.Server do
   def handle_call({:delete_element, id}, _from, state),
     do: {:reply, Elements.delete_element(id, state), state}
 
-  # Annotations
-  def handle_call({:load_annotations, opts}, _from, %{state_opts: state_opts} = state) do
-    annotations = Client.Annotations.list_annotations(include_token(opts))
-    state = StateHandlers.load(state, annotations, Annotation, state_opts)
-    {:reply, :ok, state}
-  end
-  def handle_call({:list_annotations, opts}, _from, state) do
-    {:reply, State.Annotations.list_annotations(state, kw_opts(opts, state)), state}
-  end
+  alias Client.Annotations
+
+  def handle_call({:load_annotations, opts}, _from, state),
+    do: {:reply, :ok, Annotations.load_annotations(state, opts)}
+
+  def handle_call({:list_annotations, opts}, _from, state),
+    do: {:reply, State.Annotations.list_annotations(state, kw_opts(opts, state)), state}
+
   def handle_call({:get_annotation!, id, opts}, _from, state),
     do: {:reply, State.Annotations.get_annotation!(id, state, kw_opts(opts, state)), state}
-  def handle_call({:create_annotation, attrs}, _from, state) do
-    {:reply, Client.Annotations.create_annotation(attrs, %{access_token: access_token()}), state}
-  end
-  def handle_call({:update_annotation, annotation, attrs}, _from, state),
-    do: {:reply, Client.Annotations.update_annotation(annotation, attrs, %{access_token: access_token()}), state}
-  def handle_call({:delete_annotation, id, opts}, _from, state),
-    do: {:reply, Client.Annotations.delete_annotation(id, include_token(opts)), state}
+
+  def handle_call({:create_annotation, attrs}, _from, state),
+    do: {:reply, Annotations.create_annotation(attrs, state), state}
+
+  def handle_call({:update_annotation, step, attrs}, _from, state),
+    do: {:reply, Annotations.update_annotation(step, attrs, state), state}
+
+  def handle_call({:delete_annotation, id}, _from, state),
+    do: {:reply, Annotations.delete_annotation(id, state), state}
 
   # Element Annotations
   def handle_call({:load_element_annotations, opts}, _from, %{state_opts: state_opts} = state) do
