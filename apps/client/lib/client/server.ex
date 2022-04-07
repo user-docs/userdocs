@@ -208,17 +208,16 @@ defmodule Client.Server do
     result = Client.Users.invite_user(attrs, %{access_token: access_token()})
     {:reply, result, state}
   end
+  alias Client.TeamUsers
 
-  # Team Users
-  def handle_call({:load_team_users, opts}, _from, %{state_opts: state_opts} = state) do
-    team_users = Client.TeamUsers.list_team_users(include_token(opts))
-    state = StateHandlers.load(state, team_users, TeamUser, state_opts)
-    {:reply, :ok, state}
-  end
+  def handle_call({:load_team_users, opts}, _from, state),
+    do: {:reply, :ok, TeamUsers.load_team_users(state, opts)}
+
   def handle_call({:list_team_users, opts}, _from, state),
     do: {:reply, State.TeamUsers.list_team_users(state, kw_opts(opts, state)), state}
-  def handle_call({:delete_team_user, id, opts}, _from, state),
-    do: {:reply, Client.TeamUsers.delete_team_user(id, include_token(opts)), state}
+
+  def handle_call({:delete_team_user, id}, _from, state),
+    do: {:reply, TeamUsers.delete_team_user(id, state), state}
 
   alias Client.Teams
 

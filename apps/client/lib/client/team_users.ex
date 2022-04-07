@@ -1,21 +1,15 @@
 defmodule Client.TeamUsers do
-  @moduledoc "The Team Users Context"
-  require Logger
-  alias Client.Requests
-  alias Userdocs.TeamUsers
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/team_users"
+  import Client.APISupport
+  import Client.Constants
+  alias Schemas.Teams.TeamUser
 
-  @doc ""
-  def list_team_users(%{access_token: access_token} = opts) do
-    params = opts |> Map.take([:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => team_user_attrs}} = Requests.send(request_fun, access_token, params)
-    TeamUsers.create_team_user_structs(team_user_attrs)
-  end
+  @callback list_team_users(map()) :: list(TeamUser)
+  @callback delete_team_user(binary(), map()) :: {:ok, TeamUser} | {:error, Ecto.Changeset}
 
-  @doc "Deletes a team_user."
-  def delete_team_user(id, %{access_token: access_token}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
+  def  delete_team_user(%TeamUser{} = team_user, state), do: Module.concat(impl(state), "TeamUsers").delete_team_user(team_user, local_or_remote_opts(state))
+
+  def load_team_users(state, opts) do
+    team_users = Module.concat(impl(state), "TeamUsers").list_team_users(local_or_remote_opts(state, opts))
+    StateHandlers.load(state, team_users, TeamUser, state_opts())
   end
 end
