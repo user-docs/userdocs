@@ -109,7 +109,7 @@ defmodule ClientTest.InitializeTest do
       :create_password,
       :create_user,
       :create_remote_team,
-      :create_team_user,
+      :create_remote_team_user,
       :create_remote_strategy,
       :create_remote_project,
       :create_remote_user_context
@@ -136,7 +136,7 @@ defmodule ClientTest.InitializeTest do
       :create_password,
       :create_user,
       :create_remote_team,
-      :create_team_user,
+      :create_remote_team_user,
       :create_remote_strategy,
       :create_remote_project,
       :create_remote_user_context,

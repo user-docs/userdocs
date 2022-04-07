@@ -42,7 +42,7 @@ defmodule ClientTest.TeamsTest do
       :create_password,
       :create_user,
       :create_remote_team,
-      :create_team_user,
+      :create_remote_team_user,
       :create_remote_tokens,
 
       :put_access_token_in_state,
