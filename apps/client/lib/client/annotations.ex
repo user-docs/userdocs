@@ -26,8 +26,8 @@ defmodule Client.Annotations do
     Annotations.create_annotation_struct(annotation_attrs)
   end
 
-  def delete_annotation(id, %{access_token: access_token}) do
-    request = Requests.build_delete(@url, id)
+  def delete_annotation(%Annotation{} = annotation, %{access_token: access_token}) do
+    request = Requests.build_delete(@url, annotation.id)
     Requests.send(request, access_token, nil)
   end
 end

@@ -33,8 +33,8 @@ defmodule Client.Remote.Pages do
   end
 
   @doc "Deletes a page."
-  def delete_page(id, %{access_token: access_token}) do
-    request = Requests.build_delete(@url, id)
+  def delete_page(%Page{} = page, %{access_token: access_token}) do
+    request = Requests.build_delete(@url, page.id)
     Requests.send(request, access_token, nil)
   end
 

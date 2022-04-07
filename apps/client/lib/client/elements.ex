@@ -1,38 +1,23 @@
 defmodule Client.Elements do
-  @moduledoc """
-  The Elements context.
-  """
-  alias Client.Requests
-  alias Userdocs.Elements
+  import Client.APISupport
+  import Client.Constants
   alias Schemas.Elements.Element
-  @url Application.compile_env(:userdocs_desktop, :host_url) <> "/api/elements"
 
-  @doc "Lists Elements"
-  def list_elements(%{access_token: access_token} = opts) do
-    params = opts |> Map.take([:filters])
-    request_fun = Requests.build_get(@url)
-    {:ok, %{"data" => element_attrs}} = Requests.send(request_fun, access_token, params)
-    Elements.create_element_structs(element_attrs)
-  end
+  @callback list_elements(map()) :: list(Element)
+  @callback create_element(map(), map()) :: {:ok, Element} | {:error, Ecto.Changeset}
+  @callback update_element(Element, map(), map()) :: {:ok, Element} | {:error, Ecto.Changeset}
+  @callback delete_element(Element, map()) :: {:ok, Element} | {:error, Ecto.Changeset}
 
-  @doc "Creates an Element"
-  def create_element(attrs, %{access_token: access_token}) do
-    params = %{element: attrs}
-    request_fun = Requests.build_create(@url)
-    {:ok, %{"data" => element_attrs}} = Requests.send(request_fun, access_token, params)
-    Elements.create_element_struct(element_attrs)
-  end
+  def create_element(attrs, state),
+    do: Module.concat(impl(state), "Elements").create_element(attrs, local_or_remote_opts(state)) # TODO: subsume Module.concat into impl
 
-  @doc "Updates an Element"
-  def update_element(%Element{} = element, attrs, %{access_token: access_token}) do
-    request_fun = Requests.build_update(@url, element.id)
-    {:ok, %{"data" => element_attrs}} = Requests.send(request_fun, access_token, %{element: attrs})
-    Elements.create_element_struct(element_attrs)
-  end
+  def update_element(element, attrs, state),
+    do: Module.concat(impl(state), "Elements").update_element(element, attrs, local_or_remote_opts(state))
 
-  @doc "Deletes an element"
-  def delete_element(id, %{access_token: access_token}) do
-    request = Requests.build_delete(@url, id)
-    Requests.send(request, access_token, nil)
+  def  delete_element(element, state), do: Module.concat(impl(state), "Elements").delete_element(element, local_or_remote_opts(state))
+
+  def load_elements(state, opts) do
+    elements = Module.concat(impl(state), "Elements").list_elements(local_or_remote_opts(state, opts))
+    StateHandlers.load(state, elements, Element, state_opts())
   end
 end
