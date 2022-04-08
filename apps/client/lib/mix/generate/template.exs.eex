@@ -94,7 +94,7 @@ defmodule ClientTest.<%= module_plural %> do
       assert_raise Ecto.NoResultsError, fn -> Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>.id, @local_opts) end
     end
     <% end %>
-    test "<%= load_function_name %>/0 loads <%= variable_name_plural %>", %{local_<%= variable_name_singular %>: <%= variable_name_singular %>} = context do
+    test "<%= load_function_name %>/0 loads <%= variable_name_plural %>", %{local_<%= variable_name_singular %>: <%= variable_name_singular %>} do
       Client.<%= load_function_name %>()
       %{<%= variable_name_plural %>: [result]} = Client.data()
       assert result.id == <%= variable_name_singular %>.id

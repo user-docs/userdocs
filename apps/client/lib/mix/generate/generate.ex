@@ -4,25 +4,29 @@ defmodule Generate do
   def cast_args(args) do
     remote_fixtures = [] ++ args.common_fixtures
     local_fixtures = [] ++ args.common_fixtures
+    remote_context_text = Enum.reduce(args.required_context, "", fn c, a -> a <> "remote_#{c}: #{c}, " end) |> String.slice(0..-3)
+    local_context_text = Enum.reduce(args.required_context, "", fn c, a -> a <> "local_#{c}: #{c}, " end) |> String.slice(0..-3)
+    remote_fixtures_text = Enum.reduce(remote_fixtures, "", fn f, a -> a <> "      :create_remote_#{f},\n" end) |> String.slice(0..-2)
+    local_fixtures_text = Enum.reduce(local_fixtures, "", fn f, a -> a <> "      :create_local_#{f},\n" end) |> String.slice(0..-2)
     [
-        module_singular: args.module_singular,
-        module_plural: args.module_plural,
-        variable_name_singular: args.singular,
-        variable_name_plural: args.plural,
-        fixture_module: args.fixture_module,
-        schemas_module: args.schema_module,
-        attrs_function_name: args.singular <>"_attrs",
-        attrs_function_args: ":valid, :badge",
-        load_function_name: "load_" <> args.plural,
-        get_function_name: "get_" <> args.singular,
-        list_function_name: "list_" <> args.plural,
-        create_function_name: if(!args.create_function_name, do: false, else: "create_" <> args.singular),
-        update_function_name: if(!args.update_function_name, do: false, else: "update_" <> args.singular),
-        delete_function_name: if(!args.delete_function_name, do: false, else: "delete_" <> args.singular),
-        remote_context: Enum.reduce(args.required_context, "", fn c, a -> a <> "remote_#{c}: #{c}, " end) |> String.slice(0..-3),
-        local_context: Enum.reduce(args.required_context, "", fn c, a -> a <> "local_#{c}: #{c}, " end) |> String.slice(0..-3),
-        remote_fixtures: Enum.reduce(remote_fixtures, "", fn f, a -> a <> "      :create_remote_#{f},\n" end) |> String.slice(0..-4),
-        local_fixtures: Enum.reduce(local_fixtures, "", fn f, a -> a <> "      :create_local_#{f},\n" end |> String.slice(0..-4))
+      module_singular: args.module_singular,
+      module_plural: args.module_plural,
+      variable_name_singular: args.singular,
+      variable_name_plural: args.plural,
+      fixture_module: args.fixture_module,
+      schemas_module: args.schema_module,
+      attrs_function_name: args.singular <>"_attrs",
+      attrs_function_args: ":valid, :badge",
+      load_function_name: "load_" <> args.plural,
+      get_function_name: "get_" <> args.singular,
+      list_function_name: "list_" <> args.plural,
+      create_function_name: if(!args.create_function_name, do: false, else: "create_" <> args.singular),
+      update_function_name: if(!args.update_function_name, do: false, else: "update_" <> args.singular),
+      delete_function_name: if(!args.delete_function_name, do: false, else: "delete_" <> args.singular),
+      remote_context: remote_context_text,
+      local_context: local_context_text,
+      remote_fixtures: remote_fixtures_text,
+      local_fixtures: local_fixtures_text
     ]
   end
 

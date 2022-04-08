@@ -34,14 +34,10 @@ defmodule ClientTest.AnnotationTypes do
   describe "AnnotationType Server CUD"  do
     setup [
       :ensure_web_started,
-
       :create_password,
       :create_user,
-      :create_remote_team,
       :create_remote_annotation_type,
-
       :create_remote_tokens,
-
       :put_access_token_in_state,
       :create_remote_user_context,
       :put_remote_context_data,
@@ -53,18 +49,18 @@ defmodule ClientTest.AnnotationTypes do
       %{annotation_types: [result]} = Client.data()
       assert result.id == annotation_type.id
     end
+    
   end
 
   describe "Local" do
     setup [
       :create_password,
       :create_user,
-      :create_local_team,
       :create_local_annotation_type,
       :create_local_user_context,
       :put_local_context_data
     ]
-
+    
     test "load_annotation_types/0 loads annotation_types", %{local_annotation_type: annotation_type} do
       Client.load_annotation_types()
       %{annotation_types: [result]} = Client.data()

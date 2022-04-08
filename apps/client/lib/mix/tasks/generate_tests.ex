@@ -9,11 +9,8 @@ defmodule Mix.Tasks.GenerateTests do
     Generate.Seeds.list()
     |> IO.inspect()
     |> Enum.map(fn {k, v} -> {k, Generate.cast_args(v)} end)
-    |> IO.inspect()
     |> Enum.map(fn {k, v} -> {k, Generate.cast_test_code(v)} end)
-    |> IO.inspect()
     |> Enum.map(fn {k, v} -> Generate.write_test_file(k, v)
-    |> IO.inspect()
     end)
   end
 end
