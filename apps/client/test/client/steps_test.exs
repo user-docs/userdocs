@@ -34,7 +34,6 @@ defmodule ClientTest.Steps do
   describe "Step Server CUD"  do
     setup [
       :ensure_web_started,
-
       :create_password,
       :create_user,
       :create_remote_team,
@@ -45,7 +44,6 @@ defmodule ClientTest.Steps do
       :create_remote_page,
       :create_remote_step,
       :create_remote_tokens,
-
       :put_access_token_in_state,
       :create_remote_user_context,
       :put_remote_context_data,
@@ -76,28 +74,6 @@ defmodule ClientTest.Steps do
     end
   end
 
-  defp local_setup_context(context) do
-    %{
-      data: %{
-        teams: [context.local_team],
-        projects: [context.local_project],
-        steps: [context.local_step],
-        strategies: [context.local_strategy],
-      },
-      context: %Schemas.Users.Context{
-        user_id: context.user.id,
-        team_id: context.local_team.id,
-        project_id: context.local_project.id
-      }
-    }
-    |> Map.merge(context)
-  end
-
-  defp put_context_in_client(context) do
-    Client.put_in_state(context)
-    :ok
-  end
-
   describe "Local" do
     setup [
       :create_password,
@@ -105,11 +81,11 @@ defmodule ClientTest.Steps do
       :create_local_team,
       :create_local_strategy,
       :create_local_project,
-      :create_local_page,
       :create_local_process,
+      :create_local_page,
       :create_local_step,
-      :local_setup_context,
-      :put_context_in_client
+      :create_local_user_context,
+      :put_local_context_data
     ]
 
     test "creates", %{local_page: page, local_process: process} do
@@ -129,8 +105,7 @@ defmodule ClientTest.Steps do
       assert_raise Ecto.NoResultsError, fn -> Userdocs.Steps.get_step!(step.id, @local_opts) end
     end
 
-    test "load_steps/0 loads steps", %{local_step: step} = context do
-      Client.put_in_state(context)
+    test "load_steps/0 loads steps", %{local_step: step} do
       Client.load_steps()
       %{steps: [result]} = Client.data()
       assert result.id == step.id

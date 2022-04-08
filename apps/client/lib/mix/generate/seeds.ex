@@ -5,18 +5,6 @@ defmodule Generate.Seeds do
 
   def seeds() do
     [
-      step_types: %{
-        singular: "step_type",
-        plural: "step_types",
-        module_singular: "StepType",
-        module_plural: "StepTypes",
-        schema_module: "Steps",
-        create_function_name: false,
-        update_function_name: false,
-        delete_function_name: false,
-        required_context: [],
-        common_fixtures: [:team, :step_type]
-      },
       annotation_types: %{
         singular: "annotation_type",
         plural: "annotation_types",
@@ -78,7 +66,28 @@ defmodule Generate.Seeds do
         local_fixtures: [:team],
         remote_fixtures: [:team, :team_user],
         common_fixtures: [:strategy, :project]
-      }
+      },
+      step_types: %{
+        singular: "step_type",
+        plural: "step_types",
+        module_singular: "StepType",
+        module_plural: "StepTypes",
+        schema_module: "Steps",
+        create_function_name: false,
+        update_function_name: false,
+        delete_function_name: false,
+        required_context: [],
+        common_fixtures: [:team, :step_type]
+      },
+      steps: %{
+        singular: "step",
+        fixture_module: "AutomationFixtures",
+        attrs_function_args: ":valid, page.id, process.id",
+        required_context: [:page, :process],
+        local_fixtures: [:team],
+        remote_fixtures: [:team, :team_user],
+        common_fixtures: [:strategy, :project, :process, :page, :step]
+      },
     ]
   end
 end
