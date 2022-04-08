@@ -88,6 +88,19 @@ defmodule Generate.Seeds do
         remote_fixtures: [:team, :team_user],
         common_fixtures: [:strategy, :project, :process, :page, :step]
       },
+      team_users: %{
+        singular: "team_user",
+        plural: "team_users",
+        module_singular: "TeamUser",
+        module_plural: "TeamUsers",
+        schema_module: "Teams",
+        create_function_name: false,
+        update_function_name: false,
+        required_context: [],
+        local_fixtures: [:team],
+        remote_fixtures: [:team, :team_user],
+        common_fixtures: []
+      },
     ]
   end
 end
