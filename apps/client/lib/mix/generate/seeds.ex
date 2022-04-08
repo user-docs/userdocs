@@ -101,6 +101,15 @@ defmodule Generate.Seeds do
         remote_fixtures: [:team, :team_user],
         common_fixtures: []
       },
+      teams: %{
+        singular: "team",
+        fixture_module: "TeamsFixtures",
+        attrs_function_args: ":valid, %{}",
+        required_context: [],
+        local_fixtures: [:team],
+        remote_fixtures: [:team, :team_user],
+        common_fixtures: []
+      },
     ]
   end
 end

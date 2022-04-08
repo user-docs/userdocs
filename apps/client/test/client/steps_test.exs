@@ -55,19 +55,19 @@ defmodule ClientTest.Steps do
       %{steps: [result]} = Client.data()
       assert result.id == step.id
     end
-
+    
     test "creates", %{remote_page: page, remote_process: process} do
       attrs = AutomationFixtures.step_attrs(:valid, page.id, process.id)
       assert {:ok, %{id: step_id}} = Client.create_step(attrs)
       assert %{id: ^step_id} = Userdocs.Steps.get_step!(step_id, @remote_opts)
     end
-
+    
     test "updates", %{remote_page: page, remote_process: process, remote_step: step} do
       %{name: name} = attrs = AutomationFixtures.step_attrs(:valid, page.id, process.id)
       assert {:ok, step} = Client.update_step(step, attrs)
       assert %{name: ^name} = Userdocs.Steps.get_step!(step.id, @remote_opts)
     end
-
+    
     test "deletes", %{remote_step: step} do
       Client.delete_step(step)
       assert_raise Ecto.NoResultsError, fn -> Userdocs.Steps.get_step!(step.id, @remote_opts) end
@@ -87,24 +87,24 @@ defmodule ClientTest.Steps do
       :create_local_user_context,
       :put_local_context_data
     ]
-
+    
     test "creates", %{local_page: page, local_process: process} do
       attrs = AutomationFixtures.step_attrs(:valid, page.id, process.id)
       assert {:ok, %{id: step_id}} = Client.create_step(attrs)
       assert %{id: ^step_id} = Userdocs.Steps.get_step!(step_id, @local_opts)
     end
-
+    
     test "updates", %{local_page: page, local_process: process, local_step: step} do
       %{name: name} = attrs = AutomationFixtures.step_attrs(:valid, page.id, process.id)
       assert {:ok, step} = Client.update_step(step, attrs)
       assert %{name: ^name} = Userdocs.Steps.get_step!(step.id, @local_opts)
     end
-
+    
     test "deletes", %{local_step: step} do
       Client.delete_step(step)
       assert_raise Ecto.NoResultsError, fn -> Userdocs.Steps.get_step!(step.id, @local_opts) end
     end
-
+    
     test "load_steps/0 loads steps", %{local_step: step} do
       Client.load_steps()
       %{steps: [result]} = Client.data()

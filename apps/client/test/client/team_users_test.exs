@@ -18,6 +18,12 @@ defmodule ClientTest.TeamUsers do
       %{team_user: %Schemas.Teams.TeamUser{}}
     end
 
+    test "Gets TeamUser", %{team_user: team_user} do
+      Client.put_in_state(:data, %{team_users: [team_user]})
+      result = Client.get_team_user!(team_user.id)
+      assert result == team_user
+    end
+
     test "Lists TeamUsers", %{team_user: team_user} do
       Client.put_in_state(:data, %{team_users: [team_user]})
       [result] = Client.list_team_users()
@@ -44,10 +50,31 @@ defmodule ClientTest.TeamUsers do
       %{team_users: [result]} = Client.data()
       assert result.id == team_user.id
     end
-
+    
     test "deletes", %{remote_team_user: team_user} do
       Client.delete_team_user(team_user)
       assert_raise Ecto.NoResultsError, fn -> Userdocs.TeamUsers.get_team_user!(team_user.id, @remote_opts) end
+    end
+  end
+
+  describe "Local" do
+    setup [
+      :create_password,
+      :create_user,
+      :create_local_team,
+      :create_local_user_context,
+      :put_local_context_data
+    ]
+    
+    test "deletes", %{local_team_user: team_user} do
+      Client.delete_team_user(team_user)
+      assert_raise Ecto.NoResultsError, fn -> Userdocs.TeamUsers.get_team_user!(team_user.id, @local_opts) end
+    end
+    
+    test "load_team_users/0 loads team_users", %{local_team_user: team_user} do
+      Client.load_team_users()
+      %{team_users: [result]} = Client.data()
+      assert result.id == team_user.id
     end
   end
 end
