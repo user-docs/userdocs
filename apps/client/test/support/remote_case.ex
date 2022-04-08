@@ -67,6 +67,8 @@ defmodule Client.RemoteCase do
       defp create_remote_annotation_type(_),
         do: %{remote_annotation_type: WebFixtures.annotation_type(:badge, @remote_opts)}
 
+      defp create_remote_step_type(_), do: %{remote_step_type: AutomationFixtures.step_type()}
+
       defp create_remote_tokens(%{user: user}) do
         pow_config = [
           mod: UserdocsWeb.API.Auth.Plug,
