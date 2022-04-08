@@ -56,7 +56,7 @@ defmodule ClientTest.<%= module_plural %> do
       assert %{id: ^<%= variable_name_singular %>_id} = Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>_id, @remote_opts)
     end
     <% end %><%= if update_function_name do %>
-    test "updates", %{<%= remote_context %>remote_<%= variable_name_singular %>: <%= variable_name_singular %>} do
+    test "updates", %{<%= Generate.cast_remote_args(required_context ++ [atom_singular]) |> String.slice(0..-3) %>} do
       %{name: name} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
       assert {:ok, <%= variable_name_singular %>} = Client.<%= update_function_name %>(<%= variable_name_singular %>, attrs)
       assert %{name: ^name} = Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>.id, @remote_opts)
@@ -83,7 +83,7 @@ defmodule ClientTest.<%= module_plural %> do
       assert %{id: ^<%= variable_name_singular %>_id} = Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>_id, @local_opts)
     end
     <% end %><%= if update_function_name do %>
-    test "updates", %{<%= local_context %>local_<%= variable_name_singular %>: <%= variable_name_singular %>} do
+    test "updates", %{<%= Generate.cast_local_args(required_context ++ [atom_singular]) |> String.slice(0..-3) %>} do
       %{name: name} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
       assert {:ok, <%= variable_name_singular %>} = Client.<%= update_function_name %>(<%= variable_name_singular %>, attrs)
       assert %{name: ^name} = Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>.id, @local_opts)

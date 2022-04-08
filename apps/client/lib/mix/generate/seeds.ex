@@ -39,7 +39,7 @@ defmodule Generate.Seeds do
         attrs_function_args: ":valid, page.id",
         required_context: [:page],
         local_fixtures: [:team],
-        remote_fixtures: [:team, :team_user,],
+        remote_fixtures: [:team, :team_user],
         common_fixtures: [:strategy, :project, :page, :annotation]
       },
       elements: %{
@@ -48,7 +48,7 @@ defmodule Generate.Seeds do
         attrs_function_args: ":valid, page.id, strategy.id",
         required_context: [:page, :strategy],
         local_fixtures: [:team],
-        remote_fixtures: [:team, :team_user,],
+        remote_fixtures: [:team, :team_user],
         common_fixtures: [:strategy, :project, :page, :element]
       },
       pages: %{
@@ -57,7 +57,7 @@ defmodule Generate.Seeds do
         attrs_function_args: "%{project_id: project.id}",
         required_context: [:project],
         local_fixtures: [:team],
-        remote_fixtures: [:team, :team_user,],
+        remote_fixtures: [:team, :team_user],
         common_fixtures: [:strategy, :project, :page]
       },
       processes: %{
@@ -67,8 +67,17 @@ defmodule Generate.Seeds do
         attrs_function_args: ":valid, project.id",
         required_context: [:project],
         local_fixtures: [:team],
-        remote_fixtures: [:team, :team_user,],
+        remote_fixtures: [:team, :team_user],
         common_fixtures: [:strategy, :project, :process]
+      },
+      projects: %{
+        singular: "project",
+        fixture_module: "ProjectsFixtures",
+        attrs_function_args: ":valid, team.id, strategy.id",
+        required_context: [:strategy, :team],
+        local_fixtures: [:team],
+        remote_fixtures: [:team, :team_user],
+        common_fixtures: [:strategy, :project]
       }
     ]
   end

@@ -19,6 +19,7 @@ defmodule Generate do
     update_function_name = Map.get(args, :update_function_name, "update_" <> singular)
     delete_function_name = Map.get(args, :delete_function_name, "delete_" <> singular)
     [
+      atom_singular: String.to_atom(singular),
       module_singular: module_singular,
       module_plural: module_plural,
       variable_name_singular: singular,
@@ -33,11 +34,24 @@ defmodule Generate do
       create_function_name: create_function_name,
       update_function_name: update_function_name,
       delete_function_name: delete_function_name,
+      required_context: args.required_context,
       remote_context: remote_context_text,
       local_context: local_context_text,
       remote_fixtures: remote_fixtures_text,
       local_fixtures: local_fixtures_text
     ]
+  end
+
+  def cast_remote_args(args) do
+    args
+    |> Enum.uniq()
+    |> Enum.reduce("", fn c, a -> a <> "remote_#{c}: #{c}, " end)
+  end
+
+  def cast_local_args(args) do
+    args
+    |> Enum.uniq()
+    |> Enum.reduce("", fn c, a -> a <> "local_#{c}: #{c}, " end)
   end
 
   def cast_test_code(fields) do

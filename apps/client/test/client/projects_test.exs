@@ -2,7 +2,6 @@ defmodule ClientTest.Projects do
   use Client.RemoteCase
   use Client.LocalCase
   use Client.Case
-  alias Userdocs.ProjectsFixtures
   alias Userdocs.UsersFixtures
   alias Userdocs.TeamsFixtures
   alias Userdocs.WebFixtures
@@ -19,6 +18,12 @@ defmodule ClientTest.Projects do
       %{project: %Schemas.Projects.Project{}}
     end
 
+    test "Gets Project", %{project: project} do
+      Client.put_in_state(:data, %{projects: [project]})
+      result = Client.get_project!(project.id)
+      assert result == project
+    end
+
     test "Lists Projects", %{project: project} do
       Client.put_in_state(:data, %{projects: [project]})
       [result] = Client.list_projects()
@@ -29,7 +34,6 @@ defmodule ClientTest.Projects do
   describe "Project Server CUD"  do
     setup [
       :ensure_web_started,
-
       :create_password,
       :create_user,
       :create_remote_team,
@@ -37,7 +41,6 @@ defmodule ClientTest.Projects do
       :create_remote_strategy,
       :create_remote_project,
       :create_remote_tokens,
-
       :put_access_token_in_state,
       :create_remote_user_context,
       :put_remote_context_data,
@@ -49,39 +52,23 @@ defmodule ClientTest.Projects do
       %{projects: [result]} = Client.data()
       assert result.id == project.id
     end
-
-    test "creates", %{remote_team: team, remote_strategy: strategy} do
+    
+    test "creates", %{remote_strategy: strategy, remote_team: team} do
       attrs = ProjectsFixtures.project_attrs(:valid, team.id, strategy.id)
       assert {:ok, %{id: project_id}} = Client.create_project(attrs)
       assert %{id: ^project_id} = Userdocs.Projects.get_project!(project_id, @remote_opts)
     end
-
-    test "updates", %{remote_project: project, remote_team: team, remote_strategy: strategy} do
-      %{base_url: base_url} = attrs = ProjectsFixtures.project_attrs(:valid, team.id, strategy.id)
+    
+    test "updates", %{remote_strategy: strategy, remote_team: team, remote_project: project} do
+      %{name: name} = attrs = ProjectsFixtures.project_attrs(:valid, team.id, strategy.id)
       assert {:ok, project} = Client.update_project(project, attrs)
-      assert %{base_url: ^base_url} = Userdocs.Projects.get_project!(project.id, @remote_opts)
+      assert %{name: ^name} = Userdocs.Projects.get_project!(project.id, @remote_opts)
     end
-
+    
     test "deletes", %{remote_project: project} do
-      Client.delete_project(project.id)
+      Client.delete_project(project)
       assert_raise Ecto.NoResultsError, fn -> Userdocs.Projects.get_project!(project.id, @remote_opts) end
     end
-  end
-
-  defp local_setup_context(context) do
-    %{
-      data: %{
-        teams: [context.local_team],
-        projects: [context.local_project],
-        strategies: [context.local_strategy],
-      },
-      context: %Schemas.Users.Context{
-        user_id: context.user.id,
-        team_id: context.local_team.id,
-        project_id: context.local_project.id
-      }
-    }
-    |> Map.merge(context)
   end
 
   describe "Local" do
@@ -91,19 +78,28 @@ defmodule ClientTest.Projects do
       :create_local_team,
       :create_local_strategy,
       :create_local_project,
-      :local_setup_context
+      :create_local_user_context,
+      :put_local_context_data
     ]
-
-    test "create_project/2 creates a project", context do
-      %{local_team: team, local_strategy: strategy} = context
-      Client.put_in_state(context)
-      %{base_url: url} = attrs = ProjectsFixtures.project_attrs(:valid, team.id, strategy.id)
+    
+    test "creates", %{local_strategy: strategy, local_team: team} do
+      attrs = ProjectsFixtures.project_attrs(:valid, team.id, strategy.id)
       assert {:ok, %{id: project_id}} = Client.create_project(attrs)
-      assert %{base_url: ^url} = Userdocs.Projects.get_project!(project_id, @local_opts)
+      assert %{id: ^project_id} = Userdocs.Projects.get_project!(project_id, @local_opts)
     end
-
-    test "load_projects/0 loads projects", %{local_project: project} = context do
-      Client.put_in_state(context)
+    
+    test "updates", %{local_strategy: strategy, local_team: team, local_project: project} do
+      %{name: name} = attrs = ProjectsFixtures.project_attrs(:valid, team.id, strategy.id)
+      assert {:ok, project} = Client.update_project(project, attrs)
+      assert %{name: ^name} = Userdocs.Projects.get_project!(project.id, @local_opts)
+    end
+    
+    test "deletes", %{local_project: project} do
+      Client.delete_project(project)
+      assert_raise Ecto.NoResultsError, fn -> Userdocs.Projects.get_project!(project.id, @local_opts) end
+    end
+    
+    test "load_projects/0 loads projects", %{local_project: project} do
       Client.load_projects()
       %{projects: [result]} = Client.data()
       assert result.id == project.id

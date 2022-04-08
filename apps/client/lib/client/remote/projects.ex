@@ -32,8 +32,8 @@ defmodule Client.Remote.Projects do
   end
 
   @doc "Deletes a project."
-  def delete_project(id, %{access_token: access_token}) do
-    request = Requests.build_delete(@url, id)
+  def delete_project(project, %{access_token: access_token}) do
+    request = Requests.build_delete(@url, project.id)
     Requests.send(request, access_token, nil)
   end
 end
