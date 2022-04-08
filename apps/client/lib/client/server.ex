@@ -156,14 +156,14 @@ defmodule Client.Server do
   def handle_call({:get_annotation_type!, id, opts}, _from, state),
     do: {:reply, State.AnnotationTypes.get_annotation_type!(id, state, kw_opts(opts, state)), state}
 
-  # Step Types
-  def handle_call({:load_step_types, opts}, _from, %{state_opts: state_opts} = state) do
-    step_types = Client.StepTypes.list_step_types(include_token(opts))
-    state = StateHandlers.load(state, step_types, StepType, state_opts)
-    {:reply, :ok, state}
-  end
+  alias Client.StepTypes
+
+  def handle_call({:load_step_types, opts}, _from, state),
+    do: {:reply, :ok, StepTypes.load_step_types(state, opts)}
+
   def handle_call({:list_step_types, opts}, _from, state),
     do: {:reply, State.StepTypes.list_step_types(state, kw_opts(opts, state)), state}
+
   def handle_call({:get_step_type!, id, opts}, _from, state),
     do: {:reply, State.StepTypes.get_step_type!(id, state, kw_opts(opts, state)), state}
 

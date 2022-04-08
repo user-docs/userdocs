@@ -34,14 +34,12 @@ defmodule ClientTest.StepTypes do
   describe "StepType Server CUD"  do
     setup [
       :ensure_web_started,
-
       :create_password,
       :create_user,
       :create_remote_team,
-:create_remote_step_type,
+      :create_remote_step_type,
 
       :create_remote_tokens,
-
       :put_access_token_in_state,
       :create_remote_user_context,
       :put_remote_context_data,
@@ -61,14 +59,13 @@ defmodule ClientTest.StepTypes do
       :create_password,
       :create_user,
       :create_local_team,
-:create_local_step_type,
+      :create_local_step_type,
 
       :create_local_user_context,
       :put_local_context_data
     ]
     
     test "load_step_types/0 loads step_types", %{local_step_type: step_type} = context do
-      Client.put_in_state(context)
       Client.load_step_types()
       %{step_types: [result]} = Client.data()
       assert result.id == step_type.id

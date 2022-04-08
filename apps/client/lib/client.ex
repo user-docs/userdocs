@@ -119,7 +119,7 @@ defmodule Client do
   def get_annotation_type!(id), do: GenServer.call(__MODULE__.Server, {:get_annotation_type!, id, []}, @timeout)
   def get_annotation_type!(id, opts), do: GenServer.call(__MODULE__.Server, {:get_annotation_type!, id, opts}, @timeout)
 
-  def load_step_types(opts), do: GenServer.call(__MODULE__.Server, {:load_step_types, opts}, @timeout)
+  def load_step_types(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_step_types, opts}, @timeout)
   def list_step_types(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_step_types, opts}, @timeout)
   def get_step_type!(id, opts \\ []), do: GenServer.call(__MODULE__.Server, {:get_step_type!, id, opts}, @timeout)
 

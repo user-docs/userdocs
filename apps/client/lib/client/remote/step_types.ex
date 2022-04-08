@@ -1,4 +1,4 @@
-defmodule Client.StepTypes do
+defmodule Client.Remote.StepTypes do
   require Logger
   alias Client.Requests
   alias Userdocs.StepTypes
