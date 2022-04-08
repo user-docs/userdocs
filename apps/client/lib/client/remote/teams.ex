@@ -31,8 +31,8 @@ defmodule Client.Remote.Teams do
   end
 
   @doc "Deletes a team."
-  def delete_team(id, %{access_token: access_token}) do
-    request = Requests.build_delete(@url, id)
+  def delete_team(team, %{access_token: access_token}) do
+    request = Requests.build_delete(@url, team.id)
     Requests.send(request, access_token, nil)
   end
 end
