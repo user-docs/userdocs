@@ -10,10 +10,11 @@ defmodule Generate do
     local_context_text = Enum.reduce(args.required_context, "", fn c, a -> a <> "local_#{c}: #{c}, " end)
     remote_fixtures_text = Enum.reduce(remote_fixtures, "", fn f, a -> a <> "      :create_remote_#{f},\n" end) |> String.slice(0..-2)
     local_fixtures_text = Enum.reduce(local_fixtures, "", fn f, a -> a <> "      :create_local_#{f},\n" end) |> String.slice(0..-2)
-    attrs_function_args = Map.get(args, :attrs_function_args, "")
+    attrs_function_args = Map.get(args, :attrs_function_args, singular <> "_attrs")
     fixture_module = Map.get(args, :fixture_module, "")
     module_singular = Map.get(args, :module_singular, String.capitalize(singular))
     module_plural = Map.get(args, :module_plural, String.capitalize(singular) <> "s")
+    schema_module = Map.get(args, :schema_module, module_plural)
     create_function_name = Map.get(args, :create_function_name, "create_" <> singular)
     update_function_name = Map.get(args, :update_function_name, "update_" <> singular)
     delete_function_name = Map.get(args, :delete_function_name, "delete_" <> singular)
@@ -23,12 +24,12 @@ defmodule Generate do
       variable_name_singular: singular,
       variable_name_plural: plural,
       fixture_module: fixture_module,
-      schemas_module: args.schema_module,
-      attrs_function_name: args.singular <>"_attrs",
+      schemas_module: schema_module,
+      attrs_function_name: singular <>"_attrs",
       attrs_function_args: attrs_function_args,
-      load_function_name: "load_" <> args.plural,
-      get_function_name: "get_" <> args.singular,
-      list_function_name: "list_" <> args.plural,
+      load_function_name: "load_" <> plural,
+      get_function_name: "get_" <> singular,
+      list_function_name: "list_" <> plural,
       create_function_name: create_function_name,
       update_function_name: update_function_name,
       delete_function_name: delete_function_name,

@@ -41,6 +41,15 @@ defmodule Generate.Seeds do
         local_fixtures: [:team],
         remote_fixtures: [:team, :team_user,],
         common_fixtures: [:strategy, :project, :page, :annotation]
+      },
+      elements: %{
+        singular: "element",
+        fixture_module: "WebFixtures",
+        attrs_function_args: ":valid, page.id, strategy.id",
+        required_context: [:page, :strategy],
+        local_fixtures: [:team],
+        remote_fixtures: [:team, :team_user,],
+        common_fixtures: [:strategy, :project, :page, :element]
       }
     ]
   end
