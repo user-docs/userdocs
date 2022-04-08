@@ -59,6 +59,16 @@ defmodule Generate.Seeds do
         local_fixtures: [:team],
         remote_fixtures: [:team, :team_user,],
         common_fixtures: [:strategy, :project, :page]
+      },
+      processes: %{
+        singular: "process",
+        plural: "processes",
+        fixture_module: "AutomationFixtures",
+        attrs_function_args: ":valid, project.id",
+        required_context: [:project],
+        local_fixtures: [:team],
+        remote_fixtures: [:team, :team_user,],
+        common_fixtures: [:strategy, :project, :process]
       }
     ]
   end

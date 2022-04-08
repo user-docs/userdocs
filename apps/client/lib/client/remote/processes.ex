@@ -30,8 +30,8 @@ defmodule Client.Remote.Processes do
   end
 
   @doc "Deletes a process."
-  def delete_process(id, %{access_token: access_token}) do
-    request = Requests.build_delete(@url, id)
+  def delete_process(process, %{access_token: access_token}) do
+    request = Requests.build_delete(@url, process.id)
     Requests.send(request, access_token, nil)
   end
 end

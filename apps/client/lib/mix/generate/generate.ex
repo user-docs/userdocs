@@ -13,7 +13,7 @@ defmodule Generate do
     attrs_function_args = Map.get(args, :attrs_function_args, singular <> "_attrs")
     fixture_module = Map.get(args, :fixture_module, "")
     module_singular = Map.get(args, :module_singular, String.capitalize(singular))
-    module_plural = Map.get(args, :module_plural, String.capitalize(singular) <> "s")
+    module_plural = Map.get(args, :module_plural, String.capitalize(plural))
     schema_module = Map.get(args, :schema_module, module_plural)
     create_function_name = Map.get(args, :create_function_name, "create_" <> singular)
     update_function_name = Map.get(args, :update_function_name, "update_" <> singular)
