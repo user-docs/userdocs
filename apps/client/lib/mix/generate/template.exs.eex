@@ -1,0 +1,103 @@
+defmodule ClientTest.<%= module_plural %> do
+  use Client.RemoteCase
+  use Client.LocalCase
+  use Client.Case
+  alias Userdocs.UsersFixtures
+  alias Userdocs.TeamsFixtures
+  alias Userdocs.WebFixtures
+
+  describe "<%= module_plural %> Initialize" do
+    test "in state properly" do
+      Client.init_state()
+      assert Map.has_key?(Client.data(), :<%= variable_name_plural %>)
+    end
+  end
+
+  describe "Server Lists" do
+    setup do
+      %{<%= variable_name_singular %>: %Schemas.<%= schemas_module %>.<%= module_singular %>{}}
+    end
+
+    test "Gets <%= module_singular %>", %{<%= variable_name_singular %>: <%= variable_name_singular %>} do
+      Client.put_in_state(:data, %{<%= variable_name_plural %>: [<%= variable_name_singular %>]})
+      result = Client.<%= get_function_name %>!(<%= variable_name_singular %>.id)
+      assert result == <%= variable_name_singular %>
+    end
+
+    test "Lists <%= module_plural %>", %{<%= variable_name_singular %>: <%= variable_name_singular %>} do
+      Client.put_in_state(:data, %{<%= variable_name_plural %>: [<%= variable_name_singular %>]})
+      [result] = Client.<%= list_function_name %>()
+      assert result.id == <%= variable_name_singular %>.id
+    end
+  end
+
+  describe "<%= module_singular %> Server CUD"  do
+    setup [
+      :ensure_web_started,
+      :create_password,
+      :create_user,
+<%= remote_fixtures %>
+      :create_remote_tokens,
+      :put_access_token_in_state,
+      :create_remote_user_context,
+      :put_remote_context_data,
+      :put_user_in_state
+    ]
+
+    test "Loads", %{user: user, remote_<%= variable_name_singular %>: <%= variable_name_singular %>} do
+      Client.<%= load_function_name %>(%{filters: %{user_id: user.id}})
+      %{<%= variable_name_plural %>: [result]} = Client.data()
+      assert result.id == <%= variable_name_singular %>.id
+    end
+    <%= if create_function_name do %>
+    test "creates", %{<%= remote_context %>} do
+      attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
+      assert {:ok, %{id: <%= variable_name_singular %>_id}} = Client.<%= create_function_name %>(attrs)
+      assert %{id: ^<%= variable_name_singular %>_id} = Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>_id, @remote_opts)
+    end
+    <% end %><%= if update_function_name do %>
+    test "updates", %{<%= remote_context %>, remote_<%= variable_name_singular %>: <%= variable_name_singular %>} do
+      %{name: name} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
+      assert {:ok, <%= variable_name_singular %>} = Client.<%= update_function_name %>(<%= variable_name_singular %>, attrs)
+      assert %{name: ^name} = Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>.id, @remote_opts)
+    end
+    <% end %><%= if delete_function_name do %>
+    test "deletes", %{remote_<%= variable_name_singular %>: <%= variable_name_singular %>} do
+      Client.<%= delete_function_name %>(<%= variable_name_singular %>)
+      assert_raise Ecto.NoResultsError, fn -> Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>.id, @remote_opts) end
+    end<% end %>
+  end
+
+  describe "Local" do
+    setup [
+      :create_password,
+      :create_user,
+<%= local_fixtures %>
+      :create_local_user_context,
+      :put_local_context_data
+    ]
+    <%= if create_function_name do %>
+    test "creates", %{<%= local_context %>} do
+      attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
+      assert {:ok, %{id: <%= variable_name_singular %>_id}} = Client.<%= create_function_name %>(attrs)
+      assert %{id: ^<%= variable_name_singular %>_id} = Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>_id, @local_opts)
+    end
+    <% end %><%= if update_function_name do %>
+    test "updates", %{<%= local_context %>, local_<%= variable_name_singular %>: <%= variable_name_singular %>} do
+      %{name: name} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
+      assert {:ok, <%= variable_name_singular %>} = Client.<%= update_function_name %>(<%= variable_name_singular %>, attrs)
+      assert %{name: ^name} = Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>.id, @local_opts)
+    end
+    <% end %><%= if delete_function_name do %>
+    test "deletes", %{local_<%= variable_name_singular %>: <%= variable_name_singular %>} do
+      Client.<%= delete_function_name %>(<%= variable_name_singular %>)
+      assert_raise Ecto.NoResultsError, fn -> Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>.id, @local_opts) end
+    end
+    <% end %>
+    test "<%= load_function_name %>/0 loads <%= variable_name_plural %>", %{local_<%= variable_name_singular %>: <%= variable_name_singular %>} = context do
+      Client.<%= load_function_name %>()
+      %{<%= variable_name_plural %>: [result]} = Client.data()
+      assert result.id == <%= variable_name_singular %>.id
+    end
+  end
+end

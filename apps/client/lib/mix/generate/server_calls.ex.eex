@@ -1,0 +1,21 @@
+alias Client.<%= module_plural %>
+
+def handle_call({:load_<%= variable_name_plural %>, opts}, _from, state),
+  do: {:reply, :ok, <%= module_plural %>.load_<%= variable_name_plural %>(state, opts)}
+
+def handle_call({:list_<%= variable_name_plural %>, opts}, _from, state),
+  do: {:reply, State.<%= module_plural %>.list_<%= variable_name_plural %>(state, kw_opts(opts, state)), state}
+
+def handle_call({:<%= get_function_name %>!, id, opts}, _from, state),
+  do: {:reply, State.<%= module_plural %>.<%= get_function_name %>!(id, state, kw_opts(opts, state)), state}
+
+<%= if create_function_name do %>
+def handle_call({:<%= create_function_name %>, attrs}, _from, state),
+  do: {:reply, <%= module_plural %>.<%= create_function_name %>(attrs, state), state}
+<% end %><%= if update_function_name do %>
+def handle_call({:<%= update_function_name %>, step, attrs}, _from, state),
+  do: {:reply, <%= module_plural %>.<%= update_function_name %>(step, attrs, state), state}
+<% end %><%= if delete_function_name do %>
+def handle_call({:<%= delete_function_name %>, id}, _from, state),
+  do: {:reply, <%= module_plural %>.<%= delete_function_name %>(id, state), state}
+<% end %>
