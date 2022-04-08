@@ -11,7 +11,6 @@ defmodule Generate.Seeds do
         module_singular: "StepType",
         module_plural: "StepTypes",
         schema_module: "Steps",
-        fixture_module: "AutomationFixtures",
         create_function_name: false,
         update_function_name: false,
         delete_function_name: false,
@@ -24,12 +23,24 @@ defmodule Generate.Seeds do
         module_singular: "AnnotationType",
         module_plural: "AnnotationTypes",
         schema_module: "Annotations",
-        fixture_module: "WebFixtures",
         create_function_name: false,
         update_function_name: false,
         delete_function_name: false,
         required_context: [],
-        common_fixtures: [:annotation_type]
+        common_fixtures: [:team, :annotation_type]
+      },
+      annotations: %{
+        singular: "annotation",
+        plural: "annotations",
+        module_singular: "Annotation",
+        module_plural: "Annotations",
+        schema_module: "Annotations",
+        fixture_module: "WebFixtures",
+        attrs_function_args: ":valid, page.id",
+        required_context: [:page],
+        local_fixtures: [:team],
+        remote_fixtures: [:team, :team_user,],
+        common_fixtures: [:strategy, :project, :page, :annotation]
       }
     ]
   end

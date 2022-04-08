@@ -34,19 +34,15 @@ defmodule ClientTest.Annotations do
   describe "Annotation Server CUD"  do
     setup [
       :ensure_web_started,
-
       :create_password,
       :create_user,
       :create_remote_team,
-:create_remote_team_user,
-:create_remote_strategy,
-:create_remote_project,
-:create_remote_project,
-:create_remote_page,
-:create_remote_annotation,
-
+      :create_remote_team_user,
+      :create_remote_strategy,
+      :create_remote_project,
+      :create_remote_page,
+      :create_remote_annotation,
       :create_remote_tokens,
-
       :put_access_token_in_state,
       :create_remote_user_context,
       :put_remote_context_data,
@@ -58,45 +54,23 @@ defmodule ClientTest.Annotations do
       %{annotations: [result]} = Client.data()
       assert result.id == annotation.id
     end
-
+    
     test "creates", %{remote_page: page} do
       attrs = WebFixtures.annotation_attrs(:valid, page.id)
       assert {:ok, %{id: annotation_id}} = Client.create_annotation(attrs)
       assert %{id: ^annotation_id} = Userdocs.Annotations.get_annotation!(annotation_id, @remote_opts)
     end
-
+    
     test "updates", %{remote_page: page, remote_annotation: annotation} do
       %{name: name} = attrs = WebFixtures.annotation_attrs(:valid, page.id)
       assert {:ok, annotation} = Client.update_annotation(annotation, attrs)
       assert %{name: ^name} = Userdocs.Annotations.get_annotation!(annotation.id, @remote_opts)
     end
-
+    
     test "deletes", %{remote_annotation: annotation} do
       Client.delete_annotation(annotation)
       assert_raise Ecto.NoResultsError, fn -> Userdocs.Annotations.get_annotation!(annotation.id, @remote_opts) end
     end
-  end
-
-  defp local_setup_context(context) do
-    %{
-      data: %{
-        teams: [context.local_team],
-        projects: [context.local_project],
-        annotations: [context.local_annotation],
-        strategies: [context.local_strategy],
-      },
-      context: %Schemas.Users.Context{
-        user_id: context.user.id,
-        team_id: context.local_team.id,
-        project_id: context.local_project.id
-      }
-    }
-    |> Map.merge(context)
-  end
-
-  defp put_context_in_client(context) do
-    Client.put_in_state(context)
-    :ok
   end
 
   describe "Local" do
@@ -104,35 +78,32 @@ defmodule ClientTest.Annotations do
       :create_password,
       :create_user,
       :create_local_team,
-:create_local_strategy,
-:create_local_project,
-:create_local_project,
-:create_local_page,
-:create_local_annotation,
-
-      :local_setup_context,
-      :put_context_in_client
+      :create_local_strategy,
+      :create_local_project,
+      :create_local_page,
+      :create_local_annotation,
+      :create_local_user_context,
+      :put_local_context_data
     ]
-
+    
     test "creates", %{local_page: page} do
       attrs = WebFixtures.annotation_attrs(:valid, page.id)
       assert {:ok, %{id: annotation_id}} = Client.create_annotation(attrs)
       assert %{id: ^annotation_id} = Userdocs.Annotations.get_annotation!(annotation_id, @local_opts)
     end
-
+    
     test "updates", %{local_page: page, local_annotation: annotation} do
       %{name: name} = attrs = WebFixtures.annotation_attrs(:valid, page.id)
       assert {:ok, annotation} = Client.update_annotation(annotation, attrs)
       assert %{name: ^name} = Userdocs.Annotations.get_annotation!(annotation.id, @local_opts)
     end
-
+    
     test "deletes", %{local_annotation: annotation} do
       Client.delete_annotation(annotation)
       assert_raise Ecto.NoResultsError, fn -> Userdocs.Annotations.get_annotation!(annotation.id, @local_opts) end
     end
-
-    test "load_annotations/0 loads annotations", %{local_annotation: annotation} = context do
-      Client.put_in_state(context)
+    
+    test "load_annotations/0 loads annotations", %{local_annotation: annotation} do
       Client.load_annotations()
       %{annotations: [result]} = Client.data()
       assert result.id == annotation.id
