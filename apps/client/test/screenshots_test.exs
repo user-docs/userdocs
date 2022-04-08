@@ -53,7 +53,7 @@ defmodule ClientTest.Screenshots do
     |> Base.encode64()
   end
 
-  describe "Screenshots" do
+  describe "Remote Screenshots" do
     setup [
       :create_password,
       :create_user,
@@ -138,6 +138,20 @@ defmodule ClientTest.Screenshots do
       assert File.exists?(Path.join(@local_path, to_string(id) <> "-provisional.png")) == true
       assert File.exists?(Path.join(@local_path, to_string(id) <> "-diff.png")) == true
       clean_local_files()
+    end
+  end
+
+  describe "Local Screenshots" do
+    alias Userdocs.ClientFixtures
+    setup do
+      ClientFixtures.base_client()
+      |> ClientFixtures.page()
+      |> ClientFixtures.page_screenshot()
+    end
+
+    test "does something", context do
+      IO.inspect(Map.keys(context))
+      IO.puts("stuff")
     end
   end
 end
