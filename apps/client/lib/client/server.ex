@@ -7,15 +7,10 @@ defmodule Client.Server do
   import Client.StateSupport
 
   alias Schemas.Users.User
-  alias Schemas.Teams.TeamUser
-  alias Schemas.Teams.Team
   alias Schemas.Strategies.Strategy
   alias Schemas.Annotations.AnnotationType
   alias Schemas.Steps.StepType
-  alias Schemas.Pages.Page
-  alias Schemas.Processes.Process
   alias Schemas.Screenshots.Screenshot
-  alias Schemas.Steps.Step
   alias Schemas.Elements.Element
   alias Schemas.Annotations.Annotation
   alias Schemas.Elements.ElementAnnotation
@@ -214,6 +209,9 @@ defmodule Client.Server do
 
   def handle_call({:list_team_users, opts}, _from, state),
     do: {:reply, State.TeamUsers.list_team_users(state, kw_opts(opts, state)), state}
+
+  def handle_call({:get_team_user!, id, opts}, _from, state),
+    do: {:reply, State.TeamUsers.get_team_user!(id, state, kw_opts(opts, state)), state}
 
   def handle_call({:delete_team_user, id}, _from, state),
     do: {:reply, TeamUsers.delete_team_user(id, state), state}

@@ -7,6 +7,7 @@ defmodule ClientTest.Processes do
   alias Userdocs.WebFixtures
 
   describe "Processes Initialize" do
+    setup [:reinitialize_state]
     test "in state properly" do
       Client.init_state()
       assert Map.has_key?(Client.data(), :processes)
@@ -17,13 +18,13 @@ defmodule ClientTest.Processes do
     setup do
       %{process: %Schemas.Processes.Process{}}
     end
-
+    
     test "Gets Process", %{process: process} do
       Client.put_in_state(:data, %{processes: [process]})
       result = Client.get_process!(process.id)
       assert result == process
     end
-
+    
     test "Lists Processes", %{process: process} do
       Client.put_in_state(:data, %{processes: [process]})
       [result] = Client.list_processes()
@@ -33,6 +34,7 @@ defmodule ClientTest.Processes do
 
   describe "Process Server CUD"  do
     setup [
+      :reinitialize_state,
       :ensure_web_started,
       :create_password,
       :create_user,

@@ -18,6 +18,9 @@ defmodule Generate do
     create_function_name = Map.get(args, :create_function_name, "create_" <> singular)
     update_function_name = Map.get(args, :update_function_name, "update_" <> singular)
     delete_function_name = Map.get(args, :delete_function_name, "delete_" <> singular)
+    get_function_name = Map.get(args, :get_function_name, "get_" <> singular)
+    struct_args = Map.get(args, :struct_args, "")
+    local = Map.get(args, :local, true)
     [
       atom_singular: String.to_atom(singular),
       module_singular: module_singular,
@@ -29,7 +32,7 @@ defmodule Generate do
       attrs_function_name: singular <>"_attrs",
       attrs_function_args: attrs_function_args,
       load_function_name: "load_" <> plural,
-      get_function_name: "get_" <> singular,
+      get_function_name: get_function_name,
       list_function_name: "list_" <> plural,
       create_function_name: create_function_name,
       update_function_name: update_function_name,
@@ -38,7 +41,9 @@ defmodule Generate do
       remote_context: remote_context_text,
       local_context: local_context_text,
       remote_fixtures: remote_fixtures_text,
-      local_fixtures: local_fixtures_text
+      local_fixtures: local_fixtures_text,
+      struct_args: struct_args,
+      local: local
     ]
   end
 

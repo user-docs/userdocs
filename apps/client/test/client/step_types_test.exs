@@ -7,6 +7,7 @@ defmodule ClientTest.StepTypes do
   alias Userdocs.WebFixtures
 
   describe "StepTypes Initialize" do
+    setup [:reinitialize_state]
     test "in state properly" do
       Client.init_state()
       assert Map.has_key?(Client.data(), :step_types)
@@ -17,13 +18,13 @@ defmodule ClientTest.StepTypes do
     setup do
       %{step_type: %Schemas.Steps.StepType{}}
     end
-
+    
     test "Gets StepType", %{step_type: step_type} do
       Client.put_in_state(:data, %{step_types: [step_type]})
       result = Client.get_step_type!(step_type.id)
       assert result == step_type
     end
-
+    
     test "Lists StepTypes", %{step_type: step_type} do
       Client.put_in_state(:data, %{step_types: [step_type]})
       [result] = Client.list_step_types()
@@ -33,6 +34,7 @@ defmodule ClientTest.StepTypes do
 
   describe "StepType Server CUD"  do
     setup [
+      :reinitialize_state,
       :ensure_web_started,
       :create_password,
       :create_user,

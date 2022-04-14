@@ -99,7 +99,9 @@ defmodule Generate.Seeds do
         required_context: [],
         local_fixtures: [:team],
         remote_fixtures: [:team, :team_user],
-        common_fixtures: []
+        common_fixtures: [],
+        struct_args: "id: UUID.uuid4()",
+        local: false,
       },
       teams: %{
         singular: "team",

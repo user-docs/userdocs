@@ -7,6 +7,7 @@ defmodule ClientTest.TeamUsers do
   alias Userdocs.WebFixtures
 
   describe "TeamUsers Initialize" do
+    setup [:reinitialize_state]
     test "in state properly" do
       Client.init_state()
       assert Map.has_key?(Client.data(), :team_users)
@@ -15,15 +16,15 @@ defmodule ClientTest.TeamUsers do
 
   describe "Server Lists" do
     setup do
-      %{team_user: %Schemas.Teams.TeamUser{}}
+      %{team_user: %Schemas.Teams.TeamUser{id: UUID.uuid4()}}
     end
-
+    
     test "Gets TeamUser", %{team_user: team_user} do
       Client.put_in_state(:data, %{team_users: [team_user]})
       result = Client.get_team_user!(team_user.id)
       assert result == team_user
     end
-
+    
     test "Lists TeamUsers", %{team_user: team_user} do
       Client.put_in_state(:data, %{team_users: [team_user]})
       [result] = Client.list_team_users()
@@ -33,6 +34,7 @@ defmodule ClientTest.TeamUsers do
 
   describe "TeamUser Server CUD"  do
     setup [
+      :reinitialize_state,
       :ensure_web_started,
       :create_password,
       :create_user,
@@ -57,24 +59,5 @@ defmodule ClientTest.TeamUsers do
     end
   end
 
-  describe "Local" do
-    setup [
-      :create_password,
-      :create_user,
-      :create_local_team,
-      :create_local_user_context,
-      :put_local_context_data
-    ]
-    
-    test "deletes", %{local_team_user: team_user} do
-      Client.delete_team_user(team_user)
-      assert_raise Ecto.NoResultsError, fn -> Userdocs.TeamUsers.get_team_user!(team_user.id, @local_opts) end
-    end
-    
-    test "load_team_users/0 loads team_users", %{local_team_user: team_user} do
-      Client.load_team_users()
-      %{team_users: [result]} = Client.data()
-      assert result.id == team_user.id
-    end
-  end
+  
 end

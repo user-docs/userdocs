@@ -7,6 +7,7 @@ defmodule ClientTest.Steps do
   alias Userdocs.WebFixtures
 
   describe "Steps Initialize" do
+    setup [:reinitialize_state]
     test "in state properly" do
       Client.init_state()
       assert Map.has_key?(Client.data(), :steps)
@@ -17,13 +18,13 @@ defmodule ClientTest.Steps do
     setup do
       %{step: %Schemas.Steps.Step{}}
     end
-
+    
     test "Gets Step", %{step: step} do
       Client.put_in_state(:data, %{steps: [step]})
       result = Client.get_step!(step.id)
       assert result == step
     end
-
+    
     test "Lists Steps", %{step: step} do
       Client.put_in_state(:data, %{steps: [step]})
       [result] = Client.list_steps()
@@ -33,6 +34,7 @@ defmodule ClientTest.Steps do
 
   describe "Step Server CUD"  do
     setup [
+      :reinitialize_state,
       :ensure_web_started,
       :create_password,
       :create_user,

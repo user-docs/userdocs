@@ -24,6 +24,12 @@ defmodule Client.Case do
         :ok
       end
 
+      def reinitialize_state(_) do
+        Client.destroy_state()
+        Client.init_state()
+        :ok
+      end
+
       defp put_context_in_client(context) do
         Client.put_in_state(context)
         :ok

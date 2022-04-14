@@ -7,6 +7,7 @@ defmodule ClientTest.AnnotationTypes do
   alias Userdocs.WebFixtures
 
   describe "AnnotationTypes Initialize" do
+    setup [:reinitialize_state]
     test "in state properly" do
       Client.init_state()
       assert Map.has_key?(Client.data(), :annotation_types)
@@ -17,13 +18,13 @@ defmodule ClientTest.AnnotationTypes do
     setup do
       %{annotation_type: %Schemas.Annotations.AnnotationType{}}
     end
-
+    
     test "Gets AnnotationType", %{annotation_type: annotation_type} do
       Client.put_in_state(:data, %{annotation_types: [annotation_type]})
       result = Client.get_annotation_type!(annotation_type.id)
       assert result == annotation_type
     end
-
+    
     test "Lists AnnotationTypes", %{annotation_type: annotation_type} do
       Client.put_in_state(:data, %{annotation_types: [annotation_type]})
       [result] = Client.list_annotation_types()
@@ -33,6 +34,7 @@ defmodule ClientTest.AnnotationTypes do
 
   describe "AnnotationType Server CUD"  do
     setup [
+      :reinitialize_state,
       :ensure_web_started,
       :create_password,
       :create_user,

@@ -7,6 +7,7 @@ defmodule ClientTest.Projects do
   alias Userdocs.WebFixtures
 
   describe "Projects Initialize" do
+    setup [:reinitialize_state]
     test "in state properly" do
       Client.init_state()
       assert Map.has_key?(Client.data(), :projects)
@@ -17,13 +18,13 @@ defmodule ClientTest.Projects do
     setup do
       %{project: %Schemas.Projects.Project{}}
     end
-
+    
     test "Gets Project", %{project: project} do
       Client.put_in_state(:data, %{projects: [project]})
       result = Client.get_project!(project.id)
       assert result == project
     end
-
+    
     test "Lists Projects", %{project: project} do
       Client.put_in_state(:data, %{projects: [project]})
       [result] = Client.list_projects()
@@ -33,6 +34,7 @@ defmodule ClientTest.Projects do
 
   describe "Project Server CUD"  do
     setup [
+      :reinitialize_state,
       :ensure_web_started,
       :create_password,
       :create_user,

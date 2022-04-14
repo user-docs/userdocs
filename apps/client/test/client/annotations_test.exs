@@ -7,6 +7,7 @@ defmodule ClientTest.Annotations do
   alias Userdocs.WebFixtures
 
   describe "Annotations Initialize" do
+    setup [:reinitialize_state]
     test "in state properly" do
       Client.init_state()
       assert Map.has_key?(Client.data(), :annotations)
@@ -17,13 +18,13 @@ defmodule ClientTest.Annotations do
     setup do
       %{annotation: %Schemas.Annotations.Annotation{}}
     end
-
+    
     test "Gets Annotation", %{annotation: annotation} do
       Client.put_in_state(:data, %{annotations: [annotation]})
       result = Client.get_annotation!(annotation.id)
       assert result == annotation
     end
-
+    
     test "Lists Annotations", %{annotation: annotation} do
       Client.put_in_state(:data, %{annotations: [annotation]})
       [result] = Client.list_annotations()
@@ -33,6 +34,7 @@ defmodule ClientTest.Annotations do
 
   describe "Annotation Server CUD"  do
     setup [
+      :reinitialize_state,
       :ensure_web_started,
       :create_password,
       :create_user,

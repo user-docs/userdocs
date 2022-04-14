@@ -7,6 +7,7 @@ defmodule ClientTest.<%= module_plural %> do
   alias Userdocs.WebFixtures
 
   describe "<%= module_plural %> Initialize" do
+    setup [:reinitialize_state]
     test "in state properly" do
       Client.init_state()
       assert Map.has_key?(Client.data(), :<%= variable_name_plural %>)
@@ -15,15 +16,15 @@ defmodule ClientTest.<%= module_plural %> do
 
   describe "Server Lists" do
     setup do
-      %{<%= variable_name_singular %>: %Schemas.<%= schemas_module %>.<%= module_singular %>{}}
+      %{<%= variable_name_singular %>: %Schemas.<%= schemas_module %>.<%= module_singular %>{<%= struct_args %>}}
     end
-
-    test "Gets <%= module_singular %>", %{<%= variable_name_singular %>: <%= variable_name_singular %>} do
+    
+    <%= if get_function_name do %>test "Gets <%= module_singular %>", %{<%= variable_name_singular %>: <%= variable_name_singular %>} do
       Client.put_in_state(:data, %{<%= variable_name_plural %>: [<%= variable_name_singular %>]})
       result = Client.<%= get_function_name %>!(<%= variable_name_singular %>.id)
       assert result == <%= variable_name_singular %>
     end
-
+    <% end %>
     test "Lists <%= module_plural %>", %{<%= variable_name_singular %>: <%= variable_name_singular %>} do
       Client.put_in_state(:data, %{<%= variable_name_plural %>: [<%= variable_name_singular %>]})
       [result] = Client.<%= list_function_name %>()
@@ -33,6 +34,7 @@ defmodule ClientTest.<%= module_plural %> do
 
   describe "<%= module_singular %> Server CUD"  do
     setup [
+      :reinitialize_state,
       :ensure_web_started,
       :create_password,
       :create_user,
@@ -68,7 +70,7 @@ defmodule ClientTest.<%= module_plural %> do
     end<% end %>
   end
 
-  describe "Local" do
+  <%= if local do %>describe "Local" do
     setup [
       :create_password,
       :create_user,
@@ -99,5 +101,5 @@ defmodule ClientTest.<%= module_plural %> do
       %{<%= variable_name_plural %>: [result]} = Client.data()
       assert result.id == <%= variable_name_singular %>.id
     end
-  end
+  end<% end %>
 end

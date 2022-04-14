@@ -38,6 +38,7 @@ defmodule Client do
 
   def load_team_users(opts), do: GenServer.call(__MODULE__.Server, {:load_team_users, opts}, @timeout)
   def list_team_users(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_team_users, opts}, @timeout)
+  def get_team_user!(id, opts \\[]), do: GenServer.call(__MODULE__.Server, {:get_team_user!, id, opts}, @timeout)
   def delete_team_user(team_user), do: GenServer.call(__MODULE__.Server, {:delete_team_user, team_user}, @timeout)
 
   def load_teams(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_teams, opts}, @timeout)

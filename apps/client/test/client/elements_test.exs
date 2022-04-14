@@ -7,6 +7,7 @@ defmodule ClientTest.Elements do
   alias Userdocs.WebFixtures
 
   describe "Elements Initialize" do
+    setup [:reinitialize_state]
     test "in state properly" do
       Client.init_state()
       assert Map.has_key?(Client.data(), :elements)
@@ -17,13 +18,13 @@ defmodule ClientTest.Elements do
     setup do
       %{element: %Schemas.Elements.Element{}}
     end
-
+    
     test "Gets Element", %{element: element} do
       Client.put_in_state(:data, %{elements: [element]})
       result = Client.get_element!(element.id)
       assert result == element
     end
-
+    
     test "Lists Elements", %{element: element} do
       Client.put_in_state(:data, %{elements: [element]})
       [result] = Client.list_elements()
@@ -33,6 +34,7 @@ defmodule ClientTest.Elements do
 
   describe "Element Server CUD"  do
     setup [
+      :reinitialize_state,
       :ensure_web_started,
       :create_password,
       :create_user,

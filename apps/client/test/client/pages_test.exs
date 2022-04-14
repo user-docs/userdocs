@@ -7,6 +7,7 @@ defmodule ClientTest.Pages do
   alias Userdocs.WebFixtures
 
   describe "Pages Initialize" do
+    setup [:reinitialize_state]
     test "in state properly" do
       Client.init_state()
       assert Map.has_key?(Client.data(), :pages)
@@ -17,13 +18,13 @@ defmodule ClientTest.Pages do
     setup do
       %{page: %Schemas.Pages.Page{}}
     end
-
+    
     test "Gets Page", %{page: page} do
       Client.put_in_state(:data, %{pages: [page]})
       result = Client.get_page!(page.id)
       assert result == page
     end
-
+    
     test "Lists Pages", %{page: page} do
       Client.put_in_state(:data, %{pages: [page]})
       [result] = Client.list_pages()
@@ -33,6 +34,7 @@ defmodule ClientTest.Pages do
 
   describe "Page Server CUD"  do
     setup [
+      :reinitialize_state,
       :ensure_web_started,
       :create_password,
       :create_user,

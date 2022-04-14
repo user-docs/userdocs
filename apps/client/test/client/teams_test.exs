@@ -7,6 +7,7 @@ defmodule ClientTest.Teams do
   alias Userdocs.WebFixtures
 
   describe "Teams Initialize" do
+    setup [:reinitialize_state]
     test "in state properly" do
       Client.init_state()
       assert Map.has_key?(Client.data(), :teams)
@@ -17,13 +18,13 @@ defmodule ClientTest.Teams do
     setup do
       %{team: %Schemas.Teams.Team{}}
     end
-
+    
     test "Gets Team", %{team: team} do
       Client.put_in_state(:data, %{teams: [team]})
       result = Client.get_team!(team.id)
       assert result == team
     end
-
+    
     test "Lists Teams", %{team: team} do
       Client.put_in_state(:data, %{teams: [team]})
       [result] = Client.list_teams()
@@ -33,6 +34,7 @@ defmodule ClientTest.Teams do
 
   describe "Team Server CUD"  do
     setup [
+      :reinitialize_state,
       :ensure_web_started,
       :create_password,
       :create_user,
