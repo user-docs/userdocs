@@ -21,7 +21,9 @@
 
   defp maybe_filter_by_project_id(query, nil), do: query
   defp maybe_filter_by_project_id(query, project_id) do
-    from(screenshot in query, where: screenshot.project_id == ^project_id)
+    from(screenshot in query,
+    left_join: page in assoc(screenshot, :page),
+    where: page.project_id == ^project_id)
   end
 
   defp base_screenshots_query(), do: from(screenshots in Screenshot)
@@ -33,14 +35,18 @@
 
   @doc "Creates a screenshot."
   def create_screenshot(attrs, opts) do
-    :ok = create_aws_files(attrs["id"], nil)
+    #:ok = create_aws_files(attrs["id"], nil)
     %Screenshot{}
     |> Screenshot.changeset(attrs)
     |> RepoHandler.insert(opts)
-    |> case do
+    #|> put_presigned_urls()
+  end
+
+  defp put_presigned_urls(result) do
+    case result do
       {:ok, %Screenshot{} = screenshot} ->
         {:ok, Map.put(screenshot, :presigned_urls, presigned_urls(screenshot))}
-        |> maybe_broadcast_screenshot("create", channel(screenshot, opts[:broadcast]), opts[:broadcast])
+        |> handle_broadcast()
       result -> result
     end
   end
@@ -106,14 +112,13 @@
     screenshot
     |> Screenshot.changeset(attrs)
     |> RepoHandler.update(opts)
-    |> maybe_broadcast_screenshot("update", channel(screenshot, opts[:broadcast]), opts[:broadcast])
+    |> handle_broadcast()
   end
 
   @doc "Deletes a screenshot."
   def delete_screenshot(%Screenshot{} = screenshot, opts) do
-    channel = channel(screenshot, opts[:broadcast])
     RepoHandler.delete(screenshot, opts)
-    |> maybe_broadcast_screenshot("delete", channel, opts[:broadcast])
+    |> handle_broadcast()
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking screenshot changes."
@@ -122,23 +127,25 @@
   end
 
   @doc "Broadcasts a screenshot to the team it belongs to"
-  def maybe_broadcast_screenshot({:error, _} = state, _, _, _), do: state
-  def maybe_broadcast_screenshot({:ok, %Screenshot{} = screenshot}, action, channel, true) do
-    Logger.debug("#{__MODULE__} broadcasting a Screenshot struct")
-    payload = %{
-      type: "Schemas.Screenshots.Screenshot",
-      attrs: screenshot |> Map.put(:presigned_urls, presigned_urls(screenshot))
-    }
-    Subscription.broadcast(channel, action, payload)
-    {:ok, screenshot}
+  def handle_broadcast({:error, _changeset} = response), do: response
+  def handle_broadcast({:ok, %{__meta__: %{state: :deleted}} = struct}) do
+    Subscription.broadcast(channel(struct), "delete", struct)
+    {:ok, struct}
   end
-  def maybe_broadcast_screenshot(state, _, _, _), do: state
+  def handle_broadcast({:ok, %{inserted_at: same_time, updated_at: same_time} = struct}) do
+    Subscription.broadcast(channel(struct), "create", struct)
+    {:ok, struct}
+  end
+  def handle_broadcast({:ok, struct}) do
+    Subscription.broadcast(channel(struct), "update", struct)
+    {:ok, struct}
+  end
 
-  def channel(%Screenshot{} = screenshot, true) do
+  def channel(%Screenshot{} = screenshot) do
     team = Teams.get_screenshot_team!(screenshot.id)
     "team:#{team.id}"
   end
-  def channel(_, _), do: ""
+  def channel(_), do: ""
 
   def original_path(screenshot, repo_path), do: Path.join(repo_path, "#{screenshot.id}.png")
   def provisional_path(screenshot, repo_path), do: Path.join(repo_path, "#{screenshot.id}-provisional.png")
