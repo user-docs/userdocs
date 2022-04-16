@@ -4,8 +4,8 @@ defmodule UserdocsDesktopWeb.RootEventHandlers do
   alias UserdocsDesktopWeb.Router.Helpers, as: Routes
 
   def handle_event("sign-out", _payload, socket) do
-    alias Userdocs.Tokens
-    Tokens.delete_all(%{context: %{repo: Userdocs.LocalRepo}})
+    alias Userdocs.Secrets
+    Secrets.delete_all(%{context: %{repo: Userdocs.LocalRepo}})
     {
       :noreply,
       socket

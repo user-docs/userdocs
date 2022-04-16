@@ -6,7 +6,7 @@ defmodule Client.Initialize do
   alias Client.StateSupport
   alias Client.Loaders
   alias Userdocs.Setups
-  alias Userdocs.Tokens
+  alias Userdocs.Secrets
   alias Userdocs.Contexts
   alias Schemas.Users.Context
   alias Schemas.Teams.Team
@@ -58,7 +58,7 @@ defmodule Client.Initialize do
 
   def do_check_tokens(state, opts) do
     opts
-    |> Tokens.list_tokens()
+    |> Secrets.list_tokens()
     |> Authentication.check_token_store()
     |> case do
       {:ok, _tokens} -> {state, :ok, "Tokens Exist"}
@@ -77,8 +77,8 @@ defmodule Client.Initialize do
         {state, :halt, message}
 
       {:ok, user} ->
-        %{token: access_token} = Tokens.access(local_opts)
-        %{token: renewal_token} = Tokens.renewal(local_opts)
+        %{token: access_token} = Secrets.access(local_opts)
+        %{token: renewal_token} = Secrets.renewal(local_opts)
 
         state =
           Map.put(state, :current_user, user)

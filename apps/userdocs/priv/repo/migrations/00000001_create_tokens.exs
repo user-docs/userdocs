@@ -4,7 +4,8 @@ defmodule Userdocs.Repo.Migrations.CreateTokens do
   def change do
     create table(:tokens, primary_key: false) do
       add :id, :string
-      add :token, :string
+      add :token, :binary
+      add :token_hash, :binary
       timestamps()
     end
 

@@ -19,7 +19,7 @@ defmodule UserdocsDesktopWeb.UserLiveTest do
     ]
 
     setup do
-      on_exit(fn -> Userdocs.LocalRepo.delete_all(Schemas.Tokens.Token) end)
+      on_exit(fn -> Userdocs.LocalRepo.delete_all(Schemas.Secrets.Secret) end)
     end
 
 

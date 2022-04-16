@@ -1,7 +1,7 @@
 defmodule Client.Authentication do
   @moduledoc "Functions for authenticating with the server"
-  alias Userdocs.Tokens
-  alias Schemas.Tokens.Token
+  alias Userdocs.Secrets
+  alias Schemas.Secrets.Secret
   alias Userdocs.Users
   require Logger
 
@@ -14,7 +14,7 @@ defmodule Client.Authentication do
   def init(params) do
     case create_session(params) do
       {:ok, %{access_token: at} = tokens} ->
-        Tokens.upsert_all(tokens, @opts)
+        Secrets.upsert_all(tokens, @opts)
         {:ok, %{"user" => user_params}} = fetch_current_user(at)
         cast_user(user_params)
       {:error, message} -> {:error, message}
@@ -23,7 +23,7 @@ defmodule Client.Authentication do
 
   def init() do
     Logger.debug("#{__MODULE__} initializing session")
-    Tokens.list_tokens(@opts)
+    Secrets.list_tokens(@opts)
     |> check_token_store()
     |> try_access_token()
     |> try_renewal_token()
@@ -31,15 +31,15 @@ defmodule Client.Authentication do
 
   def check_token_store(tokens) do
     case tokens do
-      [%Token{token: "default"}, %Token{token: "default"}, %Token{token: "default"}] ->
+      [%Secret{token: "default"}, %Secret{token: "default"}, %Secret{token: "default"}] ->
         {:error, "No Tokens"}
 
-      [%Token{id: "access"} = a, %Token{id: "renewal"} = r, %Token{id: "user_id"} = uid] ->
+      [%Secret{id: "access"} = a, %Secret{id: "renewal"} = r, %Secret{id: "user_id"} = uid] ->
         {:ok, %{access_token: a.token, renewal_token: r.token, user_id: uid.token}}
 
       [] ->
         Logger.debug("#{__MODULE__} tokens don't exist")
-        Tokens.create_all("default", "default", "default", @opts)
+        Secrets.create_all("default", "default", "default", @opts)
         {:error, "No Tokens"}
     end
   end
@@ -64,7 +64,7 @@ defmodule Client.Authentication do
     case renew_session(renewal_token) do
       {:ok, %{"data" => %{"access_token" => at, "renewal_token" => rt, "user_id" => ui}}} ->
         Logger.info("Token Renewed successfully. Login Successful.")
-        Tokens.update_all(at, rt, ui, @opts)
+        Secrets.update_all(at, rt, ui, @opts)
         {:ok, %{"status" => "ok", "user" => user_params}} = fetch_current_user(at)
         cast_user(user_params)
       _ ->

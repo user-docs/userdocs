@@ -21,7 +21,7 @@ defmodule Client.RemoteCase do
     quote do
       import Client.RemoteCase
 
-      alias Userdocs.Tokens
+      alias Userdocs.Secrets
       alias Userdocs.UsersFixtures
       alias Userdocs.ContextsFixtures
       alias Userdocs.ProjectsFixtures

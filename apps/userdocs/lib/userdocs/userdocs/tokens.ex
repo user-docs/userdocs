@@ -1,41 +1,41 @@
-defmodule Userdocs.Tokens do
+defmodule Userdocs.Secrets do
   @moduledoc "Functions for manipulating tokens stored locally on the client"
   import Ecto.Query
   alias Userdocs.RepoHandler
-  alias Schemas.Tokens.Token
+  alias Schemas.Secrets.Secret
 
   def list_tokens(opts) do
-    Token
+    Secret
     |> order_by(asc: :id)
     |> RepoHandler.all(opts)
   end
 
   def get_token!(id, opts) do
-    RepoHandler.get!(Token, id, opts)
+    RepoHandler.get!(Secret, id, opts)
   end
 
   def access(opts) do
-    from(token in Token, where: token.id == "access")
+    from(token in Secret, where: token.id == "access")
     |> RepoHandler.one!(opts)
   end
   def renewal(opts) do
-    from(token in Token, where: token.id == "renewal")
+    from(token in Secret, where: token.id == "renewal")
     |> RepoHandler.one!(opts)
   end
   def user(opts) do
-    from(token in Token, where: token.id == "user_id")
+    from(token in Secret, where: token.id == "user_id")
     |> RepoHandler.one!(opts)
   end
 
-  def update_token(%Token{} = token, value, opts) do
+  def update_token(%Secret{} = token, value, opts) do
     token
-    |> Token.changeset(%{token: value})
+    |> Secret.changeset(%{token: value})
     |> RepoHandler.update(opts)
   end
 
   def create_token(attrs, opts) do
-    %Token{}
-    |> Token.changeset(attrs)
+    %Secret{}
+    |> Secret.changeset(attrs)
     |> RepoHandler.insert(opts)
   end
 
@@ -71,6 +71,6 @@ defmodule Userdocs.Tokens do
   end
 
   def delete_all(opts) do
-    RepoHandler.delete_all(Token, opts)
+    RepoHandler.delete_all(Secret, opts)
   end
 end

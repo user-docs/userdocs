@@ -28,28 +28,18 @@ defmodule Client.Screenshots do
   @doc "Creates a screenshot."
   def create_screenshot(%{"id" => id} = attrs, %{repo_path: repo_path, access_token: access_token}) do
     {base64, attrs} = Map.pop(attrs, "base64", encoded_placeholder_image())
-    :ok = create_local_files(id, repo_path, base64)
+
     params = %{screenshot: Map.merge(attrs, Userdocs.Screenshots.aws_files_attrs(id))}
     request_fun = Requests.build_create(@url)
+
     {:ok, %{"data" => screenshot_attrs}} = Requests.send(request_fun, access_token, params)
     {:ok, screenshot} = create_screenshot_struct(screenshot_attrs)
+
     binary = Base.decode64!(base64)
     HTTPoison.put(screenshot.presigned_urls.aws_screenshot.put, binary, [])
     HTTPoison.put(screenshot.presigned_urls.aws_provisional_screenshot.put, binary, [])
-    {:ok, screenshot}
-  end
 
-  def create_local_files(id, repo_path, base64) do
-    source_path = Path.join([:code.priv_dir(:userdocs), "static", "images", "userdocs_placeholder.png"])
-    binary =
-      case base64 do
-        nil -> File.read!(source_path)
-        base64 -> Base.decode64!(base64)
-      end
-    File.write(screenshot_path(id, repo_path), binary)
-    File.write(provisional_path(id, repo_path), binary)
-    File.write(diff_path(id, repo_path), binary)
-    :ok
+    {:ok, screenshot}
   end
 
   def create_screenshot_structs(attrs_list) do

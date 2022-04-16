@@ -4,7 +4,7 @@ defmodule ClientTest.InitializeTest do
   import Client.Constants
 
   alias Client.Initialize
-  alias Userdocs.Tokens
+  alias Userdocs.Secrets
   alias Userdocs.Contexts
 
   @types [Schemas.Users.User]
@@ -46,12 +46,12 @@ defmodule ClientTest.InitializeTest do
     end
 
     test "returns error when defaults exist" do
-      Tokens.create_all("default", "default", "default", @local_opts)
+      Secrets.create_all("default", "default", "default", @local_opts)
       assert Initialize.do_check_tokens(%{}, @local_opts) == {%{}, :error, "No Tokens"}
     end
 
     test "returns ok when non-defaults exist" do
-      Tokens.create_all(UUID.uuid4(), UUID.uuid4(), UUID.uuid4(), @local_opts)
+      Secrets.create_all(UUID.uuid4(), UUID.uuid4(), UUID.uuid4(), @local_opts)
       assert Initialize.do_check_tokens(%{}, @local_opts) == {%{}, :ok, "Tokens Exist"}
     end
   end
@@ -71,7 +71,7 @@ defmodule ClientTest.InitializeTest do
     end
 
     test "returns halt message when tokens are default" do
-      Tokens.create_all("default", "default", "default", @local_opts)
+      Secrets.create_all("default", "default", "default", @local_opts)
       assert Initialize.do_authenticate(%{}, @local_opts) == {%{}, :halt, "No Tokens"}
     end
 
