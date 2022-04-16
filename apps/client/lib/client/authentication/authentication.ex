@@ -39,7 +39,7 @@ defmodule Client.Authentication do
 
       [] ->
         Logger.debug("#{__MODULE__} tokens don't exist")
-        Secrets.create_all("default", "default", "default", @opts)
+        Secrets.create_all_tokens("default", "default", "default", @opts)
         {:error, "No Tokens"}
     end
   end

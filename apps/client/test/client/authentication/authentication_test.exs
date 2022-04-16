@@ -41,7 +41,7 @@ defmodule Client.AuthenticationTest do
       Authentication.init(%{"user" => %{"email" => user.email, "password" => password}})
       [_, %{token: rt}, _] = Secrets.list_tokens(@local_opts)
       Secrets.delete_all(@local_opts)
-      Secrets.create_all("default", rt, "1", @local_opts)
+      Secrets.create_all_tokens("default", rt, "1", @local_opts)
       {:ok, current_user} = Authentication.try_renewal_token({:nok, %{message: "", renewal_token: rt}})
       assert current_user.email == user.email
       Secrets.delete_all(@local_opts)
@@ -54,7 +54,7 @@ defmodule Client.AuthenticationTest do
 
     test "init succeeds with an access token", %{access_token: at, user: user} do
       Secrets.delete_all(@local_opts)
-      Secrets.create_all(at, "default", "1", @local_opts)
+      Secrets.create_all_tokens(at, "default", "1", @local_opts)
       {:ok, current_user} = Authentication.init()
       assert current_user.email == user.email
       Secrets.delete_all(@local_opts)
@@ -64,7 +64,7 @@ defmodule Client.AuthenticationTest do
       Authentication.init(%{"user" => %{"email" => user.email, "password" => password}})
       [_, %{token: rt}, _] = Secrets.list_tokens(@local_opts)
       Secrets.delete_all(@local_opts)
-      Secrets.create_all("default", rt, "1", @local_opts)
+      Secrets.create_all_tokens("default", rt, "1", @local_opts)
       {:ok, current_user} = Authentication.init()
       assert current_user.email == user.email
       Secrets.delete_all(@local_opts)
@@ -72,7 +72,7 @@ defmodule Client.AuthenticationTest do
 
     test "init fails with a neither" do
       Secrets.delete_all(@local_opts)
-      Secrets.create_all("default", "default", "1", @local_opts)
+      Secrets.create_all_tokens("default", "default", "1", @local_opts)
       {status, _message} = Authentication.init()
       assert status == :error
       Secrets.delete_all(@local_opts)

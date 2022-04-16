@@ -94,7 +94,7 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
     project = Client.get_project!(user.selected_project_id, %{})
     outer_acc = [{:set_size, %{width: project.default_width, height: project.default_height}}]
     Enum.reduce(socket.assigns.pages, outer_acc, fn(page, acc) ->
-      acc ++ screenshot_command(page, project)
+      acc ++ screenshot_command(page, project, nil)
     end)
     |> BrowserController.enqueue()
     {:noreply, socket}
@@ -103,9 +103,15 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
     user = Client.current_user()
     project = Client.get_project!(user.selected_project_id, %{})
     page = prepare_page(page_id)
-    screenshot_command(page, project)
-    |> BrowserController.enqueue()
-    BrowserController.play()
+    screenshot_id =
+      case Client.list_screenshots(%{filters: [page_id: page.id, step_id: nil]}) do
+        [] -> nil
+        s when is_list(s) -> s |> Enum.at(0) |> Map.get(:id)
+      end
+      |> IO.inspect()
+
+    screenshot_command(page, project, screenshot_id)
+    |> BrowserController.execute()
     {:noreply, socket}
   end
   def handle_event(n, p, s), do: RootEventHandlers.handle_event(n, p, s)
@@ -174,13 +180,13 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
 
   defp page_screenshot(page), do: Pages.page_screenshot(page)
 
-  defp screenshot_command(page, project) do
+  defp screenshot_command(page, project, screenshot_id) do
     width = page.default_width || project.default_width
     height = page.default_height || project.default_height
     [
       {:navigate, %{url: page.url}},
       {:set_size, %{width: width, height: height}},
-      {:full_document_screenshot, %{width: width, page_id: page.id}}
+      {:full_document_screenshot, %{width: width, screenshot_id: screenshot_id}}
     ]
   end
 end

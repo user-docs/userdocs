@@ -54,7 +54,7 @@ defmodule Client.LocalCase do
         do: %{local_context: ContextsFixtures.context(%{user_id: user.id, team_id: team.id, project_id: nil}, @local_opts)}
 
       defp create_local_tokens(%{access_token: at, renewal_token: rt, user: user}) do
-        Secrets.create_all(at, rt, user.id, @local_opts)
+        Secrets.create_all_tokens(at, rt, user.id, @local_opts)
         :ok
       end
 

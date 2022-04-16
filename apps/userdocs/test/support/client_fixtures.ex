@@ -35,7 +35,7 @@ defmodule Userdocs.ClientFixtures do
     page = WebFixtures.page(project.id, @local_opts)
     screenshot = ScreenshotFixtures.screenshot(%{}, @local_opts)
     LocalOptionsFixtures.local_options()
-    Userdocs.Secrets.create_all("asdf", "asdf", 1, @local_opts)
+    Userdocs.Secrets.create_all_tokens("asdf", "asdf", 1, @local_opts)
 
     element = Userdocs.WebFixtures.element_struct(page.id, "css")
     badge_annotation = AnnotationFixtures.annotation_struct(%{annotation_type_id: "badge", label: "1"})
