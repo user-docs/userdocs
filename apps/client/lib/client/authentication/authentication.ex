@@ -60,7 +60,7 @@ defmodule Client.Authentication do
   def try_renewal_token({:error, "No Tokens"}), do: {:error, "No Tokens"}
   def try_renewal_token({:ok, _user} = state), do: state
   def try_renewal_token({:nok, %{renewal_token: renewal_token}}) do
-    Logger.debug("Trying to renew session")
+    Logger.debug("Trying to renew session with token #{renewal_token}")
     case renew_session(renewal_token) do
       {:ok, %{"data" => %{"access_token" => at, "renewal_token" => rt, "user_id" => ui}}} ->
         Logger.info("Token Renewed successfully. Login Successful.")
