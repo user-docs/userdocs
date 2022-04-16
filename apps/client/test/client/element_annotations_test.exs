@@ -6,7 +6,7 @@ defmodule ClientTest.ElementAnnotations do
   alias Userdocs.TeamsFixtures
   alias Userdocs.WebFixtures
 
-  describe "ElementAnnotations Initialize" doEcto.Adapters.SQL.Sandbox
+  describe "ElementAnnotations Initialize" do
     setup [:reinitialize_state]
     test "in state properly" do
       Client.init_state()
@@ -18,8 +18,8 @@ defmodule ClientTest.ElementAnnotations do
     setup do
       %{element_annotation: %Schemas.Elements.ElementAnnotation{id: UUID.uuid4()}}
     end
-
-
+    
+    
     test "Lists ElementAnnotations", %{element_annotation: element_annotation} do
       Client.put_in_state(:data, %{element_annotations: [element_annotation]})
       [result] = Client.list_element_annotations()
@@ -53,8 +53,8 @@ defmodule ClientTest.ElementAnnotations do
       %{element_annotations: [result]} = Client.data()
       assert result.id == element_annotation.id
     end
-
+    
   end
 
-
+  
 end

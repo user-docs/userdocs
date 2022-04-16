@@ -1,4 +1,4 @@
-defmodule Client.Strategies do
+defmodule Client.Remote.Strategies do
   @moduledoc "The Strategies context."
 
   alias Client.Requests

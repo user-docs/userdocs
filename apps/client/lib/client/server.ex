@@ -140,6 +140,8 @@ defmodule Client.Server do
 
   def handle_call(:counts, _from, state), do: {:reply, object_counts(state), state}
 
+  ################################### GENERATED CODE #####################################
+
   alias Client.AnnotationTypes
 
   def handle_call({:load_annotation_types, opts}, _from, state),
@@ -256,16 +258,14 @@ defmodule Client.Server do
   def handle_call({:delete_project, id}, _from, state),
     do: {:reply, Projects.delete_project(id, state), state}
 
+  alias Client.Strategies
 
-  # Strategies
-  def handle_call({:load_strategies, opts}, _from, %{state_opts: state_opts} = state) do
-    strategies = Client.Strategies.list_strategies(include_token(opts))
-    state = StateHandlers.load(state, strategies, Strategy, state_opts)
-    {:reply, :ok, state}
-  end
-  def handle_call({:list_strategies, opts}, _from, state) do
-    {:reply, State.Strategies.list_strategies(state, kw_opts(opts, state)), state}
-  end
+  def handle_call({:load_strategies, opts}, _from, state),
+    do: {:reply, :ok, Strategies.load_strategies(state, opts)}
+
+  def handle_call({:list_strategies, opts}, _from, state),
+    do: {:reply, State.Strategies.list_strategies(state, kw_opts(opts, state)), state}
+
 
   # Screenshots
   def handle_call({:load_screenshots, opts}, _from, %{state_opts: state_opts} = state) do

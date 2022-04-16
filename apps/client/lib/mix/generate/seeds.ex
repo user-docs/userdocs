@@ -128,6 +128,19 @@ defmodule Generate.Seeds do
         common_fixtures: [:strategy, :project, :page, :element, :annotation, :element_annotation],
         struct_args: "id: UUID.uuid4()",
         local: false,
+      },
+      strategies: %{
+        singular: "strategy",
+        plural: "strategies",
+        create_function_name: false,
+        update_function_name: false,
+        delete_function_name: false,
+        get_function_name: false,
+        required_context: [],
+        local_fixtures: [:team],
+        remote_fixtures: [:team, :team_user],
+        common_fixtures: [:strategy],
+        local: false,
       }
     ]
   end
