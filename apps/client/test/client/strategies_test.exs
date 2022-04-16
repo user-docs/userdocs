@@ -15,6 +15,7 @@ defmodule ClientTest.Strategies do
   end
 
   describe "Server Lists" do
+    setup [:reinitialize_state]
     setup do
       %{strategy: %Schemas.Strategies.Strategy{}}
     end

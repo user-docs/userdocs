@@ -15,6 +15,7 @@ defmodule ClientTest.Projects do
   end
 
   describe "Server Lists" do
+    setup [:reinitialize_state]
     setup do
       %{project: %Schemas.Projects.Project{}}
     end
@@ -75,6 +76,7 @@ defmodule ClientTest.Projects do
 
   describe "Local" do
     setup [
+      :reinitialize_state,
       :create_password,
       :create_user,
       :create_local_team,

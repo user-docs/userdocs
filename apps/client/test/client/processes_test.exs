@@ -15,6 +15,7 @@ defmodule ClientTest.Processes do
   end
 
   describe "Server Lists" do
+    setup [:reinitialize_state]
     setup do
       %{process: %Schemas.Processes.Process{}}
     end
@@ -76,6 +77,7 @@ defmodule ClientTest.Processes do
 
   describe "Local" do
     setup [
+      :reinitialize_state,
       :create_password,
       :create_user,
       :create_local_team,

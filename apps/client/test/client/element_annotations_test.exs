@@ -15,6 +15,7 @@ defmodule ClientTest.ElementAnnotations do
   end
 
   describe "Server Lists" do
+    setup [:reinitialize_state]
     setup do
       %{element_annotation: %Schemas.Elements.ElementAnnotation{id: UUID.uuid4()}}
     end

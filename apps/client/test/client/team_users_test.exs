@@ -15,6 +15,7 @@ defmodule ClientTest.TeamUsers do
   end
 
   describe "Server Lists" do
+    setup [:reinitialize_state]
     setup do
       %{team_user: %Schemas.Teams.TeamUser{id: UUID.uuid4()}}
     end

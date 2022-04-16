@@ -15,6 +15,7 @@ defmodule ClientTest.Annotations do
   end
 
   describe "Server Lists" do
+    setup [:reinitialize_state]
     setup do
       %{annotation: %Schemas.Annotations.Annotation{}}
     end
@@ -77,6 +78,7 @@ defmodule ClientTest.Annotations do
 
   describe "Local" do
     setup [
+      :reinitialize_state,
       :create_password,
       :create_user,
       :create_local_team,
