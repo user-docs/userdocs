@@ -110,7 +110,8 @@ defmodule Client do
   def update_annotation(annotation, attrs), do: GenServer.call(__MODULE__.Server, {:update_annotation, annotation, attrs}, @timeout)
   def delete_annotation(annotation), do: GenServer.call(__MODULE__.Server, {:delete_annotation, annotation}, @timeout)
 
-  def load_element_annotations(opts), do: GenServer.call(__MODULE__.Server, {:load_element_annotations, opts}, @timeout)
+  def load_element_annotations(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_element_annotations, opts}, @timeout)
+  def list_element_annotations(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_element_annotations, opts}, @timeout)
 
   def load_strategies(opts), do: GenServer.call(__MODULE__.Server, {:load_strategies, opts}, @timeout)
   def list_strategies(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_strategies, opts}, @timeout)

@@ -1,4 +1,4 @@
-defmodule Client.ElementAnnotations do
+defmodule Client.Remote.ElementAnnotations do
   @moduledoc """
   The Elements context.
   """

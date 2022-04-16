@@ -396,12 +396,13 @@ defmodule Client.Server do
   def handle_call({:delete_annotation, id}, _from, state),
     do: {:reply, Annotations.delete_annotation(id, state), state}
 
-  # Element Annotations
-  def handle_call({:load_element_annotations, opts}, _from, %{state_opts: state_opts} = state) do
-    element_annotations = Client.ElementAnnotations.list_element_annotations(include_token(opts))
-    state = StateHandlers.load(state, element_annotations, ElementAnnotation, state_opts)
-    {:reply, :ok, state}
-  end
+  alias Client.ElementAnnotations
+
+  def handle_call({:load_element_annotations, opts}, _from, state),
+    do: {:reply, :ok, ElementAnnotations.load_element_annotations(state, opts)}
+
+  def handle_call({:list_element_annotations, opts}, _from, state),
+    do: {:reply, State.ElementAnnotations.list_element_annotations(state, kw_opts(opts, state)), state}
 
   def handle_call(:init_state, _from, %{data: _} = state), do: {:reply, :ok, state}
   def handle_call(:init_state, _from, state),

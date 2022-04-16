@@ -29,6 +29,7 @@ defmodule Client.LocalCase do
       alias Userdocs.TeamsFixtures
       alias Userdocs.PageFixtures
       alias Userdocs.AutomationFixtures
+      alias Userdocs.ElementAnnotationFixtures
 
       @local_opts %{context: %{repo: Userdocs.LocalRepo}}
 
@@ -74,6 +75,9 @@ defmodule Client.LocalCase do
         do: %{local_annotation_type: WebFixtures.annotation_type(:badge, @local_opts)}
 
       defp create_local_step_type(_), do: %{local_step_type: AutomationFixtures.step_type()}
+
+      defp create_local_element_annotation(%{local_element: element, local_annotation: annotation}),
+        do: %{local_element_annotation: ElementAnnotationFixtures.element_annotation(element.id, annotation.id, @local_opts)}
 
       defp put_remote_context_data(%{user: user, remote_team: team, remote_project: project, remote_context: context}) do
         data = Client.state() |> Map.get(:data) |> Map.put(:teams, [team]) |> Map.put(:projects, [project])

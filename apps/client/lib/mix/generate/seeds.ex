@@ -112,6 +112,23 @@ defmodule Generate.Seeds do
         remote_fixtures: [:team, :team_user],
         common_fixtures: []
       },
+      element_annotations: %{
+        singular: "element_annotation",
+        plural: "element_annotations",
+        module_singular: "ElementAnnotation",
+        module_plural: "ElementAnnotations",
+        schema_module: "Elements",
+        create_function_name: false,
+        update_function_name: false,
+        delete_function_name: false,
+        get_function_name: false,
+        required_context: [],
+        local_fixtures: [:team],
+        remote_fixtures: [:team, :team_user],
+        common_fixtures: [:strategy, :project, :page, :element, :annotation, :element_annotation],
+        struct_args: "id: UUID.uuid4()",
+        local: false,
+      }
     ]
   end
 end

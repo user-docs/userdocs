@@ -29,6 +29,7 @@ defmodule Client.RemoteCase do
       alias Userdocs.PageFixtures
       alias Userdocs.TeamsFixtures
       alias Userdocs.AutomationFixtures
+      alias Userdocs.ElementAnnotationFixtures
 
       @remote_opts %{context: %{repo: Userdocs.Repo}}
 
@@ -68,6 +69,14 @@ defmodule Client.RemoteCase do
         do: %{remote_annotation_type: WebFixtures.annotation_type(:badge, @remote_opts)}
 
       defp create_remote_step_type(_), do: %{remote_step_type: AutomationFixtures.step_type()}
+
+      defp create_remote_element_annotation(%{remote_element: element, remote_annotation: annotation}),
+        do: %{remote_element_annotation: ElementAnnotationFixtures.element_annotation(element.id, annotation.id, @remote_opts)}
+
+      defp share_connection(pid) do
+        IO.puts("Sharing")
+        Ecto.Adapters.SQL.Sandbox.allow(Userdocs.Repo, pid, self())
+      end
 
       defp create_remote_tokens(%{user: user}) do
         pow_config = [
