@@ -154,7 +154,7 @@ defmodule Userdocs.Users do
   @doc "Updates a user."
   def update_user(%User{} = user, attrs) do
     user
-    |> User.changeset(attrs)
+    |> User.login_changeset(attrs)
     |> Repo.update()
   end
 

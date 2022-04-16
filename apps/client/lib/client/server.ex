@@ -140,6 +140,30 @@ defmodule Client.Server do
 
   def handle_call(:counts, _from, state), do: {:reply, object_counts(state), state}
 
+  # Step Instances
+
+  def handle_call({:load_step_instances, opts}, _from, %{state_opts: state_opts} = state) do
+    step_instances = Userdocs.StepInstances.list_step_instances(opts)
+    state = StateHandlers.load(state, step_instances, StepInstance, state_opts)
+    {:reply, :ok, state}
+  end
+  def handle_call({:list_step_instances, opts}, _from, state) do
+    {:reply, State.StepInstances.list_step_instances(state, kw_opts(opts, state)), state}
+  end
+  def handle_call({:create_step_instance, attrs}, _from, state) do
+    {:reply, Userdocs.StepInstances.create_step_instance(attrs), state}
+  end
+  def handle_call({:trim_and_create_step_instance, attrs}, _from, state) do
+    {:reply, Userdocs.StepInstances.trim_and_create_step_instance(attrs), state}
+  end
+  def handle_call({:update_step_instance, step_instance, attrs}, _from, state) do
+    {:reply, Userdocs.StepInstances.update_step_instance(step_instance, attrs), state}
+  end
+  def handle_call({:delete_step_instance, id, _opts}, _from, state) do
+    step_instance = Userdocs.StepInstances.get_step_instance!(id)
+    {:reply, Userdocs.StepInstances.delete_step_instance(step_instance), state}
+  end
+
   ################################### GENERATED CODE #####################################
 
   alias Client.AnnotationTypes
@@ -164,46 +188,24 @@ defmodule Client.Server do
   def handle_call({:get_step_type!, id, opts}, _from, state),
     do: {:reply, State.StepTypes.get_step_type!(id, state, kw_opts(opts, state)), state}
 
-  # Step Instances
-  def handle_call({:load_step_instances, opts}, _from, %{state_opts: state_opts} = state) do
-    step_instances = Userdocs.StepInstances.list_step_instances(opts)
-    state = StateHandlers.load(state, step_instances, StepInstance, state_opts)
-    {:reply, :ok, state}
-  end
-  def handle_call({:list_step_instances, opts}, _from, state) do
-    {:reply, State.StepInstances.list_step_instances(state, kw_opts(opts, state)), state}
-  end
-  def handle_call({:create_step_instance, attrs}, _from, state) do
-    {:reply, Userdocs.StepInstances.create_step_instance(attrs), state}
-  end
-  def handle_call({:trim_and_create_step_instance, attrs}, _from, state) do
-    {:reply, Userdocs.StepInstances.trim_and_create_step_instance(attrs), state}
-  end
-  def handle_call({:update_step_instance, step_instance, attrs}, _from, state) do
-    {:reply, Userdocs.StepInstances.update_step_instance(step_instance, attrs), state}
-  end
-  def handle_call({:delete_step_instance, id, _opts}, _from, state) do
-    step_instance = Userdocs.StepInstances.get_step_instance!(id)
-    {:reply, Userdocs.StepInstances.delete_step_instance(step_instance), state}
-  end
+  alias Client.Users
 
-  # Users
-  def handle_call({:load_users, opts}, _from, %{state_opts: state_opts} = state) do
-    users = Client.Users.list_users(include_token(opts))
-    state = StateHandlers.load(state, users, User, state_opts)
-    {:reply, :ok, state}
-  end
-  def handle_call({:list_users, opts}, _from, state) do
-    {:reply, State.Users.list_users(state, kw_opts(opts, state)), state}
-  end
-  def handle_call({:update_user_selections, user, attrs}, _from, state) do
-    result = Client.Users.update_user_selections(user, attrs, %{access_token: access_token()})
-    {:reply, result, state}
-  end
-  def handle_call({:invite_user, attrs}, _from, state) do
-    result = Client.Users.invite_user(attrs, %{access_token: access_token()})
-    {:reply, result, state}
-  end
+  def handle_call({:load_users, opts}, _from, state),
+    do: {:reply, :ok, Users.load_users(state, opts)}
+
+  def handle_call({:list_users, opts}, _from, state),
+    do: {:reply, State.Users.list_users(state, kw_opts(opts, state)), state}
+
+  def handle_call({:get_user!, id, opts}, _from, state),
+    do: {:reply, State.Users.get_user!(id, state, kw_opts(opts, state)), state}
+
+  def handle_call({:update_user, step, attrs}, _from, state),
+    do: {:reply, Users.update_user(step, attrs, state), state}
+    def handle_call({:invite_user, attrs}, _from, state) do
+      result = Client.Remote.Users.invite_user(attrs, %{access_token: access_token()})
+      {:reply, result, state}
+    end
+
   alias Client.TeamUsers
 
   def handle_call({:load_team_users, opts}, _from, state),

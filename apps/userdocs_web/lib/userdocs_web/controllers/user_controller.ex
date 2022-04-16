@@ -30,7 +30,7 @@ defmodule UserdocsWeb.API.UserController do
   def update(conn, %{"id" => id, "user" => user_params}) do
     user = Users.get_user_and_configs!(id)
 
-    with {:ok, %User{} = user} <- Users.update_user_options(user, user_params, @opts) do
+    with {:ok, %User{} = user} <- Users.update_user(user, user_params) do
       render(conn, "show.json", user: user)
     end
   end

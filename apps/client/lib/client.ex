@@ -32,8 +32,9 @@ defmodule Client do
   def update_context(attrs), do: GenServer.cast(__MODULE__.Server, {:update_context, attrs})
 
   def load_users(opts), do: GenServer.call(__MODULE__.Server, {:load_users, opts}, @timeout)
-  def list_users(opts), do: GenServer.call(__MODULE__.Server, {:list_users, opts}, @timeout)
-  def update_user_selections(user, attrs), do: GenServer.call(__MODULE__.Server, {:update_user_selections, user, attrs}, @timeout)
+  def list_users(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_users, opts}, @timeout)
+  def get_user!(id, opts \\[]), do: GenServer.call(__MODULE__.Server, {:get_user!, id, opts}, @timeout)
+  def update_user(user, attrs), do: GenServer.call(__MODULE__.Server, {:update_user, user, attrs}, @timeout)
   def invite_user(attrs), do: GenServer.call(__MODULE__.Server, {:invite_user, attrs}, @timeout)
 
   def load_team_users(opts), do: GenServer.call(__MODULE__.Server, {:load_team_users, opts}, @timeout)

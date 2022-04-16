@@ -1,4 +1,4 @@
-defmodule Client.Users do
+defmodule Client.Remote.Users do
   @moduledoc """
   The Users context.
   """
@@ -32,7 +32,7 @@ defmodule Client.Users do
   end
 
   @doc "Changes user options, not credentials"
-  def update_user_options(%User{} = user, attrs, %{access_token: access_token}) do
+  def update_user(%User{} = user, attrs, %{access_token: access_token}) do
     request_fun = Requests.build_update(@url, user.id)
     {:ok, %{"data" => user_attrs}} = Requests.send(request_fun, access_token, %{user: attrs})
     Users.create_user_struct(user_attrs)
