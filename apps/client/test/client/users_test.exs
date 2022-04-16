@@ -54,7 +54,7 @@ defmodule ClientTest.Users do
     end
 
     test "updates", %{password: password, user: user} do
-      %{email: email} = attrs = UsersFixtures.user_attrs(:valid, password) |> Map.put(:current_password, password) |> IO.inspect()
+      %{email: email} = attrs = UsersFixtures.user_attrs(:valid, password) |> Map.put(:current_password, password)
       assert {:ok, user} = Client.update_user(user, attrs)
       assert %{email: ^email} = Userdocs.Users.get_user!(user.id, @remote_opts)
     end

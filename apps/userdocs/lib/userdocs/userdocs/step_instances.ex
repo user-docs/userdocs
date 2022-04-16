@@ -91,11 +91,11 @@ defmodule Userdocs.StepInstances do
     {:ok, struct}
   end
   def handle_broadcast({:ok, %{inserted_at: same_time, updated_at: same_time} = struct}) do
-    Subscription.broadcast(channel(), "update", struct)
+    Subscription.broadcast(channel(), "create", struct)
     {:ok, struct}
   end
   def handle_broadcast({:ok, struct}) do
-    Subscription.broadcast(channel(), "create", struct)
+    Subscription.broadcast(channel(), "update", struct)
     {:ok, struct}
   end
 

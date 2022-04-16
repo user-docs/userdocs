@@ -30,6 +30,8 @@ defmodule Client.LocalCase do
       alias Userdocs.PageFixtures
       alias Userdocs.AutomationFixtures
       alias Userdocs.ElementAnnotationFixtures
+      alias Userdocs.StepInstanceFixtures
+
 
       @local_opts %{context: %{repo: Userdocs.LocalRepo}}
 
@@ -76,8 +78,13 @@ defmodule Client.LocalCase do
 
       defp create_local_step_type(_), do: %{local_step_type: AutomationFixtures.step_type()}
 
-      defp create_local_element_annotation(%{local_element: element, local_annotation: annotation}),
-        do: %{local_element_annotation: ElementAnnotationFixtures.element_annotation(element.id, annotation.id, @local_opts)}
+      defp create_local_element_annotation(%{local_element: element, local_annotation: annotation}) do
+        object = ElementAnnotationFixtures.element_annotation(element.id, annotation.id, @local_opts)
+        %{local_element_annotation: object}
+      end
+
+      defp create_local_step_instance(%{local_step: step}),
+        do: %{local_step_instance: StepInstanceFixtures.step_instance(%{"step_id" => step.id})}
 
       defp put_remote_context_data(%{user: user, remote_team: team, remote_project: project, remote_context: context}) do
         data = Client.state() |> Map.get(:data) |> Map.put(:teams, [team]) |> Map.put(:projects, [project])
