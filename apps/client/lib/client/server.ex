@@ -131,12 +131,11 @@ defmodule Client.Server do
   end
   def handle_call(:disconnect, _from, state), do: {:reply, :ok, state}
 
-  def handle_call(:load, _from, %{current_user: user, state_opts: state_opts} = state) do
-    opts = %{access_token: access_token(), state_opts: state_opts, user: user}
-    state = Client.Loaders.apply(state, opts)
+  def handle_call(:load, _from, %{socket: _} = state) do
+    state = Client.Loaders.apply(state)
     {:reply, object_counts(state), state}
   end
-  def handle_call(:load, _from, state), do: {:reply, {:error, "Could not load client, no user"}, state}
+  def handle_call(:load, _from, state), do: {:reply, {:error, "Could not load clien, current keys are: #{Map.keys(state)}"}, state}
 
   def handle_call(:counts, _from, state), do: {:reply, object_counts(state), state}
 
@@ -412,46 +411,20 @@ defmodule Client.Server do
 
   @impl true
   def handle_cast(:destroy_state, state), do: {:noreply, Map.delete(state, :data)}
-  def handle_cast({:update_context, attrs}, %{
-    current_user: %{id: user_id} = user,
-    context: %{team_id: team_id, project_id: project_id},
-    user_channel: user_channel,
-    team_channel: team_channel,
-    state_opts: state_opts,
-    socket: socket
-  } = state) do
-    team_id = Map.get(attrs, :team_id, team_id)
-    project_id = Map.get(attrs, :project_id, project_id)
+  def handle_cast({:update_context, attrs}, %{current_user: user, context: context} = state) do
+    team_id = Map.get(attrs, :team_id, context.team_id)
+    project_id = Map.get(attrs, :project_id, context.project_id)
     attrs = %{project_id: project_id, team_id: team_id}
 
     {:ok, context} =
-      Userdocs.Contexts.get_context!(user_id, @local_opts)
+      Userdocs.Contexts.get_context!(user.id, @local_opts)
       |> Userdocs.Contexts.update_context(attrs, @local_opts)
 
-    state = Map.put(state, :context, context)
+    if Map.get(state, :socket, false) do
+      :ok = Channel.disconnect(state.socket, state.user_channel, state.team_channel)
+    end
 
-    opts = %{access_token: access_token(), state_opts: state_opts, user: user}
-    state = Client.Loaders.apply(state, opts)
-
-    team = State.Teams.get_team!(team_id, state, state_opts)
-
-    :ok = Channel.disconnect(socket, user_channel, team_channel)
-    {:ok, channel_info} = Channel.connect(user, team, access_token())
-
-    {:noreply, Map.merge(state, channel_info)}
-  end
-  def handle_cast({:update_context, attrs}, %{
-    current_user: %{id: user_id},
-    context: %{team_id: team_id, project_id: project_id}
-  } = state) do
-    team_id = Map.get(attrs, :team_id, team_id)
-    project_id = Map.get(attrs, :project_id, project_id)
-    attrs = %{project_id: project_id, team_id: team_id}
-    {:ok, context} =
-      Userdocs.Contexts.get_context!(user_id, @local_opts)
-      |> Userdocs.Contexts.update_context(attrs, @local_opts)
-
-    {:noreply, Map.put(state, :context, context)}
+    {:noreply, Map.put(state, :context, context), {:continue, :fetch_context}}
   end
 
 

@@ -1,5 +1,6 @@
 defmodule Client.AuthenticationTest do
   use Client.Case
+  use Client.LocalCase
   use Client.RemoteCase
 	alias Client.Authentication
   alias Schemas.Users.User

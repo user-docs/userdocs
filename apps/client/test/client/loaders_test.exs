@@ -9,7 +9,7 @@ defmodule Client.LoadersTest do
     data =
       data
       |> Map.put(:users, [context.user])
-      |> Map.put(:team_users, [context.team_user])
+      |> Map.put(:team_users, [context.remote_team_user])
       |> Map.put(:teams, [context.remote_team])
       |> Map.put(:projects, [context.remote_project])
       |> Map.put(:strategies, [context.remote_strategy])

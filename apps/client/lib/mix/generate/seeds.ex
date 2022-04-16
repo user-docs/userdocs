@@ -142,18 +142,19 @@ defmodule Generate.Seeds do
         common_fixtures: [:strategy],
         local: false,
       },
-      users: %{
-        singular: "user",
-        fixture_module: "UsersFixtures",
-        attrs_function_args: ":valid, password",
-        create_function_name: false,
-        delete_function_name: false,
-        required_context: [:password],
-        local_fixtures: [:team],
-        remote_fixtures: [:team, :team_user],
-        common_fixtures: [],
-        local: false
-      }
+      # Can't use this yet. Tests are custom
+      # users: %{
+      #   singular: "user",
+      #   fixture_module: "UsersFixtures",
+      #   attrs_function_args: ":valid, password",
+      #   create_function_name: false,
+      #   delete_function_name: false,
+      #   required_context: [:password],
+      #   local_fixtures: [:team],
+      #   remote_fixtures: [:team, :team_user],
+      #   common_fixtures: [],
+      #   local: false
+      # }
     ]
   end
 end

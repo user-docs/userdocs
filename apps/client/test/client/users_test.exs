@@ -15,17 +15,16 @@ defmodule ClientTest.Users do
   end
 
   describe "Server Lists" do
-    setup [:reinitialize_state]
     setup do
       %{user: %Schemas.Users.User{}}
     end
-    
+
     test "Gets User", %{user: user} do
       Client.put_in_state(:data, %{users: [user]})
       result = Client.get_user!(user.id)
       assert result == user
     end
-    
+
     test "Lists Users", %{user: user} do
       Client.put_in_state(:data, %{users: [user]})
       [result] = Client.list_users()
@@ -48,19 +47,19 @@ defmodule ClientTest.Users do
       :put_user_in_state
     ]
 
-    test "Loads", %{user: user, remote_user: user} do
+    test "Loads", %{user: user} do
       Client.load_users(%{filters: %{user_id: user.id}})
       %{users: [result]} = Client.data()
       assert result.id == user.id
     end
-    
-    test "updates", %{remote_password: password, remote_user: user} do
-      %{name: name} = attrs = UsersFixtures.user_attrs(:valid, password)
+
+    test "updates", %{password: password, user: user} do
+      %{email: email} = attrs = UsersFixtures.user_attrs(:valid, password) |> Map.put(:current_password, password)
       assert {:ok, user} = Client.update_user(user, attrs)
-      assert %{name: ^name} = Userdocs.Users.get_user!(user.id, @remote_opts)
+      assert %{email: ^email} = Userdocs.Users.get_user!(user.id, @remote_opts)
     end
-    
+
   end
 
-  
+
 end

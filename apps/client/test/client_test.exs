@@ -22,7 +22,6 @@ defmodule ClientTest do
     ]
 
     test "updating context works", %{local_team: team, local_project: project} do
-      Client.load()
       Client.update_context(%{team_id: team.id, project_id: project.id})
       assert {:ok, %{id: project_id}} = Client.current_project()
       assert project_id == project.id

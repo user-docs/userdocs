@@ -14,9 +14,7 @@ defmodule State.TeamUsers do
     |> maybe_preload(opts[:preloads], state, opts)
   end
 
-  def get_team_user!(id, state, opts) when is_binary(id),
-    do: get_team_user!(String.to_integer(id), state, opts)
-  def get_team_user!(id, state, opts) when is_integer(id) do
+  def get_team_user!(id, state, opts) when is_binary(id) do
     StateHandlers.get(state, id, TeamUser, opts)
     |> maybe_preload(opts[:preloads], state, opts)
   end

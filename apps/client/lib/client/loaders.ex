@@ -46,13 +46,13 @@ defmodule Client.Loaders do
       local_projects
     ] =
       [
-        Task.async(fn -> Client.Users.list_users(opts) end),
-        Task.async(fn -> Client.TeamUsers.list_team_users(team_user_opts) end),
-        Task.async(fn -> Client.Teams.list_teams(opts) end),
+        Task.async(fn -> Client.Remote.Users.list_users(opts) end),
+        Task.async(fn -> Client.Remote.TeamUsers.list_team_users(team_user_opts) end),
+        Task.async(fn -> Client.Remote.Teams.list_teams(opts) end),
         Task.async(fn -> Userdocs.Teams.list_teams(local_opts())  end),
-        Task.async(fn -> Client.Strategies.list_strategies(token_only) end),
-        Task.async(fn -> Client.AnnotationTypes.list_annotation_types(token_only) end),
-        Task.async(fn -> Client.StepTypes.list_step_types(token_only) end),
+        Task.async(fn -> Client.Remote.Strategies.list_strategies(token_only) end),
+        Task.async(fn -> Client.Remote.AnnotationTypes.list_annotation_types(token_only) end),
+        Task.async(fn -> Client.Remote.StepTypes.list_step_types(token_only) end),
         Task.async(fn -> Client.Remote.Projects.list_projects(opts) end),
         Task.async(fn -> Userdocs.Projects.list_projects(local_opts())  end),
       ]
@@ -90,13 +90,13 @@ defmodule Client.Loaders do
       element_annotations,
     ] =
       [
-        Task.async(fn -> Client.Pages.list_pages(opts) end),
-        Task.async(fn -> Client.Processes.list_processes(opts) end),
+        Task.async(fn -> Client.Remote.Pages.list_pages(opts) end),
+        Task.async(fn -> Client.Remote.Processes.list_processes(opts) end),
         Task.async(fn -> Client.Screenshots.list_screenshots(opts) end),
-        Task.async(fn -> Client.Steps.list_steps(opts) end),
-        Task.async(fn -> Client.Elements.list_elements(opts) end),
-        Task.async(fn -> Client.Annotations.list_annotations(opts) end),
-        Task.async(fn -> Client.ElementAnnotations.list_element_annotations(opts) end),
+        Task.async(fn -> Client.Remote.Steps.list_steps(opts) end),
+        Task.async(fn -> Client.Remote.Elements.list_elements(opts) end),
+        Task.async(fn -> Client.Remote.Annotations.list_annotations(opts) end),
+        Task.async(fn -> Client.Remote.ElementAnnotations.list_element_annotations(opts) end),
       ]
       |> Task.await_many()
 
