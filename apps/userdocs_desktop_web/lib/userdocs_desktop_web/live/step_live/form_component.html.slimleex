@@ -153,7 +153,7 @@ class: "m-4"
     page: @form_data.page,
     params: @params,
     select_lists: @select_lists,
-    current_project: @current_user.selected_project,
+    current_project: Client.current_project(),
     return_to: Routes.step_index_path(@socket, :edit, @process.id, @step.id)
 
 = if @action in [:new_element, :edit_element] do

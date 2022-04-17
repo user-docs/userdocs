@@ -2,6 +2,7 @@ defmodule UserdocsDesktopWeb.ProjectPicker do
   @moduledoc false
   use UserdocsDesktopWeb, :live_component
   use Phoenix.HTML
+  alias Schemas.Projects.Project
 
   def dropdown_trigger(assigns, name, _highlight, do: block) do
     ~L"""
@@ -72,7 +73,7 @@ defmodule UserdocsDesktopWeb.ProjectPicker do
                     phx-value-team-id="<%= team_user.team.id %>"
                     phx-target="<%= @myself.cid %>"
                   >
-                    <span class="pr-1 flex-1 text-black whitespace-nowrap <%= is_active(@current_user.selected_project_id, project.id) %>">
+                    <span class="pr-1 flex-1 text-black whitespace-nowrap <%= is_active(project.id) %>">
                       <%= project.name %>
                     </span>
                   </button>
@@ -97,13 +98,11 @@ defmodule UserdocsDesktopWeb.ProjectPicker do
   @impl true
   def update(assigns, socket) do
     user = Client.current_user()
-    project = Client.current_project()
-    selected_project_name = project |> Map.get(:name, "None Selected")
     {
       :ok,
       socket
       |> assign(assigns)
-      |> assign(:selected_project_name, selected_project_name)
+      |> assign(:selected_project_name, project_name())
       |> assign(:current_user, user)
     }
   end
@@ -114,8 +113,7 @@ defmodule UserdocsDesktopWeb.ProjectPicker do
       selected_team_id: team_id,
       selected_project_id: project_id
     }
-    Client.update_user_selections(Client.current_user(), changes)
-    Client.load()
+    Client.update_context(%{team_id: team_id, project_id: project_id})
     {
       :noreply,
       socket
@@ -123,10 +121,18 @@ defmodule UserdocsDesktopWeb.ProjectPicker do
     }
   end
 
-  def is_active(id1, id2) do
+  def is_active(id2) do
+    id1 = Client.current_project() |> Map.get(:id)
     case id1 == id2 do
       true -> "selected"
       false -> ""
+    end
+  end
+
+  defp project_name() do
+    case Client.current_project() do
+      nil -> "None Selected"
+      %Project{name: name} -> name
     end
   end
 end

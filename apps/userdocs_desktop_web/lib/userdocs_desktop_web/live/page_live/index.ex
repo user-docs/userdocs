@@ -38,41 +38,40 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
   end
 
   defp apply_action(socket, :edit, %{"id" => page_id} = params) do
-    user = Client.current_user()
+    project = Client.current_project()
     socket
     |> assign(:page_title, "Edit Page")
     |> assign(:page, prepare_page(page_id))
     |> assign(:params, Map.get(params, "params", %{}))
-    |> assign(:pages, prepare_pages(user.selected_project_id))
+    |> assign(:pages, prepare_pages(project.id))
     |> assign_select_lists()
   end
 
   defp apply_action(socket, :review_screenshot, %{"id" => page_id}) do
-    user = Client.current_user()
+    project = Client.current_project()
     socket
     |> assign(:page_title, "Review Screenshot")
     |> assign(:page, prepare_page(page_id))
-    |> assign(:pages, prepare_pages(user.selected_project_id))
+    |> assign(:pages, prepare_pages(project.id))
     |> assign_select_lists()
   end
 
   defp apply_action(socket, :new, params) do
-    user = Client.current_user()
     project = Client.current_project()
     socket
     |> assign(:page_title, "New Page")
     |> assign(:page, %Page{project: project})
     |> assign(:params, Map.get(params, "params", %{}))
-    |> assign(:pages, prepare_pages(user.selected_project.id))
+    |> assign(:pages, prepare_pages(project.id))
     |> assign_select_lists()
   end
 
   defp apply_action(socket, :index, _params) do
-    user = Client.current_user()
+    project = Client.current_project()
     socket
     |> assign(:page_title, "Listing Pages")
     |> assign(:page, nil)
-    |> assign(:pages, prepare_pages(user.selected_project.id))
+    |> assign(:pages, prepare_pages(project.id))
     |> assign_select_lists()
   end
 
@@ -83,7 +82,7 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
   end
   def handle_event("navigate", %{"id" => id}, socket) do
     user = Client.current_user()
-    project = Client.get_project!(user.selected_project_id, %{})
+    project = Client.current_project()
     page = Client.get_page!(id, %{})
     url = Pages.effective_url(page, project, user)
     BrowserController.execute({:navigate, %{url: url}})
@@ -91,7 +90,7 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
   end
   def handle_event("screenshot-all", _payload, socket) do
     user = Client.current_user()
-    project = Client.get_project!(user.selected_project_id, %{})
+    project = Client.current_project()
     outer_acc = [{:set_size, %{width: project.default_width, height: project.default_height}}]
     Enum.reduce(socket.assigns.pages, outer_acc, fn(page, acc) ->
       acc ++ screenshot_command(page, project, nil)
@@ -101,7 +100,7 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
   end
   def handle_event("screenshot", %{"id" => page_id}, socket) do
     user = Client.current_user()
-    project = Client.get_project!(user.selected_project_id, %{})
+    project = Client.current_project()
     page = prepare_page(page_id)
     screenshot_id =
       case Client.list_screenshots(%{filters: [page_id: page.id, step_id: nil]}) do
@@ -119,7 +118,7 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
   def handle_info(%{topic: "extension", event: "browser_interaction", payload: %{action: "navigate"} = payload},
   %{assigns: %{live_action: live_action}} = socket) do
     user = Client.current_user()
-    project = Client.get_project!(user.selected_project_id, %{})
+    project = Client.current_project()
     page = Client.find_page_by_path(payload.href, %{})
     params = ExtensionMessages.page_params(payload, user, project)
     case live_action do
@@ -140,13 +139,15 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
   end
   def handle_info(%{topic: _, event: _, payload: %Page{}} = sub_data, socket) do
     user = Client.current_user()
+    project = Client.current_project()
     {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
-    {:noreply, assign(socket, :pages, prepare_pages(user.selected_project_id))}
+    {:noreply, assign(socket, :pages, prepare_pages(project.id))}
   end
   def handle_info(%{topic: _, event: _, payload: %Screenshot{}} = sub_data, socket) do
     user = Client.current_user()
+    project = Client.current_project()
     {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
-    {:noreply, assign(socket, :pages, prepare_pages(user.selected_project_id))}
+    {:noreply, assign(socket, :pages, prepare_pages(project.id))}
   end
   def handle_info(n, s), do: RootSubscriptionHandlers.handle_info(n, s)
 

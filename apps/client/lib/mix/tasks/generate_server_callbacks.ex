@@ -14,6 +14,5 @@ defmodule Mix.Tasks.GenerateServerCallbacks do
 
     fields = Generate.cast_args(seed)
     code = Generate.cast_server_calls_code(fields)
-    IO.puts(code)
   end
 end

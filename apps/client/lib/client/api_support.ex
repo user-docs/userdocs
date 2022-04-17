@@ -24,6 +24,7 @@ defmodule Client.APISupport do
 
   def is_remote_team?(%{type: type}) when type in [:personal], do: false
   def is_remote_team?(%{type: type}) when type in [:team, :enterprise], do: true
+  def is_remote_team?(%{type: _}), do: false
 
 
   def get_current_team(%{context: %Context{team_id: nil}}), do: raise("Team ID Not in Context")

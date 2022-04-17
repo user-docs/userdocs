@@ -24,11 +24,11 @@ defmodule UserdocsDesktopWeb.ProcessLive.Index do
 
   @impl true
   def handle_params(params, url, socket) do
-    user = Client.current_user()
+    project = Client.current_project()
     {
       :noreply,
       socket
-      |> prepare_processes(user.selected_project.id)
+      |> prepare_processes(project.id)
       |> assign(url: URI.parse(url))
       |> apply_action(socket.assigns.live_action, params)
     }
@@ -79,13 +79,15 @@ defmodule UserdocsDesktopWeb.ProcessLive.Index do
     Logger.debug("#{__MODULE__} Received a ProcessInstance broadcast")
     {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
     user = Client.current_user()
-    {:noreply, prepare_processes(socket, user.selected_project_id)}
+    project = Client.current_project()
+    {:noreply, prepare_processes(socket, project.id)}
   end
   def handle_info(%{topic: _, event: _, payload: %Process{}} = sub_data, socket) do
     Logger.debug("#{__MODULE__} Received a Process broadcast")
     {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
     user = Client.current_user()
-    {:noreply, prepare_processes(socket, user.selected_project_id)}
+    project = Client.current_project()
+    {:noreply, prepare_processes(socket, project.id)}
   end
   def handle_info(p, s), do: RootSubscriptionHandlers.handle_info(p, s)
 

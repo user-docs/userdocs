@@ -23,7 +23,7 @@ defmodule Client do
 
   def load(), do: GenServer.call(__MODULE__.Server, :load, @timeout)
   def load(data), do: GenServer.call(__MODULE__.Server, {:load, data}, @timeout)
-  def counts(data), do: GenServer.call(__MODULE__.Server, :counts, @timeout)
+  def counts(), do: GenServer.call(__MODULE__.Server, :counts, @timeout)
 
   def init_state(), do: GenServer.call(__MODULE__.Server, :init_state, @timeout)
   def destroy_state(), do: GenServer.cast(__MODULE__.Server, :destroy_state)

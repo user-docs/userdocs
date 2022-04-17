@@ -15,6 +15,7 @@ defmodule UserdocsDesktopWeb.PageLive.FormComponent do
       socket
       |> assign(assigns)
       |> assign(:user, Client.current_user())
+      |> assign(:current_project, Client.current_project())
       |> assign(:changeset, changeset)
     }
   end

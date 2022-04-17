@@ -110,14 +110,14 @@ defmodule Client.Server do
   def handle_call(:current_user, _from, state), do: {:reply, nil, state}
 
   def handle_call(:current_project, _from, state) when state.context.project_id != nil do
-    {:reply, {:ok, get_current_project(state)}, state}
+    {:reply, get_current_project(state), state}
   end
-  def handle_call(:current_project, _from, state), do: {:reply, {:error, nil}, state}
+  def handle_call(:current_project, _from, state), do: {:reply, nil, state}
 
   def handle_call(:current_team, _from, state) when state.context.team_id != nil do
-    {:reply, {:ok, get_current_team(state)}, state}
+    {:reply, get_current_team(state), state}
   end
-  def handle_call(:current_team, _from, state), do: {:reply, {:error, nil}, state}
+  def handle_call(:current_team, _from, state), do: {:reply, nil, state}
 
   def handle_call(:data, _from, %{data: data} = state), do: {:reply, data, state}
   def handle_call(:data, _from, state), do: {:reply, nil, state}
