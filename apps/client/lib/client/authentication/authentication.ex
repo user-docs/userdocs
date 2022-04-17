@@ -1,6 +1,6 @@
 defmodule Client.Authentication do
   @moduledoc "Functions for authenticating with the server"
-  alias Userdocs.Secrets
+  alias Userdocs.Tokens
   alias Schemas.Secrets.Secret
   alias Userdocs.Users
   require Logger
@@ -14,7 +14,7 @@ defmodule Client.Authentication do
   def init(params) do
     case create_session(params) do
       {:ok, %{access_token: at} = tokens} ->
-        Secrets.upsert_all(tokens, @opts)
+        Tokens.upsert_all_tokens(tokens, @opts)
         {:ok, %{"user" => user_params}} = fetch_current_user(at)
         cast_user(user_params)
       {:error, message} -> {:error, message}
@@ -23,7 +23,7 @@ defmodule Client.Authentication do
 
   def init() do
     Logger.debug("#{__MODULE__} initializing session")
-    Secrets.list_tokens(@opts)
+    Tokens.list_tokens(@opts)
     |> check_token_store()
     |> try_access_token()
     |> try_renewal_token()
@@ -39,7 +39,7 @@ defmodule Client.Authentication do
 
       [] ->
         Logger.debug("#{__MODULE__} tokens don't exist")
-        Secrets.create_all_tokens("default", "default", "default", @opts)
+        Tokens.create_all_tokens("default", "default", "default", @opts)
         {:error, "No Tokens"}
     end
   end
@@ -64,7 +64,7 @@ defmodule Client.Authentication do
     case renew_session(renewal_token) do
       {:ok, %{"data" => %{"access_token" => at, "renewal_token" => rt, "user_id" => ui}}} ->
         Logger.info("Token Renewed successfully. Login Successful.")
-        Secrets.update_all(at, rt, ui, @opts)
+        Tokens.update_all_tokens(at, rt, ui, @opts)
         {:ok, %{"status" => "ok", "user" => user_params}} = fetch_current_user(at)
         cast_user(user_params)
       _ ->

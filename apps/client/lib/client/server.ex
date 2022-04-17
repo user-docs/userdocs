@@ -24,6 +24,7 @@ defmodule Client.Server do
   alias Client.Initialize
   alias Local.Paths
 
+  alias Userdocs.Tokens
 
   @types [
     Schemas.Users.User,
@@ -81,7 +82,7 @@ defmodule Client.Server do
     end
   end
   def handle_call(:tokens, _from, state) do
-    [at, rt, uid] = Userdocs.Secrets.list_tokens(@local_opts)
+    [at, rt, uid] = Tokens.list_tokens(@local_opts)
     {:reply, {:ok, %{access_token: at.token, renewal_token: rt.token, user_id: uid.token}}, state}
   end
   def handle_call(:connect, _from, %{socket: socket, user_channel: uc, team_channel: tc, current_user: user, access_token: token} = state) do
@@ -478,7 +479,7 @@ defmodule Client.Server do
 
   def access_token() do
     @local_opts
-    |> Userdocs.Secrets.access()
+    |> Userdocs.Tokens.access()
     |> Map.get(:token)
   end
 

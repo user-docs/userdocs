@@ -3,11 +3,6 @@ defmodule ClientTest do
   use Client.LocalCase
   use Client.Case
 
-  defp create_session(%{user: user, password: password}) do
-    {:ok, _user} = Client.authenticate(%{"user" => %{"email" => user.email, "password" => password}})
-    %{}
-  end
-
   describe "Initialization" do
     setup [
       :reinitialize_state,

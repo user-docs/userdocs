@@ -4,6 +4,7 @@ defmodule Client.AuthenticationTest do
   use Client.RemoteCase
 	alias Client.Authentication
   alias Schemas.Users.User
+  alias Userdocs.Tokens
 
   @local_opts %{context: %{repo: Userdocs.LocalRepo}}
 
@@ -18,13 +19,12 @@ defmodule Client.AuthenticationTest do
     ]
 
     test "check token store on an empty store creates tokens" do
-      Secrets.delete_all(@local_opts)
-      Authentication.check_token_store(Secrets.list_tokens(@local_opts))
-      [at, rt, uid] = Secrets.list_tokens(@local_opts)
+      Authentication.check_token_store(Tokens.list_tokens(@local_opts))
+      [at, rt, uid] = Tokens.list_tokens(@local_opts)
       assert at.token == "default"
       assert rt.token == "default"
       assert uid.token == "default"
-      Secrets.delete_all(@local_opts)
+      Tokens.delete_all_tokens(@local_opts)
     end
 
     test "try_access_token succeeds", %{access_token: at, user: user} do
@@ -39,12 +39,12 @@ defmodule Client.AuthenticationTest do
 
     test "try_renewal_token succeeds", %{user: user, password: password} do
       Authentication.init(%{"user" => %{"email" => user.email, "password" => password}})
-      [_, %{token: rt}, _] = Secrets.list_tokens(@local_opts)
-      Secrets.delete_all(@local_opts)
-      Secrets.create_all_tokens("default", rt, "1", @local_opts)
+      [_, %{token: rt}, _] = Tokens.list_tokens(@local_opts)
+      Tokens.delete_all_tokens(@local_opts)
+      Tokens.create_all_tokens("default", rt, "1", @local_opts)
       {:ok, current_user} = Authentication.try_renewal_token({:nok, %{message: "", renewal_token: rt}})
       assert current_user.email == user.email
-      Secrets.delete_all(@local_opts)
+      Tokens.delete_all_tokens(@local_opts)
     end
 
     test "try_renewal_token fails" do
@@ -53,29 +53,27 @@ defmodule Client.AuthenticationTest do
     end
 
     test "init succeeds with an access token", %{access_token: at, user: user} do
-      Secrets.delete_all(@local_opts)
-      Secrets.create_all_tokens(at, "default", "1", @local_opts)
+      Tokens.create_all_tokens(at, "default", "1", @local_opts)
       {:ok, current_user} = Authentication.init()
       assert current_user.email == user.email
-      Secrets.delete_all(@local_opts)
+      Tokens.delete_all_tokens(@local_opts)
     end
 
     test "init succeeds with a renewal token", %{user: user, password: password} do
       Authentication.init(%{"user" => %{"email" => user.email, "password" => password}})
-      [_, %{token: rt}, _] = Secrets.list_tokens(@local_opts)
-      Secrets.delete_all(@local_opts)
-      Secrets.create_all_tokens("default", rt, "1", @local_opts)
+      [_, %{token: rt}, _] = Tokens.list_tokens(@local_opts)
+      Tokens.delete_all_tokens(@local_opts)
+      Tokens.create_all_tokens("default", rt, "1", @local_opts)
       {:ok, current_user} = Authentication.init()
       assert current_user.email == user.email
-      Secrets.delete_all(@local_opts)
+      Tokens.delete_all_tokens(@local_opts)
     end
 
     test "init fails with a neither" do
-      Secrets.delete_all(@local_opts)
-      Secrets.create_all_tokens("default", "default", "1", @local_opts)
+      Tokens.create_all_tokens("default", "default", "1", @local_opts)
       {status, _message} = Authentication.init()
       assert status == :error
-      Secrets.delete_all(@local_opts)
+      Tokens.delete_all_tokens(@local_opts)
     end
 
     test "init succeeds with valid credentials", %{password: password, user: user} do
