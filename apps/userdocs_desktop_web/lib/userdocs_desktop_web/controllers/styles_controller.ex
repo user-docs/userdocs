@@ -3,10 +3,10 @@ defmodule UserdocsDesktopWeb.StylesController do
   alias UserdocsDesktopWeb.Endpoint
 
   def index(conn, %{"filename" => "team_css_overrides.css"}) do
-    user = Client.current_user()
+    team = Client.current_team()
     conn
     |> Plug.Conn.put_resp_header("content-type", "text/css")
-    |> text(user.selected_team.css)
+    |> text(team.css)
   end
 
   def index(conn, %{"filename" => "sui_font.css"}) do

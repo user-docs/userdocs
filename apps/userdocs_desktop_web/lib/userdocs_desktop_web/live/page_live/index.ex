@@ -172,8 +172,8 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
   end
 
   defp projects_select() do
-    user = Client.current_user()
-    opts = [filter: {:team_id, user.selected_team_id}]
+    team = Client.current_team()
+    opts = [filter: {:team_id, team.id}]
     Client.list_projects(opts)
     |> LiveHelpers.select_list(:name, :true)
   end

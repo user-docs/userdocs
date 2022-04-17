@@ -13,9 +13,7 @@ defmodule UserdocsWeb.API.UserView do
   def render("user.json", %{user: user}) do
     %{
       id: user.id,
-      email: user.email,
-      selected_team_id: user.selected_team_id,
-      selected_project_id: user.selected_project_id
+      email: user.email
     }
   end
 end

@@ -122,7 +122,11 @@ defmodule UserdocsDesktopWeb.ProjectPicker do
   end
 
   def is_active(id2) do
-    id1 = Client.current_project() |> Map.get(:id)
+    project = Client.current_project()
+    id1 = case project do
+      %Project{id: id} -> id
+      _ -> nil
+    end
     case id1 == id2 do
       true -> "selected"
       false -> ""

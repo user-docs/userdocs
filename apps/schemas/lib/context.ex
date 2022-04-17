@@ -5,7 +5,6 @@ defmodule Schemas.Context do
   use Schemas.Schema
   import Ecto.Changeset
   alias Schemas.Users.User
-
   @primary_key false
   embedded_schema do
     embeds_one :user, User

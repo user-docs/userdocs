@@ -6,14 +6,7 @@ defmodule Client.Server do
   import Client.Constants
   import Client.StateSupport
 
-  alias Schemas.Users.User
-  alias Schemas.Strategies.Strategy
-  alias Schemas.Annotations.AnnotationType
-  alias Schemas.Steps.StepType
   alias Schemas.Screenshots.Screenshot
-  alias Schemas.Elements.Element
-  alias Schemas.Annotations.Annotation
-  alias Schemas.Elements.ElementAnnotation
   alias Schemas.StepInstances.StepInstance
   alias Schemas.Users.Context
 
@@ -421,6 +414,7 @@ defmodule Client.Server do
     {:ok, context} =
       Userdocs.Contexts.get_context!(user.id, @local_opts)
       |> Userdocs.Contexts.update_context(attrs, @local_opts)
+      |> IO.inspect()
 
     if Map.get(state, :socket, false) do
       :ok = Channel.disconnect(state.socket, state.user_channel, state.team_channel)
@@ -506,6 +500,7 @@ defmodule Client.Server do
   end
 
   def get_current_team(state) do
+    IO.inspect(state.context)
     %{context: %Context{team_id: team_id}} = state
     State.Teams.get_team!(team_id, state, @state_opts)
   end

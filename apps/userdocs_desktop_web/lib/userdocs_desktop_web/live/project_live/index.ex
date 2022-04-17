@@ -78,21 +78,11 @@ defmodule UserdocsDesktopWeb.ProjectLive.Index do
     {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
     {:noreply, assign(socket, :projects, prepare_projects())}
   end
-  def handle_info(%{topic: "data", event: "update_user", payload: payload}, socket) do
-    alias Userdocs.Users
-    {:ok, user} = Users.create_prepared_user(payload)
-    {
-      :noreply,
-      socket
-      |> Phoenix.LiveView.assign(:current_user, user)
-      |> push_redirect(to: Routes.project_index_path(socket, :index, user.selected_team_id))
-    }
-  end
   def handle_info(n, p), do: RootSubscriptionHandlers.handle_info(n, p)
 
   defp prepare_projects() do
-    user = Client.current_user()
-    opts = [filter: {:team_id, user.selected_team_id}]
+    team = Client.current_team()
+    opts = [filter: {:team_id, team.id}]
     Client.list_projects(opts)
   end
 

@@ -350,6 +350,7 @@ userdocs_team =
     aws_access_key_id: "AKIAT5VKLWBUOAYXO656",
     aws_secret_access_key: "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",
     aws_region: "us-east-2",
+    type: :team,
     css: """
       *,
       *::after,
@@ -412,7 +413,8 @@ userdocs_team =
 
 loreline_team =
   %{
-    name: "LoreLine"
+    name: "LoreLine",
+    type: :team
   }
 
 {:ok, userdocs_team = %Team{id: userdocs_team_id}} =

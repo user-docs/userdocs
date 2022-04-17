@@ -7,7 +7,7 @@ defmodule UserdocsDesktopWeb.InitializeLive do
   @impl true
   def mount(_params, _session, socket) do
     local_status = Local.status()
-    client_status = Client.status()
+    client_status = Client.status() |> IO.inspect()
 
     UserdocsDesktopWeb.Endpoint.subscribe("local")
     UserdocsDesktopWeb.Endpoint.subscribe("client")
@@ -39,7 +39,7 @@ defmodule UserdocsDesktopWeb.InitializeLive do
   defp maybe_redirect(socket, %{authenticate: %{status: :ok}}) do
     push_redirect(socket, to: Routes.home_path(socket, :index))
   end
-  defp maybe_redirect(socket, %{authenticate: %{status: status}}) when status in [:error, :halt] do
+  defp maybe_redirect(socket, %{authenticate: %{status: status}}) when status in [:error, :halt, nil] do
     push_redirect(socket, to: Routes.session_index_path(socket, :new))
   end
 end

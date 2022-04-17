@@ -5,6 +5,7 @@ defmodule Schemas.Users.Context do
   use Schemas.Schema
   import Ecto.Changeset
 
+  @derive {Jason.Encoder, only: [:user_id, :team_id, :project_id]}
   @primary_key {:user_id, Ecto.UUID, autogenerate: false}
   schema "contexts" do
     field :team_id, :binary_id
