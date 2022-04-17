@@ -40,7 +40,7 @@ defmodule Userdocs.SecretsTest do
 
     test "update_secret/2 with valid data updates the secret" do
       secret = secret_fixture()
-      assert {:ok, %Secret{} = secret} = Secrets.update_secret(secret, @update_attrs.token, @default_opts)
+      assert {:ok, %Secret{} = secret} = Secrets.update_secret(secret, @update_attrs, @default_opts)
       assert secret.token == "some updated value"
     end
 

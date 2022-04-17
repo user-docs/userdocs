@@ -1,6 +1,7 @@
 defmodule Userdocs.Tokens do
   @moduledoc "Functions for manipulating tokens stored locally on the client"
   alias Userdocs.Secrets
+  alias Schemas.Secrets.Secret
 
   def list_tokens(opts) do
     opts = Map.put(opts, :filters, [ids: ["access", "renewal", "user_id"]])
@@ -25,9 +26,9 @@ defmodule Userdocs.Tokens do
 
   def update_all_tokens(access_token, renewal_token, user_id, opts) do
     [access, renewal, user] = list_tokens(opts)
-    {:ok, at} = Secrets.update_secret(access, access_token, opts)
-    {:ok, rt} = Secrets.update_secret(renewal, renewal_token, opts)
-    {:ok, ui} = Secrets.update_secret(user, to_string(user_id), opts)
+    {:ok, at} = update_token(access, access_token, opts)
+    {:ok, rt} = update_token(renewal, renewal_token, opts)
+    {:ok, ui} = update_token(user, to_string(user_id), opts)
 
     {:ok, %{access_token: at.token, renewal_token: rt.token, user_id: ui.token}}
   end
@@ -46,6 +47,10 @@ defmodule Userdocs.Tokens do
     {:ok, ui} = user(opts) |> Secrets.delete_secret(opts)
 
     {:ok, %{access_token: at.token, renewal_token: rt.token, user_id: ui.token}}
+  end
+
+  def update_token(%Secret{} = secret, value, opts) do
+    Secrets.update_secret(secret, %{token: value}, opts)
   end
 
   def access(opts) do

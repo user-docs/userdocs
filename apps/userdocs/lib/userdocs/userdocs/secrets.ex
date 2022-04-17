@@ -17,9 +17,9 @@ defmodule Userdocs.Secrets do
     RepoHandler.get!(Secret, id, opts)
   end
 
-  def update_secret(%Secret{} = secret, value, opts) do
+  def update_secret(%Secret{} = secret, attrs, opts) do
     secret
-    |> Secret.changeset(%{token: value})
+    |> Secret.changeset(attrs)
     |> RepoHandler.update(opts)
   end
 
