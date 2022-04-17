@@ -12,7 +12,6 @@ defmodule Mix.Tasks.GenerateServerCallbacks do
       |> String.to_atom()
       |> Generate.Seeds.get()
 
-    IO.inspect(seed)
     fields = Generate.cast_args(seed)
     code = Generate.cast_server_calls_code(fields)
     IO.puts(code)

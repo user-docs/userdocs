@@ -2,8 +2,6 @@ defmodule Client do
   @moduledoc "Used to maintain a stateful connection to the server. query/create/update/delete should be gutted. We just need to implement the user update thing on rest and this can go."
   require Logger
 
-  import Client.Projects
-
   @timeout 10_000
 
   def status(), do: GenServer.call(__MODULE__.Server, :status)

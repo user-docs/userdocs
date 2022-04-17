@@ -108,7 +108,6 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
         [] -> nil
         s when is_list(s) -> s |> Enum.at(0) |> Map.get(:id)
       end
-      |> IO.inspect()
 
     screenshot_command(page, project, screenshot_id)
     |> BrowserController.execute()

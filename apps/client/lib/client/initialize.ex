@@ -125,6 +125,7 @@ defmodule Client.Initialize do
     |> handle_result(:connect_channel)
   end
 
+  def do_connect_channel(%{context: %{team_id: nil}} = state, state_opts), do: {state, :halt, "Team Not Selectecd"}
   def do_connect_channel(
         %{current_user: user, access_token: token, context: %{team_id: team_id}} = state,
         state_opts
@@ -135,9 +136,9 @@ defmodule Client.Initialize do
       {state, :ok, "Client connected"}
     else
       nil ->
-        {state, :error, "Failed to fetch team"}
+        {state, :halt, "Failed to fetch team"}
       _e ->
-        {state, :error, "Client.Init Channel Failed to Connect"}
+        {state, :halt, "Client.Init Channel Failed to Connect"}
     end
   end
   def do_connect_channel(_, _), do: {:error, "Insufficient Data to Connect"}

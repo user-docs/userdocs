@@ -52,6 +52,7 @@ defmodule Client.Server do
   @impl true
   def init(%{mode: :test}), do: {:ok, initialize(%{topic: @topic})}
   def init(_) do
+    Logger.info("Initializing #{__MODULE__}")
     Phoenix.PubSub.subscribe(Userdocs.PubSub, "data")
     state = %{setup_status: Initialize.setup_status(), topic: @topic, context: %Context{}}
     {:ok, state, {:continue, :initialize_state}}
@@ -111,12 +112,12 @@ defmodule Client.Server do
   def handle_call(:current_project, _from, state) when state.context.project_id != nil do
     {:reply, {:ok, get_current_project(state)}, state}
   end
-  def handle_call(:current_project, _from, _state), do: {:error, nil}
+  def handle_call(:current_project, _from, state), do: {:reply, {:error, nil}, state}
 
   def handle_call(:current_team, _from, state) when state.context.team_id != nil do
     {:reply, {:ok, get_current_team(state)}, state}
   end
-  def handle_call(:current_team, _from, _state), do: {:error, nil}
+  def handle_call(:current_team, _from, state), do: {:reply, {:error, nil}, state}
 
   def handle_call(:data, _from, %{data: data} = state), do: {:reply, data, state}
   def handle_call(:data, _from, state), do: {:reply, nil, state}
