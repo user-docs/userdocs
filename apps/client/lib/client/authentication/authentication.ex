@@ -31,11 +31,11 @@ defmodule Client.Authentication do
 
   def check_token_store(tokens) do
     case tokens do
-      [%Secret{token: "default"}, %Secret{token: "default"}, %Secret{token: "default"}] ->
+      [%Secret{value: "default"}, %Secret{value: "default"}, %Secret{value: "default"}] ->
         {:error, "No Tokens"}
 
       [%Secret{id: "access"} = a, %Secret{id: "renewal"} = r, %Secret{id: "user_id"} = uid] ->
-        {:ok, %{access_token: a.token, renewal_token: r.token, user_id: uid.token}}
+        {:ok, %{access_token: a.value, renewal_token: r.value, user_id: uid.value}}
 
       [] ->
         Logger.debug("#{__MODULE__} tokens don't exist")

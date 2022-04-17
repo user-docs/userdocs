@@ -5,14 +5,14 @@ defmodule Schemas.Secrets.Secret do
 
   @primary_key {:id, :string, autogenerate: false}
   schema "tokens" do
-    field :token, Schemas.Encrypted.Binary
-    field :token_hash, Cloak.Ecto.SHA256
+    field :value, Schemas.Encrypted.Binary
+    field :value_hash, Cloak.Ecto.SHA256
     timestamps()
   end
 
   def changeset(token, attrs) do
     token
-    |> cast(attrs, [:id, :token])
-    |> validate_required([:id, :token])
+    |> cast(attrs, [:id, :value])
+    |> validate_required([:id, :value])
   end
 end

@@ -1,5 +1,5 @@
 defmodule Userdocs.Secrets do
-  @moduledoc "Functions for manipulating tokens stored locally on the client"
+  @moduledoc "Functions for manipulating secrets stored locally on the client"
   import Ecto.Query
   alias Userdocs.RepoHandler
   alias Schemas.Secrets.Secret

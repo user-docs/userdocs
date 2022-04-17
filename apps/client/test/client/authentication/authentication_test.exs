@@ -21,9 +21,9 @@ defmodule Client.AuthenticationTest do
     test "check token store on an empty store creates tokens" do
       Authentication.check_token_store(Tokens.list_tokens(@local_opts))
       [at, rt, uid] = Tokens.list_tokens(@local_opts)
-      assert at.token == "default"
-      assert rt.token == "default"
-      assert uid.token == "default"
+      assert at.value == "default"
+      assert rt.value == "default"
+      assert uid.value == "default"
       Tokens.delete_all_tokens(@local_opts)
     end
 
@@ -39,7 +39,7 @@ defmodule Client.AuthenticationTest do
 
     test "try_renewal_token succeeds", %{user: user, password: password} do
       Authentication.init(%{"user" => %{"email" => user.email, "password" => password}})
-      [_, %{token: rt}, _] = Tokens.list_tokens(@local_opts)
+      [_, %{value: rt}, _] = Tokens.list_tokens(@local_opts)
       Tokens.delete_all_tokens(@local_opts)
       Tokens.create_all_tokens("default", rt, "1", @local_opts)
       {:ok, current_user} = Authentication.try_renewal_token({:nok, %{message: "", renewal_token: rt}})
@@ -61,7 +61,7 @@ defmodule Client.AuthenticationTest do
 
     test "init succeeds with a renewal token", %{user: user, password: password} do
       Authentication.init(%{"user" => %{"email" => user.email, "password" => password}})
-      [_, %{token: rt}, _] = Tokens.list_tokens(@local_opts)
+      [_, %{value: rt}, _] = Tokens.list_tokens(@local_opts)
       Tokens.delete_all_tokens(@local_opts)
       Tokens.create_all_tokens("default", rt, "1", @local_opts)
       {:ok, current_user} = Authentication.init()

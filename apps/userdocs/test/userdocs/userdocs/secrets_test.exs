@@ -5,9 +5,9 @@ defmodule Userdocs.SecretsTest do
 
   describe "token" do
 
-    @valid_attrs %{id: "id", token: "some value"}
-    @update_attrs %{id: "id", token: "some updated value"}
-    @invalid_attrs %{id: nil, token: nil}
+    @valid_attrs %{id: "id", value: "some value"}
+    @update_attrs %{id: "id", value: "some updated value"}
+    @invalid_attrs %{id: nil, value: nil}
     @default_opts %{context: %{repo: Userdocs.LocalRepo}}
 
     def secret_fixture(attrs \\ %{}) do
@@ -31,7 +31,7 @@ defmodule Userdocs.SecretsTest do
 
     test "create_secret/1 with valid data creates a secret" do
       assert {:ok, %Secret{} = secret} = Secrets.create_secret(@valid_attrs, @default_opts)
-      assert secret.token == "some value"
+      assert secret.value == "some value"
     end
 
     test "create_secret/1 with invalid data returns error changeset" do
@@ -41,7 +41,7 @@ defmodule Userdocs.SecretsTest do
     test "update_secret/2 with valid data updates the secret" do
       secret = secret_fixture()
       assert {:ok, %Secret{} = secret} = Secrets.update_secret(secret, @update_attrs, @default_opts)
-      assert secret.token == "some updated value"
+      assert secret.value == "some updated value"
     end
 
     test "update_secret/2 with invalid data returns error changeset" do

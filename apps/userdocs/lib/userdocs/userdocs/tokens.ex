@@ -10,18 +10,18 @@ defmodule Userdocs.Tokens do
 
   def create_all_tokens(access_token, renewal_token, user_id, opts) do
     {:ok, at} =
-      %{id: "access", token: access_token}
+      %{id: "access", value: access_token}
       |> Secrets.create_secret(opts)
 
     {:ok, rt} =
-      %{id: "renewal", token: renewal_token}
+      %{id: "renewal", value: renewal_token}
       |> Secrets.create_secret(opts)
 
     {:ok, ui} =
-      %{id: "user_id", token: to_string(user_id)}
+      %{id: "user_id", value: to_string(user_id)}
       |> Secrets.create_secret(opts)
 
-    {:ok, %{access_token: at.token, renewal_token: rt.token, user_id: ui.token}}
+    {:ok, %{access_token: at.value, renewal_token: rt.value, user_id: ui.value}}
   end
 
   def update_all_tokens(access_token, renewal_token, user_id, opts) do
@@ -30,7 +30,7 @@ defmodule Userdocs.Tokens do
     {:ok, rt} = update_token(renewal, renewal_token, opts)
     {:ok, ui} = update_token(user, to_string(user_id), opts)
 
-    {:ok, %{access_token: at.token, renewal_token: rt.token, user_id: ui.token}}
+    {:ok, %{access_token: at.value, renewal_token: rt.value, user_id: ui.value}}
   end
 
   def upsert_all_tokens(%{access_token: at, renewal_token: rt, user_id: uid}, opts) do
@@ -46,11 +46,11 @@ defmodule Userdocs.Tokens do
     {:ok, rt} = renewal(opts) |> Secrets.delete_secret(opts)
     {:ok, ui} = user(opts) |> Secrets.delete_secret(opts)
 
-    {:ok, %{access_token: at.token, renewal_token: rt.token, user_id: ui.token}}
+    {:ok, %{access_token: at.value, renewal_token: rt.value, user_id: ui.value}}
   end
 
   def update_token(%Secret{} = secret, value, opts) do
-    Secrets.update_secret(secret, %{token: value}, opts)
+    Secrets.update_secret(secret, %{value: value}, opts)
   end
 
   def access(opts) do

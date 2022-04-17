@@ -77,8 +77,8 @@ defmodule Client.Initialize do
         {state, :halt, message}
 
       {:ok, user} ->
-        %{token: access_token} = Tokens.access(local_opts)
-        %{token: renewal_token} = Tokens.renewal(local_opts)
+        %{value: access_token} = Tokens.access(local_opts)
+        %{value: renewal_token} = Tokens.renewal(local_opts)
 
         state =
           Map.put(state, :current_user, user)

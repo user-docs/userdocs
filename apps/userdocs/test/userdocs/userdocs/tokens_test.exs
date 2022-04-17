@@ -4,7 +4,7 @@ defmodule Userdocs.TokensTest do
   alias Userdocs.Tokens
 
   describe "token" do
-    @valid_attrs %{id: "access", token: "some value"}
+    @valid_attrs %{id: "access", value: "some value"}
     @default_opts %{context: %{repo: Userdocs.LocalRepo}}
 
     def token_fixture(attrs \\ %{}) do
