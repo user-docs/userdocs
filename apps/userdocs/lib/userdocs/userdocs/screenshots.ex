@@ -129,7 +129,7 @@
   @doc "Broadcasts a screenshot to the team it belongs to"
   def handle_broadcast({:error, _changeset} = response), do: response
   def handle_broadcast({:ok, %{__meta__: %{state: :deleted}} = struct}) do
-    Subscription.broadcast(channel(struct), "delete", struct)
+    Subscription.broadcast(channel(struct.page_id), "delete", struct)
     {:ok, struct}
   end
   def handle_broadcast({:ok, %{inserted_at: same_time, updated_at: same_time} = struct}) do
@@ -143,6 +143,10 @@
 
   def channel(%Screenshot{} = screenshot) do
     team = Teams.get_screenshot_team!(screenshot.id)
+    "team:#{team.id}"
+  end
+  def channel(page_id) when is_binary(page_id) do
+    team = Teams.get_page_team(page_id)
     "team:#{team.id}"
   end
   def channel(_), do: ""

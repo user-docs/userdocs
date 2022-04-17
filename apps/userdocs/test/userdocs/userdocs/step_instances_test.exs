@@ -27,11 +27,9 @@ defmodule Userdocs.StepInstancesTest do
       id1 = Ecto.UUID.generate()
       id2 = Ecto.UUID.generate()
       id3 = Ecto.UUID.generate()
-      step_instances = [
-        step_instance_fixture(%{"step_id" => id1}),
-        step_instance_fixture(%{"step_id" => id1}),
-        step_instance_fixture(%{"step_id" => id2}),
-      ]
+      step_instance_fixture(%{"step_id" => id1})
+      step_instance_fixture(%{"step_id" => id1})
+      step_instance_fixture(%{"step_id" => id2})
       step_instance_fixture(%{"step_id" => id3})
       assert StepInstances.list_step_instances(%{filters: [step_ids: [id1, id2]]}) |> Enum.count() == 3
     end
@@ -71,13 +69,13 @@ defmodule Userdocs.StepInstancesTest do
     end
 
     test "create_step_instance sends a message" do
-      assert {:ok, %StepInstance{} = step_instance} = StepInstances.create_step_instance(@valid_attrs)
+      assert {:ok, %StepInstance{} = _step_instance} = StepInstances.create_step_instance(@valid_attrs)
       assert_receive(%{event: "create"}, 1000)
     end
 
     test "update_step_instance sends a message" do
       step_instance = step_instance_fixture() |> Map.put(:inserted_at, Date.add(DateTime.utc_now(), -1))
-      {:ok, %StepInstance{} = step_instance} = StepInstances.update_step_instance(step_instance, %{"status" => "failed"})
+      {:ok, %StepInstance{} = _step_instance} = StepInstances.update_step_instance(step_instance, %{"status" => "failed"})
       assert_receive(%{event: "update"}, 1000)
     end
 

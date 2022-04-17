@@ -6,7 +6,6 @@ defmodule Schemas.Screenshots.Screenshot do
   use Schemas.Schema
   import Ecto.Changeset
 
-  alias Schemas.Projects.Project
   alias Schemas.Pages.Page
   alias Schemas.Steps.Step
   alias Schemas.Screenshots.PresignedURLs
@@ -42,6 +41,7 @@ defmodule Schemas.Screenshots.Screenshot do
     |> cast(attrs, [:id, :name, :file_name, :status, :base64, :aws_file,
       :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot,
       :score, :page_id, :step_id])
+    |> validate_required([:id])
   end
 
   def api_changeset(screenshot, attrs) do

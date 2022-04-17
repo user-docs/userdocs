@@ -55,7 +55,8 @@ defmodule Userdocs.Teams do
   def get_screenshot_team!(id) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], p in assoc(t, :projects), as: :projects)
-    |> join(:left, [projects: p], s in assoc(p, :screenshots), as: :screenshots)
+    |> join(:left, [projects: p], pa in assoc(p, :pages), as: :pages)
+    |> join(:left, [pages: pa], s in assoc(pa, :screenshots), as: :screenshots)
     |> where([screenshots: s], s.id == ^id)
     |> Repo.one!()
   end

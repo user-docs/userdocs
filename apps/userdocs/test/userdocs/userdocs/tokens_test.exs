@@ -1,27 +1,24 @@
 defmodule Userdocs.TokensTest do
   use Userdocs.DataCase
-  alias Schemas.Secrets.Secret
   alias Userdocs.Secrets
   alias Userdocs.Tokens
 
   describe "token" do
     @valid_attrs %{id: "access", token: "some value"}
-    @update_attrs %{id: "id", token: "some updated value"}
-    @invalid_attrs %{id: nil, token: nil}
     @default_opts %{context: %{repo: Userdocs.LocalRepo}}
 
     def token_fixture(attrs \\ %{}) do
       {:ok, token} =
         attrs
         |> Enum.into(@valid_attrs)
-        |> Secrets.create_token(@default_opts)
+        |> Secrets.create_secret(@default_opts)
 
       token
     end
 
     test "list_tokens/0 returns all tokens" do
       access_token = token_fixture(%{id: "access"})
-      secret = token_fixture(%{id: "some_secret"})
+      token_fixture(%{id: "some_secret"})
       assert Tokens.list_tokens(@default_opts) == [access_token]
     end
 

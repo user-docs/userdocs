@@ -17,6 +17,7 @@ defmodule Schemas.Users.Context do
   def changeset(context, attrs) do
     context
     |> cast(attrs, [:user_id, :team_id, :project_id])
+    |> validate_required([:user_id])
   end
 
   @doc false

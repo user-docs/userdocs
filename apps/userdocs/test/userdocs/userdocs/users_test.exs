@@ -49,7 +49,7 @@ defmodule Userdocs.UsersTest do
 
       {:ok, %User{} = user} = Users.update_user(user, attrs)
 
-      assert user.unconfirmed_email == attrs.email
+      assert user.email == attrs.email
     end
 
     test "update_user/2 with invalid data returns error changeset" do

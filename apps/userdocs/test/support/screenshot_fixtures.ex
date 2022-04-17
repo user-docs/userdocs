@@ -43,8 +43,7 @@ defmodule Userdocs.ScreenshotFixtures do
       name: UUID.uuid4(),
       aws_diff_screenshot: UUID.uuid4(),
       aws_screenshot: UUID.uuid4(),
-      aws_provisional_screenshot: UUID.uuid4(),
-      project_id: nil
+      aws_provisional_screenshot: UUID.uuid4()
     }
     |> Map.merge(params)
   end
@@ -55,8 +54,7 @@ defmodule Userdocs.ScreenshotFixtures do
       "name" => UUID.uuid4(),
       "aws_diff_screenshot" => UUID.uuid4(),
       "aws_screenshot" => UUID.uuid4(),
-      "aws_provisional_screenshot" => UUID.uuid4(),
-      "project_id" => ""
+      "aws_provisional_screenshot" => UUID.uuid4()
     }
     |> Map.merge(params)
   end
