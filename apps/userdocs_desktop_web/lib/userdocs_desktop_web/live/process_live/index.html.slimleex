@@ -26,4 +26,4 @@ ul.py-3.shadow-lg.bg-base-100.rounded-box.m-4
           = Icons.trash([])
 
 = live_patch to: Routes.process_index_path(@socket, :new) do
-  button.btn.btn-primary.mt-4 New Process
+  button.btn.btn-primary.m-4 New Process

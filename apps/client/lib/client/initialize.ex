@@ -5,6 +5,7 @@ defmodule Client.Initialize do
   alias Client.Channel
   alias Client.StateSupport
   alias Client.Loaders
+  alias Client.Subscription
   alias Userdocs.Setups
   alias Userdocs.Tokens
   alias Userdocs.Contexts
@@ -125,7 +126,7 @@ defmodule Client.Initialize do
     |> handle_result(:connect_channel)
   end
 
-  def do_connect_channel(%{context: %{team_id: nil}} = state, state_opts), do: {state, :halt, "Team Not Selectecd"}
+  def do_connect_channel(%{context: %{team_id: nil}} = state, _), do: {state, :halt, "Team Not Selectecd"}
   def do_connect_channel(
         %{current_user: user, access_token: token, context: %{team_id: team_id}} = state,
         state_opts
@@ -148,7 +149,12 @@ defmodule Client.Initialize do
     |> handle_result(:load_project)
   end
 
-  def do_load_project(state), do: {Loaders.load_project_data(state), :ok, "Project Loaded"}
+  def do_load_project(state) do
+    Subscription.broadcast(state.context, "load_started")
+    state = Loaders.load_project_data(state)
+    Subscription.broadcast(state.context, "load_finished")
+    {state, :ok, "Project Loaded"}
+  end
 
   defp handle_result({state, status, message}, task_key),
     do: Setups.handle_setup_result({status, message}, state, task_key)

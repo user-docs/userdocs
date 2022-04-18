@@ -75,20 +75,22 @@ defmodule UserdocsDesktopWeb.ProcessLive.Index do
   def handle_event(n, p, s), do: RootEventHandlers.handle_event(n, p, s)
 
   @impl true
-  def handle_info(%{topic: _, event: _, payload: %ProcessInstance{}} = sub_data, socket) do
+  def handle_info(%{payload: %ProcessInstance{}} = sub_data, socket) do
     Logger.debug("#{__MODULE__} Received a ProcessInstance broadcast")
     {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
-    user = Client.current_user()
     project = Client.current_project()
     {:noreply, prepare_processes(socket, project.id)}
   end
-  def handle_info(%{topic: _, event: _, payload: %Process{}} = sub_data, socket) do
+  def handle_info(%{payload: %Process{}} = sub_data, socket) do
     Logger.debug("#{__MODULE__} Received a Process broadcast")
     {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
-    user = Client.current_user()
     project = Client.current_project()
     {:noreply, prepare_processes(socket, project.id)}
   end
+  def handle_info(%{event: "load_finished"}, socket) do
+    {:noreply, push_redirect(socket, to: Routes.process_index_path(socket, :index))}
+  end
+
   def handle_info(p, s), do: RootSubscriptionHandlers.handle_info(p, s)
 
   def assign_select_lists(socket) do

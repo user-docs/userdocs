@@ -3,7 +3,6 @@ defmodule UserdocsDesktopWeb.ProjectLive.Index do
   use UserdocsDesktopWeb, :live_view
   require Logger
   alias Schemas.Projects.Project
-  alias Userdocs.Users
   alias UserdocsDesktopWeb.Root
   alias UserdocsDesktopWeb.LiveHelpers
   alias UserdocsDesktopWeb.RootSubscriptionHandlers
@@ -17,7 +16,7 @@ defmodule UserdocsDesktopWeb.ProjectLive.Index do
       socket
       |> Root.apply(session, [])
       |> assign(:modal_action, :show)
-   }
+    }
   end
 
   @impl true
@@ -57,6 +56,7 @@ defmodule UserdocsDesktopWeb.ProjectLive.Index do
     |> assign(:current_team, Client.get_team!(team_id, %{}))
     |> assign(:projects, prepare_projects())
   end
+
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing Projects")
@@ -70,14 +70,18 @@ defmodule UserdocsDesktopWeb.ProjectLive.Index do
     Client.delete_project(id)
     {:noreply, socket}
   end
+
   def handle_event(n, p, s), do: RootEventHandlers.handle_event(n, p, s)
 
   @impl true
-  def handle_info(%{topic: _, event: _, payload: %Project{}} = sub_data,
-  %{assigns: %{current_user: %{selected_team_id: _team_id}}} = socket) do
+  def handle_info(%{payload: %Project{}} = sub_data, socket) do
     {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
     {:noreply, assign(socket, :projects, prepare_projects())}
   end
+  def handle_info(%{event: "load_finished"}, socket) do
+    {:noreply, push_redirect(socket, to: Routes.project_index_path(socket, :index))}
+  end
+
   def handle_info(n, p), do: RootSubscriptionHandlers.handle_info(n, p)
 
   defp prepare_projects() do

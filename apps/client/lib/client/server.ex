@@ -130,7 +130,7 @@ defmodule Client.Server do
     state = Client.Loaders.apply(state)
     {:reply, object_counts(state), state}
   end
-  def handle_call(:load, _from, state), do: {:reply, {:error, "Could not load clien, current keys are: #{Map.keys(state)}"}, state}
+  def handle_call(:load, _from, state), do: {:reply, {:error, "Could not load client, current keys are: #{inspect Map.keys(state)}"}, state}
 
   def handle_call(:counts, _from, state), do: {:reply, object_counts(state), state}
 
@@ -414,7 +414,6 @@ defmodule Client.Server do
     {:ok, context} =
       Userdocs.Contexts.get_context!(user.id, @local_opts)
       |> Userdocs.Contexts.update_context(attrs, @local_opts)
-      |> IO.inspect()
 
     if Map.get(state, :socket, false) do
       :ok = Channel.disconnect(state.socket, state.user_channel, state.team_channel)
