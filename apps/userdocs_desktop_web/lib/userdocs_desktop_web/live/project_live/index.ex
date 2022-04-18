@@ -91,12 +91,12 @@ defmodule UserdocsDesktopWeb.ProjectLive.Index do
   end
 
   defp strategies_select_options() do
-    Client.list_strategies(%{})
+    Client.list_strategies()
     |> LiveHelpers.select_list(:name, true)
   end
 
   defp teams_select_options() do
-    Client.list_teams(%{})
+    Client.list_teams()
     |> LiveHelpers.select_list(:name, true)
   end
 end

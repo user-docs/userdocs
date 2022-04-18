@@ -57,6 +57,11 @@ defmodule Client.RemoteFixtures do
     :ok
   end
 
+  def load_client(_) do
+    Client.load()
+    :ok
+  end
+
   def sign_token(conn, token, config),
     do: Pow.Plug.sign_token(conn, Atom.to_string(UserdocsWeb.API.Auth.Plug), token, config)
 end

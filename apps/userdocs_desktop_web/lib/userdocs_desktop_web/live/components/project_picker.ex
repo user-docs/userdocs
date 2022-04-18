@@ -54,23 +54,23 @@ defmodule UserdocsDesktopWeb.ProjectPicker do
         <%= @selected_project_name %>
       </button>
       <ul class="shadow p-2 bg-base-100 rounded-box transform scale-0 group-hover:scale-100 absolute transition duration-150 ease-in-out origin-top min-w-32">
-        <%= for team_user <- @current_user.team_users do %>
+        <%= for team <- @teams do %>
           <li class="rounded-sm relative px-3 py-1 hover:bg-gray-400 flex items-center outline-none focus:outline-none min-w-32">
-            <span class="pr-1 flex-1 text-black"><%= team_user.team.name %></span>
+            <span class="pr-1 flex-1 text-black"><%= team.name %></span>
             <span class="mr-auto">
               <svg class="fill-current h-4 w-4 transition duration-150 ease-in-out" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                 <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
               </svg>
             </span>
             <ul class="shadow p-2 bg-base-100 rounded-box transform scale-0 absolute top-0 right-0 transition duration-150 ease-in-out origin-top-left min-w-32">
-              <%= for project <- team_user.team.projects do %>
+              <%= for project <- team.projects do %>
                 <li class="rounded-sm relative px-3 py-1 hover:bg-gray-100">
                   <button
                     class="w-full text-left flex items-center outline-none focus:outline-none"
                     id="project-picker-<%= project.id %>"
                     phx-click="select-project"
                     phx-value-project-id="<%= project.id %>"
-                    phx-value-team-id="<%= team_user.team.id %>"
+                    phx-value-team-id="<%= team.id %>"
                     phx-target="<%= @myself.cid %>"
                   >
                     <span class="pr-1 flex-1 text-black whitespace-nowrap <%= is_active(project.id) %>">
@@ -102,6 +102,7 @@ defmodule UserdocsDesktopWeb.ProjectPicker do
       :ok,
       socket
       |> assign(assigns)
+      |> assign(:teams, Client.list_teams([preloads: [:projects]]))
       |> assign(:selected_project_name, project_name())
       |> assign(:current_user, user)
     }
@@ -109,16 +110,8 @@ defmodule UserdocsDesktopWeb.ProjectPicker do
 
   @impl true
   def handle_event("select-project", %{"project-id" => project_id, "team-id" => team_id}, %{assigns: %{url: url}} = socket) do
-    changes = %{
-      selected_team_id: team_id,
-      selected_project_id: project_id
-    }
     Client.update_context(%{team_id: team_id, project_id: project_id})
-    {
-      :noreply,
-      socket
-      |> push_redirect(to: url.path)
-    }
+    {:noreply, socket}
   end
 
   def is_active(id2) do
