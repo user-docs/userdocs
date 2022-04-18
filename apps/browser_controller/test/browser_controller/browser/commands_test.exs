@@ -123,7 +123,7 @@ defmodule BrowserController.Browser.CommandsTest do
         |> File.read!()
 
       Browser.execute(pid, {:evaluate_script, %{script: annotations_script}})
-      {:ok, document} = Utilities.get_document(page_pid)
+      {:ok, _document} = Utilities.get_document(page_pid)
       context
     end
 
@@ -184,7 +184,7 @@ defmodule BrowserController.Browser.CommandsTest do
           magick_path: Local.Paths.imagemagick_executable_path()
         })
 
-      start_supervised({Client, [mode: :test]})
+      start_supervised({Client.Server, [mode: :test]})
       user = Userdocs.UsersFixtures.user_struct(%{})
       Client.put_in_state(:data, data)
       Client.put_in_state(:current_user, user)

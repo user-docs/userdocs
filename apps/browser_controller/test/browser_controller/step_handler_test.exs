@@ -7,7 +7,7 @@ defmodule BrowserController.StepHandlerTest do
     setup do
       {data, context} = Userdocs.ClientFixtures.data()
 
-      start_supervised({Client, [mode: :test]})
+      start_supervised({Client.Server, [mode: :test]})
       user = Userdocs.UsersFixtures.user_struct(%{})
       Client.put_in_state(:data, data)
       Client.put_in_state(:current_user, user)
