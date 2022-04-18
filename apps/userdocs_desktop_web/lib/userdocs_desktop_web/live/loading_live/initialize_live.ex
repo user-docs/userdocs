@@ -7,7 +7,7 @@ defmodule UserdocsDesktopWeb.InitializeLive do
   @impl true
   def mount(_params, _session, socket) do
     local_status = Local.status()
-    client_status = Client.status() |> IO.inspect()
+    client_status = Client.status()
 
     UserdocsDesktopWeb.Endpoint.subscribe("local")
     UserdocsDesktopWeb.Endpoint.subscribe("client")

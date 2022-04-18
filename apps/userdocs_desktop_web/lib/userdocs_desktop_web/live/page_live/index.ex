@@ -12,6 +12,7 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
   alias UserdocsDesktopWeb.RootEventHandlers
   alias UserdocsDesktopWeb.Icons
   alias UserdocsDesktopWeb.ExtensionMessages
+  alias UserdocsDesktopWeb.Root.BrowserAutomationEventHandlers, as: BrowserEvents
   @preloads [:project, :screenshots]
 
   @impl true
@@ -77,19 +78,14 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    Client.delete_page(id, %{})
+    Client.delete_page(id)
     {:noreply, socket}
   end
-  def handle_event("navigate", %{"id" => id}, socket) do
-    user = Client.current_user()
-    project = Client.current_project()
-    page = Client.get_page!(id, %{})
-    url = Pages.effective_url(page, project, user)
-    BrowserController.execute({:navigate, %{url: url}})
+  def handle_event("navigate", %{"id" => page_id}, socket) do
+    BrowserEvents.handle_navigate(page_id)
     {:noreply, socket}
   end
   def handle_event("screenshot-all", _payload, socket) do
-    user = Client.current_user()
     project = Client.current_project()
     outer_acc = [{:set_size, %{width: project.default_width, height: project.default_height}}]
     Enum.reduce(socket.assigns.pages, outer_acc, fn(page, acc) ->
@@ -99,7 +95,6 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
     {:noreply, socket}
   end
   def handle_event("screenshot", %{"id" => page_id}, socket) do
-    user = Client.current_user()
     project = Client.current_project()
     page = prepare_page(page_id)
     screenshot_id =
@@ -138,13 +133,11 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
     {:noreply, socket}
   end
   def handle_info(%{topic: _, event: _, payload: %Page{}} = sub_data, socket) do
-    user = Client.current_user()
     project = Client.current_project()
     {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
     {:noreply, assign(socket, :pages, prepare_pages(project.id))}
   end
   def handle_info(%{topic: _, event: _, payload: %Screenshot{}} = sub_data, socket) do
-    user = Client.current_user()
     project = Client.current_project()
     {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
     {:noreply, assign(socket, :pages, prepare_pages(project.id))}

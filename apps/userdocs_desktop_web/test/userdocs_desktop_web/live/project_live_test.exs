@@ -1,15 +1,7 @@
 defmodule UserdocsDesktopWeb.ProjectLiveTest do
   use UserdocsDesktopWeb.ConnCase
-  import Userdocs.RemoteFixtures
-  import Userdocs.LocalFixtures
-  import Client.RemoteFixtures
-  import Client.LocalFixtures
-  import Client.BaseFixtures
   import Phoenix.LiveViewTest
-  alias Userdocs.WebFixtures
   alias Userdocs.ProjectsFixtures
-  @opts %{context: %{repo: Userdocs.Repo}}
-  @receive_timeout 250
 
   describe "Index" do
     setup [
@@ -54,10 +46,9 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
 
       valid_attrs = ProjectsFixtures.project_attrs(:valid, team.id, strategy.id)
 
-      html =
-        index_live
-        |> form("#project-form", project: valid_attrs)
-        |> render_submit()
+      index_live
+      |> form("#project-form", project: valid_attrs)
+      |> render_submit()
 
       assert_receive(%{event: "create", topic: "data"})
       assert render(index_live) =~ "Project created successfully"
@@ -82,8 +73,8 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
       |> form("#project-form", project: valid_attrs)
       |> render_submit()
 
+      assert_patch(index_live, Routes.project_index_path(conn, :index, team.id))
       assert_receive(%{event: "update", topic: "data"})
-      assert_patched(index_live, Routes.project_index_path(conn, :index, team.id))
       assert render(index_live) =~ "Project updated successfully"
       assert render(index_live) =~ valid_attrs[:name]
     end
@@ -95,7 +86,7 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
       refute has_element?(index_live, "#project-" <> to_string(project.id))
     end
 
-    test "index handles standard events", %{conn: conn, remote_project: project} do
+    test "index handles standard events", %{conn: conn} do
       {:ok, live, _html} = live(conn, Routes.project_index_path(conn, :index))
       send(live.pid, %{event: "load_finished"})
       assert_redirect(live, Routes.project_index_path(conn, :index))

@@ -3,12 +3,12 @@ defmodule UserdocsDesktopWeb.AnnotationLive.Index do
   use UserdocsDesktopWeb, :live_view
 
   alias Schemas.Annotations.Annotation
-  alias Userdocs.Pages
   alias UserdocsDesktopWeb.Icons
   alias UserdocsDesktopWeb.Root
   alias UserdocsDesktopWeb.LiveHelpers
   alias UserdocsDesktopWeb.RootSubscriptionHandlers
   alias UserdocsDesktopWeb.RootEventHandlers
+  alias UserdocsDesktopWeb.Root.BrowserAutomationEventHandlers, as: BrowserEvents
 
   @preloads [:annotation_type, :element_annotations, [element_annotations: :element]]
   @order [%{field: :name, order: :asc}]
@@ -68,17 +68,13 @@ defmodule UserdocsDesktopWeb.AnnotationLive.Index do
     opts = [preloads: @preloads]
     annotation = Client.get_annotation!(id, opts)
     case params["value"] do
-      "true" -> BrowserController.handle_command({:create_annotation, %{annotation: annotation}})
-      _ -> BrowserController.handle_command({:remove_annotation, %{annotation: annotation}})
+      "true" -> BrowserController.execute({:create_annotation, %{annotation: annotation}})
+      _ -> BrowserController.execute({:remove_annotation, %{annotation: annotation}})
     end
     {:noreply, socket}
   end
-  def handle_event("navigate", %{"id" => id}, socket) do
-    user = Client.current_user()
-    project = Client.current_project()
-    page = Client.get_page!(id, %{})
-    url = Pages.effective_url(page, project, user)
-    BrowserController.handle_command({:navigate, %{url: url}})
+  def handle_event("navigate", %{"id" => page_id}, socket) do
+    BrowserEvents.handle_navigate(page_id)
     {:noreply, socket}
   end
   def handle_event(n, p, s), do: RootEventHandlers.handle_event(n, p, s)

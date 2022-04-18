@@ -38,7 +38,7 @@ defmodule UserdocsDesktopWeb.AnnotationLive.FormComponent do
     changeset = maybe_trim_element_annotations_over_max(changeset, selected_annotation_type.max_elements)
 
     case Ecto.Changeset.apply_action(changeset, :insert) do
-      {:ok, annotation} -> BrowserController.handle_command({:update_annotation, %{annotation: load_elements(annotation)}})
+      {:ok, annotation} -> BrowserController.execute({:update_annotation, %{annotation: load_elements(annotation)}})
       {:error, _changeset} -> Logger.warning("Change not valid, not updating rendered annotation")
     end
 
@@ -84,7 +84,7 @@ defmodule UserdocsDesktopWeb.AnnotationLive.FormComponent do
         |> Ecto.Changeset.put_assoc(:element_annotations, element_annotations)
 
       case Ecto.Changeset.apply_action(changeset, :insert) do
-        {:ok, annotation} -> BrowserController.handle_command({:update_annotation, %{annotation: load_elements(annotation)}})
+        {:ok, annotation} -> BrowserController.execute({:update_annotation, %{annotation: load_elements(annotation)}})
         {:error, _changeset} -> Logger.warning("Change not valid, not updating rendered annotation")
       end
 
@@ -94,7 +94,7 @@ defmodule UserdocsDesktopWeb.AnnotationLive.FormComponent do
   defp save_annotation(socket, :edit, annotation_params) do
     case Client.update_annotation(socket.assigns.annotation, annotation_params) do
       {:ok, annotation} ->
-        BrowserController.handle_command({:remove_annotation, %{annotation: annotation}})
+        BrowserController.execute({:remove_annotation, %{annotation: annotation}})
         {
           :noreply,
           socket
@@ -110,7 +110,7 @@ defmodule UserdocsDesktopWeb.AnnotationLive.FormComponent do
   defp save_annotation(socket, :new, annotation_params) do
     case Client.create_annotation(annotation_params) do
       {:ok, annotation} ->
-        BrowserController.handle_command({:remove_annotation, %{annotation: annotation}})
+        BrowserController.execute({:remove_annotation, %{annotation: annotation}})
         {
           :noreply,
           socket

@@ -23,6 +23,11 @@ defmodule UserdocsDesktopWeb.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import UserdocsDesktopWeb.ConnCase
+      import Userdocs.RemoteFixtures
+      import Userdocs.LocalFixtures
+      import Client.RemoteFixtures
+      import Client.LocalFixtures
+      import Client.BaseFixtures
 
       alias UserdocsDesktopWeb.Router.Helpers, as: Routes
 
