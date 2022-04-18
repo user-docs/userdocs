@@ -19,7 +19,7 @@ defmodule UserdocsDesktopWeb.RootSubscriptionHandlers do
       %{objects: [object | _ ]} -> object.__meta__.schema
       object -> object.__meta__.schema
     end
-    IO.inspect("#{__MODULE__} handling info on topic #{topic}, event #{event}, view: #{socket.view}, type: #{schema}")
+    Logger.debug("#{__MODULE__} handling info on topic #{topic}, event #{event}, view: #{socket.view}, type: #{schema}")
     {:noreply, socket}
   end
 end

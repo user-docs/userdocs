@@ -6,8 +6,6 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
   import Client.LocalFixtures
   import Client.BaseFixtures
   import Phoenix.LiveViewTest
-  alias Userdocs.TeamsFixtures
-  alias Userdocs.UsersFixtures
   alias Userdocs.WebFixtures
   alias Userdocs.ProjectsFixtures
   @opts %{context: %{repo: Userdocs.Repo}}

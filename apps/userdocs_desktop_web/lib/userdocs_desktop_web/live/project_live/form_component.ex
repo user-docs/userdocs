@@ -35,7 +35,6 @@ defmodule UserdocsDesktopWeb.ProjectLive.FormComponent do
   defp save_project(socket, :edit, project_params) do
     case Client.update_project(socket.assigns.project, project_params) do
       {:ok, _project} ->
-        IO.puts("Project updated successfully")
         {
           :noreply,
           socket
@@ -44,7 +43,6 @@ defmodule UserdocsDesktopWeb.ProjectLive.FormComponent do
         }
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.puts("Project updated failed")
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
