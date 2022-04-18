@@ -13,7 +13,11 @@ defmodule Client.Projects do
    def update_project(project, attrs, state),
     do: Module.concat(impl(state), "Projects").update_project(project, attrs, local_or_remote_opts(state))
   
-  def  delete_project(%Project{} = project, state), do: Module.concat(impl(state), "Projects").delete_project(project, local_or_remote_opts(state))
+  def delete_project(%Project{} = project, state), do: Module.concat(impl(state), "Projects").delete_project(project, local_or_remote_opts(state))
+  def delete_project(project_id, state) when is_binary(project_id) do
+    project = State.Projects.get_project!(project_id, state, state_opts())
+    Module.concat(impl(state), "Projects").delete_project(project, local_or_remote_opts(state))
+  end
   
   def load_projects(state, opts) do
     projects = Module.concat(impl(state), "Projects").list_projects(local_or_remote_opts(state, opts))

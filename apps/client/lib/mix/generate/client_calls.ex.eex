@@ -13,7 +13,11 @@ defmodule Client.<%= module_plural %> do
   <%= if update_function_name do %> def <%= update_function_name %>(<%= variable_name_singular %>, attrs, state),
     do: Module.concat(impl(state), "<%= module_plural %>").<%= update_function_name %>(<%= variable_name_singular %>, attrs, local_or_remote_opts(state))
   <% end %>
-  <%= if delete_function_name do %>def  <%= delete_function_name %>(%<%= module_singular %>{} = <%= variable_name_singular %>, state), do: Module.concat(impl(state), "<%= module_plural %>").<%= delete_function_name %>(<%= variable_name_singular %>, local_or_remote_opts(state))
+  <%= if delete_function_name do %>def <%= delete_function_name %>(%<%= module_singular %>{} = <%= variable_name_singular %>, state), do: Module.concat(impl(state), "<%= module_plural %>").<%= delete_function_name %>(<%= variable_name_singular %>, local_or_remote_opts(state))
+  def <%= delete_function_name %>(<%= variable_name_singular %>_id, state) when is_binary(<%= variable_name_singular %>_id) do
+    <%= variable_name_singular %> = State.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>_id, state, state_opts())
+    Module.concat(impl(state), "<%= module_plural %>").<%= delete_function_name %>(<%= variable_name_singular %>, local_or_remote_opts(state))
+  end
   <% end %>
   def load_<%= variable_name_plural %>(state, opts) do
     <%= variable_name_plural %> = Module.concat(impl(state), "<%= module_plural %>").<%= list_function_name %>(local_or_remote_opts(state, opts))

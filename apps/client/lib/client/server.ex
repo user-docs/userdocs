@@ -499,7 +499,6 @@ defmodule Client.Server do
   end
 
   def get_current_team(state) do
-    IO.inspect(state.context)
     %{context: %Context{team_id: team_id}} = state
     State.Teams.get_team!(team_id, state, @state_opts)
   end

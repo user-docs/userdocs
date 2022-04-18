@@ -13,7 +13,11 @@ defmodule Client.Annotations do
    def update_annotation(annotation, attrs, state),
     do: Module.concat(impl(state), "Annotations").update_annotation(annotation, attrs, local_or_remote_opts(state))
   
-  def  delete_annotation(%Annotation{} = annotation, state), do: Module.concat(impl(state), "Annotations").delete_annotation(annotation, local_or_remote_opts(state))
+  def delete_annotation(%Annotation{} = annotation, state), do: Module.concat(impl(state), "Annotations").delete_annotation(annotation, local_or_remote_opts(state))
+  def delete_annotation(annotation_id, state) when is_binary(annotation_id) do
+    annotation = State.Annotations.get_annotation!(annotation_id, state, state_opts())
+    Module.concat(impl(state), "Annotations").delete_annotation(annotation, local_or_remote_opts(state))
+  end
   
   def load_annotations(state, opts) do
     annotations = Module.concat(impl(state), "Annotations").list_annotations(local_or_remote_opts(state, opts))

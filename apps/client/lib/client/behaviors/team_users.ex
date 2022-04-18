@@ -9,7 +9,11 @@ defmodule Client.TeamUsers do
   @callback delete_team_user(binary(), map()) :: {:ok, TeamUser} | {:error, Ecto.Changeset}
   
   
-  def  delete_team_user(%TeamUser{} = team_user, state), do: Module.concat(impl(state), "TeamUsers").delete_team_user(team_user, local_or_remote_opts(state))
+  def delete_team_user(%TeamUser{} = team_user, state), do: Module.concat(impl(state), "TeamUsers").delete_team_user(team_user, local_or_remote_opts(state))
+  def delete_team_user(team_user_id, state) when is_binary(team_user_id) do
+    team_user = State.TeamUsers.get_team_user!(team_user_id, state, state_opts())
+    Module.concat(impl(state), "TeamUsers").delete_team_user(team_user, local_or_remote_opts(state))
+  end
   
   def load_team_users(state, opts) do
     team_users = Module.concat(impl(state), "TeamUsers").list_team_users(local_or_remote_opts(state, opts))

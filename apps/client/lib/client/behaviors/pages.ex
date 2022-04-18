@@ -13,7 +13,11 @@ defmodule Client.Pages do
    def update_page(page, attrs, state),
     do: Module.concat(impl(state), "Pages").update_page(page, attrs, local_or_remote_opts(state))
   
-  def  delete_page(%Page{} = page, state), do: Module.concat(impl(state), "Pages").delete_page(page, local_or_remote_opts(state))
+  def delete_page(%Page{} = page, state), do: Module.concat(impl(state), "Pages").delete_page(page, local_or_remote_opts(state))
+  def delete_page(page_id, state) when is_binary(page_id) do
+    page = State.Pages.get_page!(page_id, state, state_opts())
+    Module.concat(impl(state), "Pages").delete_page(page, local_or_remote_opts(state))
+  end
   
   def load_pages(state, opts) do
     pages = Module.concat(impl(state), "Pages").list_pages(local_or_remote_opts(state, opts))
