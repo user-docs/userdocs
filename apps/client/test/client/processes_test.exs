@@ -2,9 +2,7 @@ defmodule ClientTest.Processes do
   use Client.RemoteCase
   use Client.LocalCase
   use Client.Case
-  alias Userdocs.UsersFixtures
-  alias Userdocs.TeamsFixtures
-  alias Userdocs.WebFixtures
+  alias Userdocs.AutomationFixtures
 
   describe "Processes Initialize" do
     setup [:reinitialize_state]

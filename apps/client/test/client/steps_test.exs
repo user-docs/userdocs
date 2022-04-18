@@ -2,9 +2,7 @@ defmodule ClientTest.Steps do
   use Client.RemoteCase
   use Client.LocalCase
   use Client.Case
-  alias Userdocs.UsersFixtures
-  alias Userdocs.TeamsFixtures
-  alias Userdocs.WebFixtures
+  alias Userdocs.AutomationFixtures
 
   describe "Steps Initialize" do
     setup [:reinitialize_state]

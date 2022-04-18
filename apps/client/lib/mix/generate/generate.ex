@@ -11,7 +11,7 @@ defmodule Generate do
     remote_fixtures_text = Enum.reduce(remote_fixtures, "", fn f, a -> a <> "      :create_remote_#{f},\n" end) |> String.slice(0..-2)
     local_fixtures_text = Enum.reduce(local_fixtures, "", fn f, a -> a <> "      :create_local_#{f},\n" end) |> String.slice(0..-2)
     attrs_function_args = Map.get(args, :attrs_function_args, singular <> "_attrs")
-    fixture_module = Map.get(args, :fixture_module, "")
+    fixture_module = Map.get(args, :fixture_module, nil)
     module_singular = Map.get(args, :module_singular, String.capitalize(singular))
     module_plural = Map.get(args, :module_plural, String.capitalize(plural))
     schema_module = Map.get(args, :schema_module, module_plural)

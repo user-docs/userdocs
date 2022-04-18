@@ -2,9 +2,7 @@ defmodule ClientTest.<%= module_plural %> do
   use Client.RemoteCase
   use Client.LocalCase
   use Client.Case
-  alias Userdocs.UsersFixtures
-  alias Userdocs.TeamsFixtures
-  alias Userdocs.WebFixtures
+  <%= if fixture_module do %>alias Userdocs.<%= fixture_module %><% end %>
 
   describe "<%= module_plural %> Initialize" do
     setup [:reinitialize_state]

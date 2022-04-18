@@ -2,9 +2,7 @@ defmodule ClientTest.ElementAnnotations do
   use Client.RemoteCase
   use Client.LocalCase
   use Client.Case
-  alias Userdocs.UsersFixtures
-  alias Userdocs.TeamsFixtures
-  alias Userdocs.WebFixtures
+  
 
   describe "ElementAnnotations Initialize" do
     setup [:reinitialize_state]

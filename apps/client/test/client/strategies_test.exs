@@ -2,9 +2,7 @@ defmodule ClientTest.Strategies do
   use Client.RemoteCase
   use Client.LocalCase
   use Client.Case
-  alias Userdocs.UsersFixtures
-  alias Userdocs.TeamsFixtures
-  alias Userdocs.WebFixtures
+  
 
   describe "Strategies Initialize" do
     setup [:reinitialize_state]

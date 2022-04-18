@@ -2,9 +2,7 @@ defmodule ClientTest.AnnotationTypes do
   use Client.RemoteCase
   use Client.LocalCase
   use Client.Case
-  alias Userdocs.UsersFixtures
-  alias Userdocs.TeamsFixtures
-  alias Userdocs.WebFixtures
+  
 
   describe "AnnotationTypes Initialize" do
     setup [:reinitialize_state]

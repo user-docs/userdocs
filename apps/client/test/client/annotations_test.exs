@@ -2,8 +2,6 @@ defmodule ClientTest.Annotations do
   use Client.RemoteCase
   use Client.LocalCase
   use Client.Case
-  alias Userdocs.UsersFixtures
-  alias Userdocs.TeamsFixtures
   alias Userdocs.WebFixtures
 
   describe "Annotations Initialize" do
