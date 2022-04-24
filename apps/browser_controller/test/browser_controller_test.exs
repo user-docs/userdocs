@@ -11,8 +11,8 @@ defmodule BrowserController.BrowserControllerTest do
       {data, context} = Userdocs.ClientFixtures.local_data()
 
       start_supervised({Client.Server, [mode: :test]})
-      Userdocs.Tokens.create_all_tokens("default", "default", "1", @local_opts)
-      Ecto.Adapters.SQL.Sandbox.allow(Repo, self(), Client.Server)
+      Userdocs.Tokens.upsert_all_tokens(%{access_token: "default", renewal_token: "default", user_id: "1"}, @local_opts)
+      Ecto.Adapters.SQL.Sandbox.allow(Userdocs.LocalRepo, self(), Client.Server)
       user = Userdocs.UsersFixtures.user_struct(%{})
       Client.put_in_state(:data, data)
       Client.put_in_state(:current_user, user)
