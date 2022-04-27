@@ -1,16 +1,16 @@
 defmodule Client.Screenshots.LocalFilesExport do
   alias Local.Paths
   alias Schemas.Screenshots.Screenshot
-  alias Client.Screenshots.LocalFiles
+  alias Client.Screenshots.LocalFileRepo
   alias Client.Screenshots.FileSupport, as: Support
 
   require Logger
 
-  def create_screenshot(%{"id" => id} = attrs, opts \\ %{}) do
+  def create_screenshot(%Screenshot{id: id} = screenshot, opts \\ %{}) do
     images_path = Map.get(opts, :images_path, Paths.default_images_path())
-    image_path = image_path(attrs, images_path)
+    image_path = image_path(screenshot, images_path)
 
-    with base64 <- Map.get(attrs, "base64", Support.encoded_placeholder_image()),
+    with base64 <- Map.get(screenshot, :base64, Support.encoded_placeholder_image()),
          binary <- Base.decode64!(base64),
          :ok <- File.write(image_path, binary) do
       {:ok, %{id: id, image: image_path}}
@@ -32,7 +32,7 @@ defmodule Client.Screenshots.LocalFilesExport do
 
   def approve_screenshot(%Screenshot{id: id}, opts \\ %{}) do
     repo_path = Map.get(opts, :image_repo_path, Paths.image_repo_path())
-    provisional_path = LocalFiles.provisional_path(id, repo_path)
+    provisional_path = LocalFileRepo.provisional_path(id, repo_path)
     images_path = Map.get(opts, :images_path, Paths.default_images_path())
     image_path = image_path(id, images_path)
 
@@ -51,8 +51,8 @@ defmodule Client.Screenshots.LocalFilesExport do
     Path.join(path, filename <> ".png")
   end
 
-  defp image_path(attrs, path) when is_map(attrs) do
-    filename = Map.get(attrs, "name", attrs["id"]) <> ".png"
+  defp image_path(%Screenshot{id: id} = screenshot, path) do
+    filename = Map.get(screenshot, :name, id) <> ".png"
     Path.join(path, filename)
   end
 

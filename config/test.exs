@@ -41,3 +41,11 @@ config :logger, level: :warning
 
 config :userdocs, Userdocs.Mailer,
   adapter: Bamboo.TestAdapter
+
+config :ex_aws, :s33,
+  access_key_id: "minioadmin",
+  secret_access_key: "minioadmin",
+  region: "local",
+  scheme: "http://",
+  port: 9000,
+  host: "localhost"

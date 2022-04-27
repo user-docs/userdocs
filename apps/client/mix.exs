@@ -33,6 +33,7 @@ defmodule Client.MixProject do
       {:phoenix_client, "~> 0.3"},
       {:inflex, "~> 2.1"},
       {:httpoison, "~> 1.8"},
+      {:briefly, "~> 0.3"},
       {:state_handlers, in_umbrella: true},
       {:local, in_umbrella: true},
       {:schemas, in_umbrella: true},

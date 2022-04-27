@@ -1,6 +1,7 @@
 %{
   "bamboo": {:hex, :bamboo, "2.2.0", "f10a406d2b7f5123eb1f02edfa043c259db04b47ab956041f279eaac776ef5ce", [:mix], [{:hackney, ">= 1.15.2", [hex: :hackney, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: true]}, {:mime, "~> 1.4", [hex: :mime, repo: "hexpm", optional: false]}, {:plug, "~> 1.0", [hex: :plug, repo: "hexpm", optional: false]}], "hexpm", "8c3b14ba7d2f40cb4be04128ed1e2aff06d91d9413d38bafb4afccffa3ade4fc"},
   "bodyguard": {:hex, :bodyguard, "2.4.2", "e91ecd43fae949f5dca7d5054bedf612b5afd6fb4a84376c9909d14e69ab15a7", [:mix], [{:plug, "~> 1.0", [hex: :plug, repo: "hexpm", optional: false]}], "hexpm", "4683ae363d98dee29aac30bda14af51287898f49880fb25ea961227d2dbf6f27"},
+  "briefly": {:hex, :briefly, "0.3.0", "16e6b76d2070ebc9cbd025fa85cf5dbaf52368c4bd896fb482b5a6b95a540c2f", [:mix], [], "hexpm", "c6ebf8fc3dcd4950dd10c03e953fb4f553a8bcf0ff4c8c40d71542434cd7e046"},
   "bunt": {:hex, :bunt, "0.2.0", "951c6e801e8b1d2cbe58ebbd3e616a869061ddadcc4863d0a2182541acae9a38", [:mix], [], "hexpm", "7af5c7e09fe1d40f76c8e4f9dd2be7cebd83909f31fee7cd0e9eadc567da8353"},
   "castore": {:hex, :castore, "0.1.13", "ccf3ab251ffaebc4319f41d788ce59a6ab3f42b6c27e598ad838ffecee0b04f9", [:mix], [], "hexpm", "a14a7eecfec7e20385493dbb92b0d12c5d77ecfd6307de10102d58c94e8c49c0"},
   "certifi": {:hex, :certifi, "2.9.0", "6f2a475689dd47f19fb74334859d460a2dc4e3252a3324bd2111b8f0429e7e21", [:rebar3], [], "hexpm", "266da46bdb06d6c6d35fde799bcb28d36d985d424ad7c08b5bb48f5b5cdd4641"},

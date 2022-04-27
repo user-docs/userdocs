@@ -1,4 +1,4 @@
-defmodule Client.Screenshots.LocalFiles do
+defmodule Client.Screenshots.LocalFileRepo do
   alias Local.Paths
   alias Schemas.Screenshots.Screenshot
   alias Local.ImageComparison
@@ -6,13 +6,13 @@ defmodule Client.Screenshots.LocalFiles do
 
   require Logger
 
-  def create_screenshot(%{"id" => id} = attrs, opts \\ %{}) do
+  def create_screenshot(%Screenshot{id: id} = screenshot, opts \\ %{}) do
     repo_path = Map.get(opts, :image_repo_path, Paths.image_repo_path())
     screenshot_dir = screenshot_dir(id, repo_path)
     image_path = image_path(id, repo_path)
     history_image = history_image(id, repo_path)
 
-    with base64 <- Map.get(attrs, "base64", Support.encoded_placeholder_image()),
+    with base64 <- Map.get(screenshot, :base64, Support.encoded_placeholder_image()),
          binary <- Base.decode64!(base64),
          :ok <- Support.ensure_dir_exists(screenshot_dir),
          :ok <- Support.ensure_dir_exists(history_dir(id, repo_path)),
@@ -22,7 +22,7 @@ defmodule Client.Screenshots.LocalFiles do
     end
   end
 
-  def update_screenshot(%Screenshot{id: id} = screenshot, %{"base64" => base64} = attrs, opts \\ %{}) do
+  def update_screenshot(%Screenshot{id: id} = screenshot, %{"base64" => base64}, opts \\ %{}) do
     repo_path = Map.get(opts, :image_repo_path, Paths.image_repo_path())
     magick_path = Map.get(opts, :magick_path, Paths.imagemagick_executable_path())
     paths = paths(screenshot.id, repo_path)
@@ -36,7 +36,7 @@ defmodule Client.Screenshots.LocalFiles do
       {:ok, Map.merge(paths(id, repo_path), result)}
     else
       {:error, "File not found"} ->
-        with {:ok, result} <- create_screenshot(Map.put(attrs, "id", id), opts) do
+        with {:ok, result} <- create_screenshot(screenshot, opts) do
           {:warn, Map.put(result, :message, "File not found, screenshot re-created")}
         end
       {:error, reason} -> {:error, reason}

@@ -87,11 +87,8 @@ config :phoenix, :stacktrace_depth, 20
 config :userdocs, Userdocs.Mailer,
   adapter: Bamboo.LocalAdapter
 
-config :ex_aws, :s3,
+config :ex_aws,
   debug_requests: false,
-  access_key_id: "",
-  secret_access_key: "",
-  region: "",
   access_key_id: "minioadmin",
   secret_access_key: "minioadmin",
   scheme: "http://",

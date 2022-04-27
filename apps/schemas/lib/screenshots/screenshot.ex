@@ -60,17 +60,17 @@ defmodule Schemas.Screenshots.PresignedURLs do
   @primary_key false
   @derive Jason.Encoder
   embedded_schema do
-    embeds_one :aws_screenshot, PresignedURL
-    embeds_one :aws_provisional_screenshot, PresignedURL
-    embeds_one :aws_diff_screenshot, PresignedURL
+    embeds_one :screenshot, PresignedURL
+    embeds_one :provisional, PresignedURL
+    embeds_one :diff, PresignedURL
   end
 
   def changeset(presigned_urls, attrs) do
     presigned_urls
     |> cast(attrs, [])
-    |> cast_embed(:aws_screenshot, with: &PresignedURL.changeset/2)
-    |> cast_embed(:aws_provisional_screenshot, with: &PresignedURL.changeset/2)
-    |> cast_embed(:aws_diff_screenshot, with: &PresignedURL.changeset/2)
+    |> cast_embed(:screenshot, with: &PresignedURL.changeset/2)
+    |> cast_embed(:provisional, with: &PresignedURL.changeset/2)
+    |> cast_embed(:diff, with: &PresignedURL.changeset/2)
   end
 end
 

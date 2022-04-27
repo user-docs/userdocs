@@ -32,7 +32,12 @@ defmodule Local.ChromiumInstaller do
       Paths.chromium_download_path()
       |> Path.join("chromium")
 
-    :ok = File.rename(unzipped_path, Paths.chromium_path())
+    case File.rename(unzipped_path, Paths.chromium_path()) do
+      :ok -> nil
+      {:error, :eexist} -> nil
+      {:error, :enoent} -> download()
+      :bad_eocd -> raise("BADEOCED")
+    end
     :ok = File.rm(Paths.chromium_downloaded_file_path())
   end
 
