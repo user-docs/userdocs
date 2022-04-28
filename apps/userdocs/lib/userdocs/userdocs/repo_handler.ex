@@ -35,4 +35,8 @@ defmodule Userdocs.RepoHandler do
   def delete_all(schema, %{context: %{repo: repo}}) do
     repo.delete_all(schema)
   end
+
+  def preload(object, preloads, %{context: %{repo: repo}}) do
+    repo.preload(object, preloads)
+  end
 end

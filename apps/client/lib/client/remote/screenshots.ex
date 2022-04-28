@@ -19,8 +19,7 @@ defmodule Client.Remote.Screenshots do
     params =  Map.take(opts, [:filters])
     request_fun = Requests.build_get_one(@url, id)
     {:ok, %{"data" => screenshots_attrs}} = Requests.send(request_fun, access_token, params)
-    {:ok, screenshot} = Screenshots.create_screenshot_struct(screenshots_attrs)
-    screenshot
+    Screenshots.create_screenshot_struct(screenshots_attrs)
   end
 
   @doc "Creates a screenshot."
@@ -42,8 +41,8 @@ defmodule Client.Remote.Screenshots do
   end
 
   @doc "Deletes a screenshot."
-  def delete_screenshot(id, %{access_token: access_token, repo_path: repo_path}) do
-    request = Requests.build_delete(@url, id)
+  def delete_screenshot(screenshot, %{access_token: access_token}) do
+    request = Requests.build_delete(@url, screenshot.id)
     Requests.send(request, access_token, nil)
   end
 end

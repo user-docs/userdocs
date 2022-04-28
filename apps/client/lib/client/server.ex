@@ -262,32 +262,25 @@ defmodule Client.Server do
   def handle_call({:list_strategies, opts}, _from, state),
     do: {:reply, State.Strategies.list_strategies(state, kw_opts(opts, state)), state}
 
+  alias Client.Screenshots
 
-  # Screenshots
-  def handle_call({:load_screenshots, opts}, _from, %{state_opts: state_opts} = state) do
-    remote_screenshots = Client.Screenshots.list_screenshots(include_token(opts))
-    state = StateHandlers.load(state, remote_screenshots, Screenshot, state_opts)
-    {:reply, :ok, state}
-  end
+  def handle_call({:load_screenshots, opts}, _from, state),
+    do: {:reply, :ok, Screenshots.load_screenshots(state, opts)}
+
   def handle_call({:list_screenshots, opts}, _from, state),
     do: {:reply, State.Screenshots.list_screenshots(state, kw_opts(opts, state)), state}
+
   def handle_call({:get_screenshot!, id, opts}, _from, state),
     do: {:reply, State.Screenshots.get_screenshot!(id, state, kw_opts(opts, state)), state}
-  def handle_call({:create_screenshot, attrs}, _from, state) do
-    result = Client.Screenshots.create_screenshot(attrs, screenshot_opts())
-    {:reply, result, state}
-  end
-  def handle_call({:update_screenshot, screenshot, attrs}, _from, %{mode: mode} = state) do
-    IO.puts("Update screenshot with mode #{mode}, object status is #{screenshot.__meta__.state}")
-    {:reply, Client.Screenshots.update_screenshot(screenshot, attrs, screenshot_opts(%{mode: mode})), state}
-  end
-  def handle_call({:approve_screenshot, screenshot, opts}, _from, state),
-    do: {:reply, Client.Screenshots.approve_screenshot(screenshot, screenshot_opts(opts)), state}
-  def handle_call({:reject_screenshot, screenshot, opts}, _from, state),
-    do: {:reply, Client.Screenshots.reject_screenshot(screenshot, screenshot_opts(opts)), state}
-  def handle_call({:delete_screenshot, id, opts}, _from, state),
-    do: {:reply, Client.Screenshots.delete_screenshot(id, screenshot_opts(opts)), state}
 
+  def handle_call({:create_screenshot, attrs}, _from, state),
+    do: {:reply, Screenshots.create_screenshot(attrs, state), state}
+
+  def handle_call({:update_screenshot, step, attrs}, _from, state),
+    do: {:reply, Screenshots.update_screenshot(step, attrs, state), state}
+
+  def handle_call({:delete_screenshot, id}, _from, state),
+    do: {:reply, Screenshots.delete_screenshot(id, state), state}
 
   alias Client.Pages
 

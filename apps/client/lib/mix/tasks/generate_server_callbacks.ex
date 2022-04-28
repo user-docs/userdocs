@@ -13,6 +13,7 @@ defmodule Mix.Tasks.GenerateServerCallbacks do
       |> Generate.Seeds.get()
 
     fields = Generate.cast_args(seed)
-    code = Generate.cast_server_calls_code(fields)
+    Generate.cast_server_calls_code(fields)
+    |> IO.puts()
   end
 end

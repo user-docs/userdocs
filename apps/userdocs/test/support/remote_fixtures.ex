@@ -6,6 +6,7 @@ defmodule Userdocs.RemoteFixtures do
   alias Userdocs.TeamsFixtures
   alias Userdocs.AutomationFixtures
   alias Userdocs.ElementAnnotationFixtures
+  alias Userdocs.ScreenshotFixtures
 
   @remote_opts %{context: %{repo: Userdocs.Repo}}
 
@@ -43,4 +44,7 @@ defmodule Userdocs.RemoteFixtures do
 
   def create_remote_element_annotation(%{remote_element: element, remote_annotation: annotation}),
     do: %{remote_element_annotation: ElementAnnotationFixtures.element_annotation(element.id, annotation.id, @remote_opts)}
+
+  def create_remote_screenshot(%{remote_page: page}),
+    do: %{remote_screenshot: ScreenshotFixtures.screenshot(%{id: UUID.uuid4(), page_id: page.id}, @remote_opts)}
 end

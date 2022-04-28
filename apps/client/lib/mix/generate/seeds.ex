@@ -142,6 +142,16 @@ defmodule Generate.Seeds do
         common_fixtures: [:strategy],
         local: false,
       },
+      screenshots: %{
+        singular: "screenshot",
+        fixture_module: "ScreenshotFixtures",
+        attrs_function_args: ":valid, %{page_id: page.id, project_id: project.id}",
+        required_context: [:page, :project],
+        local_fixtures: [:team],
+        remote_fixtures: [:team, :team_user],
+        common_fixtures: [:strategy, :project, :page, :screenshot],
+        struct_args: "id: UUID.uuid4()",
+      },
       # Can't use this yet. Tests are custom
       # users: %{
       #   singular: "user",

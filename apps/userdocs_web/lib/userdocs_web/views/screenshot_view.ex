@@ -1,7 +1,7 @@
 defmodule UserdocsWeb.API.ScreenshotView do
   use UserdocsWeb, :view
   alias UserdocsWeb.API.ScreenshotView
-  alias Userdocs.Screenshots
+  alias Userdocs.S3Provider
 
   def render("index.json", %{screenshots: screenshots}) do
     %{data: render_many(screenshots, ScreenshotView, "screenshot.json")}
@@ -15,15 +15,9 @@ defmodule UserdocsWeb.API.ScreenshotView do
     %{
       id: screenshot.id,
       name: screenshot.name,
-      file_name: screenshot.file_name,
       status: screenshot.status,
       score: screenshot.score,
-      aws_file: screenshot.aws_file,
-      aws_screenshot: screenshot.aws_screenshot,
-      aws_diff_screenshot: screenshot.aws_diff_screenshot,
-      aws_provisional_screenshot: screenshot.aws_provisional_screenshot,
-      presigned_urls: Screenshots.presigned_urls(screenshot),
-      project_id: screenshot.project_id,
+      presigned_urls: S3Provider.presigned_urls(screenshot),
       page_id: screenshot.page_id
     }
   end

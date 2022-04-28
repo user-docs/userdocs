@@ -33,24 +33,16 @@
     RepoHandler.get!(Screenshot, id, opts)
   end
 
+  def preload_screenshot(screenshot, preloads, opts) do
+    RepoHandler.preload(screenshot, preloads, opts)
+  end
+
   @doc "Creates a screenshot."
   def create_screenshot(attrs, opts) do
-    #:ok = create_aws_files(attrs["id"], nil)
     %Screenshot{}
     |> Screenshot.changeset(attrs)
     |> RepoHandler.insert(opts)
-    #|> put_presigned_urls()
   end
-
-  defp put_presigned_urls(result) do
-    case result do
-      {:ok, %Screenshot{} = screenshot} ->
-        {:ok, Map.put(screenshot, :presigned_urls, presigned_urls(screenshot))}
-        |> handle_broadcast()
-      result -> result
-    end
-  end
-
   def create_aws_files(id, base64, bucket \\ "userdocs-screenshots") do
     source_path = Path.join([:code.priv_dir(:userdocs), "static", "images", "userdocs_placeholder.png"])
     file_contents =
@@ -70,21 +62,6 @@
       aws_screenshot: "screenshots/#{id}.png",
       aws_provisional_screenshot: "screenshots/#{id}-provisional.png",
       aws_diff_screenshot: "screenshots/#{id}-diff.png"
-    }
-  end
-
-  def presigned_urls(%Screenshot{aws_screenshot: aws_screenshot, aws_provisional_screenshot: aws_provisional,
-  aws_diff_screenshot: aws_diff}, bucket \\ "userdocs-screenshots") do
-    {:ok, screenshot_put} = ExAws.S3.presigned_url(ExAws.Config.new(:s3), :put, bucket, aws_screenshot)
-    {:ok, provisional_put} = ExAws.S3.presigned_url(ExAws.Config.new(:s3), :put, bucket, aws_provisional)
-    {:ok, diff_put} = ExAws.S3.presigned_url(ExAws.Config.new(:s3), :put, bucket, aws_diff)
-    {:ok, screenshot_get} = ExAws.S3.presigned_url(ExAws.Config.new(:s3), :get, bucket, aws_screenshot)
-    {:ok, provisional_get} = ExAws.S3.presigned_url(ExAws.Config.new(:s3), :get, bucket, aws_provisional)
-    {:ok, diff_get} = ExAws.S3.presigned_url(ExAws.Config.new(:s3), :get, bucket, aws_diff)
-    %{
-      aws_screenshot: %{put: screenshot_put, get: screenshot_get},
-      aws_provisional_screenshot: %{put: provisional_put, get: provisional_get},
-      aws_diff_screenshot: %{put: diff_put, get: diff_get}
     }
   end
 
@@ -112,13 +89,13 @@
     screenshot
     |> Screenshot.changeset(attrs)
     |> RepoHandler.update(opts)
-    |> handle_broadcast()
+    |> handle_broadcast(opts)
   end
 
   @doc "Deletes a screenshot."
   def delete_screenshot(%Screenshot{} = screenshot, opts) do
     RepoHandler.delete(screenshot, opts)
-    |> handle_broadcast()
+    |> handle_broadcast(opts)
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking screenshot changes."
@@ -127,26 +104,26 @@
   end
 
   @doc "Broadcasts a screenshot to the team it belongs to"
-  def handle_broadcast({:error, _changeset} = response), do: response
-  def handle_broadcast({:ok, %{__meta__: %{state: :deleted}} = struct}) do
-    Subscription.broadcast(channel(struct.page_id), "delete", struct)
+  def handle_broadcast({:error, _changeset} = response, _), do: response
+  def handle_broadcast({:ok, %{__meta__: %{state: :deleted}} = struct}, opts) do
+    Subscription.broadcast(channel(struct.page_id, opts), "delete", struct)
     {:ok, struct}
   end
-  def handle_broadcast({:ok, %{inserted_at: same_time, updated_at: same_time} = struct}) do
-    Subscription.broadcast(channel(struct), "create", struct)
+  def handle_broadcast({:ok, %{inserted_at: same_time, updated_at: same_time} = struct}, opts) do
+    Subscription.broadcast(channel(struct, opts), "create", struct)
     {:ok, struct}
   end
-  def handle_broadcast({:ok, struct}) do
-    Subscription.broadcast(channel(struct), "update", struct)
+  def handle_broadcast({:ok, struct}, opts) do
+    Subscription.broadcast(channel(struct, opts), "update", struct)
     {:ok, struct}
   end
 
-  def channel(%Screenshot{} = screenshot) do
-    team = Teams.get_screenshot_team!(screenshot.id)
+  def channel(%Screenshot{} = screenshot, opts) do
+    team = Teams.get_screenshot_team!(screenshot.id, opts)
     "team:#{team.id}"
   end
-  def channel(page_id) when is_binary(page_id) do
-    team = Teams.get_page_team(page_id)
+  def channel(page_id, opts) when is_binary(page_id) do
+    team = Teams.get_page_team(page_id, opts)
     "team:#{team.id}"
   end
   def channel(_), do: ""

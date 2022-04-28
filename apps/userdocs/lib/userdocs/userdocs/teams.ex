@@ -52,47 +52,47 @@ defmodule Userdocs.Teams do
     |> RepoHandler.one!(opts)
   end
 
-  def get_screenshot_team!(id) do
+  def get_screenshot_team!(id, opts) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], p in assoc(t, :projects), as: :projects)
     |> join(:left, [projects: p], pa in assoc(p, :pages), as: :pages)
     |> join(:left, [pages: pa], s in assoc(pa, :screenshots), as: :screenshots)
     |> where([screenshots: s], s.id == ^id)
-    |> Repo.one!()
+    |> RepoHandler.one!(opts)
   end
 
-  def get_step_team!(id) do
+  def get_step_team!(id, opts) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], p in assoc(t, :projects), as: :projects)
     |> join(:left, [projects: p], v in assoc(p, :processes), as: :processes)
     |> join(:left, [processes: p], s in assoc(p, :steps), as: :step)
     |> where([step: s], s.id == ^id)
-    |> Repo.one!()
+    |> RepoHandler.one!(opts)
   end
 
-  def get_page_team(id) do
+  def get_page_team(page_id, opts) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], pr in assoc(t, :projects), as: :projects)
     |> join(:left, [projects: pr], pa in assoc(pr, :pages), as: :pages)
-    |> where([pages: pa], pa.id == ^id)
-    |> Repo.one!()
+    |> where([pages: p], p.id == ^page_id)
+    |> RepoHandler.one!(opts)
   end
 
-  def get_annotation_team(id) do
+  def get_annotation_team(id, opts) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], pr in assoc(t, :projects), as: :projects)
     |> join(:left, [projects: pr], pa in assoc(pr, :pages), as: :pages)
     |> join(:left, [pages: pa], a in assoc(pa, :annotations), as: :annotations)
     |> where([annotations: a], a.id == ^id)
-    |> Repo.one!()
+    |> RepoHandler.one!(opts)
   end
 
-  def get_process_team(id) do
+  def get_process_team(id, opts) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], p in assoc(t, :projects), as: :projects)
     |> join(:left, [projects: p], v in assoc(p, :processes), as: :processes)
     |> where([processes: p], p.id == ^id)
-    |> Repo.one!()
+    |> RepoHandler.one!(opts)
   end
 
   def list_user_teams(id) do

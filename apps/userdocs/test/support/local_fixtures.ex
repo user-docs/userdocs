@@ -7,6 +7,7 @@ defmodule Userdocs.LocalFixtures do
   alias Userdocs.AutomationFixtures
   alias Userdocs.ElementAnnotationFixtures
   alias Userdocs.StepInstanceFixtures
+  alias Userdocs.ScreenshotFixtures
   alias Userdocs.Tokens
 
   @local_opts %{context: %{repo: Userdocs.LocalRepo}}
@@ -61,4 +62,7 @@ defmodule Userdocs.LocalFixtures do
 
   def create_local_step_instance(%{local_step: step}),
     do: %{local_step_instance: StepInstanceFixtures.step_instance(%{"step_id" => step.id})}
+
+  def create_local_screenshot(%{local_page: page}),
+    do: %{local_screenshot: ScreenshotFixtures.screenshot(%{id: UUID.uuid4(), page_id: page.id}, @local_opts)}
 end

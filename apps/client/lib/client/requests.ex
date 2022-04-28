@@ -55,4 +55,6 @@ defmodule Client.Requests do
     do: {:error, "Authentication failed, please try again."}
   def handle_server_response({:error, %{status_code: 500, body: _body}}),
     do: {:error, "Server error"}
+  def handle_server_response({:error, %HTTPoison.Error{id: nil, reason: :timeout}}),
+    do: {:error, "Timeout"}
 end

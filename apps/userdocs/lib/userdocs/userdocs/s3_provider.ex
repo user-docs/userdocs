@@ -50,12 +50,18 @@ defmodule Userdocs.S3Provider do
   #     }
   #   end
 
-  def presigned_urls(%Screenshot{id: id}, config) do
+  def presigned_urls(%Screenshot{id: id, page: %{project: %{team: team}}}),
+    do: presigned_urls(id, cast_config(team))
+
+  def presigned_urls(%Screenshot{id: id}, config),
+    do: presigned_urls(id, config)
+
+  def presigned_urls(screenshot_id, config) do
     bucket = Map.get(config, :bucket, "userdocs-image-repo")
-    dir = dir(id)
-    image = image_path(id)
-    provisional = provisional_path(id)
-    diff = diff_path(id)
+    dir = dir(screenshot_id)
+    image = image_path(screenshot_id)
+    provisional = provisional_path(screenshot_id)
+    diff = diff_path(screenshot_id)
 
     {:ok, dir_put} = ExAws.S3.presigned_url(config, :put, bucket, dir)
 

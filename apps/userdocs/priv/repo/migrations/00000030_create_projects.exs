@@ -16,5 +16,6 @@ defmodule Userdocs.Repo.Migrations.CreateProjects do
     end
 
     create index(:projects, [:strategy_id])
+    create index(:projects, [:team_id])
   end
 end
