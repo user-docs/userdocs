@@ -2,11 +2,12 @@ defmodule Client.APISupport do
   import Client.Constants
   alias Schemas.Users.Context
 
-  def impl(state) do
+  def impl(state, module_name) do
     case is_remote?(state) do
       true -> Client.Remote
       false -> Userdocs
     end
+    |> Module.concat(module_name)
   end
 
   def local_or_remote_opts(state, opts \\ %{}) do

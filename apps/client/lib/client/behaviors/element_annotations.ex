@@ -11,7 +11,7 @@ defmodule Client.ElementAnnotations do
   
   
   def load_element_annotations(state, opts) do
-    element_annotations = Module.concat(impl(state), "ElementAnnotations").list_element_annotations(local_or_remote_opts(state, opts))
+    element_annotations = impl(state, "ElementAnnotations").list_element_annotations(local_or_remote_opts(state, opts))
     StateHandlers.load(state, element_annotations, ElementAnnotation, state_opts())
   end
 end

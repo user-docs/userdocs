@@ -11,7 +11,7 @@ defmodule Client.Strategies do
   
   
   def load_strategies(state, opts) do
-    strategies = Module.concat(impl(state), "Strategies").list_strategies(local_or_remote_opts(state, opts))
+    strategies = impl(state, "Strategies").list_strategies(local_or_remote_opts(state, opts))
     StateHandlers.load(state, strategies, Strategy, state_opts())
   end
 end

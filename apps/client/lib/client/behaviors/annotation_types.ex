@@ -11,7 +11,7 @@ defmodule Client.AnnotationTypes do
   
   
   def load_annotation_types(state, opts) do
-    annotation_types = Module.concat(impl(state), "AnnotationTypes").list_annotation_types(local_or_remote_opts(state, opts))
+    annotation_types = impl(state, "AnnotationTypes").list_annotation_types(local_or_remote_opts(state, opts))
     StateHandlers.load(state, annotation_types, AnnotationType, state_opts())
   end
 end

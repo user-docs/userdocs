@@ -8,19 +8,19 @@ defmodule Client.Projects do
   @callback update_project(Project, map(), map()) :: {:ok, Project} | {:error, Ecto.Changeset}
   @callback delete_project(binary(), map()) :: {:ok, Project} | {:error, Ecto.Changeset}
   def create_project(attrs, state),
-    do: Module.concat(impl(state), "Projects").create_project(attrs, local_or_remote_opts(state)) # TODO: subsume Module.concat into impl
+    do: impl(state, "Projects").create_project(attrs, local_or_remote_opts(state)) # TODO: subsume Module.concat into impl
   
    def update_project(project, attrs, state),
-    do: Module.concat(impl(state), "Projects").update_project(project, attrs, local_or_remote_opts(state))
+    do: impl(state, "Projects").update_project(project, attrs, local_or_remote_opts(state))
   
-  def delete_project(%Project{} = project, state), do: Module.concat(impl(state), "Projects").delete_project(project, local_or_remote_opts(state))
+  def delete_project(%Project{} = project, state), do: impl(state, "Projects").delete_project(project, local_or_remote_opts(state))
   def delete_project(project_id, state) when is_binary(project_id) do
     project = State.Projects.get_project!(project_id, state, state_opts())
-    Module.concat(impl(state), "Projects").delete_project(project, local_or_remote_opts(state))
+    impl(state, "Projects").delete_project(project, local_or_remote_opts(state))
   end
   
   def load_projects(state, opts) do
-    projects = Module.concat(impl(state), "Projects").list_projects(local_or_remote_opts(state, opts))
+    projects = impl(state, "Projects").list_projects(local_or_remote_opts(state, opts))
     StateHandlers.load(state, projects, Project, state_opts())
   end
 end
