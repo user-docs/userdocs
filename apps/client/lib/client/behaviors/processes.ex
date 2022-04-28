@@ -10,7 +10,7 @@ defmodule Client.Processes do
   def create_process(attrs, state),
     do: impl(state, "Processes").create_process(attrs, local_or_remote_opts(state)) # TODO: subsume Module.concat into impl
   
-   def update_process(process, attrs, state),
+  def update_process(process, attrs, state),
     do: impl(state, "Processes").update_process(process, attrs, local_or_remote_opts(state))
   
   def delete_process(%Process{} = process, state), do: impl(state, "Processes").delete_process(process, local_or_remote_opts(state))

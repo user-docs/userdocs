@@ -10,7 +10,7 @@ defmodule Client.Teams do
   def create_team(attrs, state),
     do: impl(state, "Teams").create_team(attrs, local_or_remote_opts(state)) # TODO: subsume Module.concat into impl
   
-   def update_team(team, attrs, state),
+  def update_team(team, attrs, state),
     do: impl(state, "Teams").update_team(team, attrs, local_or_remote_opts(state))
   
   def delete_team(%Team{} = team, state), do: impl(state, "Teams").delete_team(team, local_or_remote_opts(state))

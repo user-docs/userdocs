@@ -10,7 +10,7 @@ defmodule Client.Steps do
   def create_step(attrs, state),
     do: impl(state, "Steps").create_step(attrs, local_or_remote_opts(state)) # TODO: subsume Module.concat into impl
   
-   def update_step(step, attrs, state),
+  def update_step(step, attrs, state),
     do: impl(state, "Steps").update_step(step, attrs, local_or_remote_opts(state))
   
   def delete_step(%Step{} = step, state), do: impl(state, "Steps").delete_step(step, local_or_remote_opts(state))

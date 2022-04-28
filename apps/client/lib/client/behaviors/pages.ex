@@ -10,7 +10,7 @@ defmodule Client.Pages do
   def create_page(attrs, state),
     do: impl(state, "Pages").create_page(attrs, local_or_remote_opts(state)) # TODO: subsume Module.concat into impl
   
-   def update_page(page, attrs, state),
+  def update_page(page, attrs, state),
     do: impl(state, "Pages").update_page(page, attrs, local_or_remote_opts(state))
   
   def delete_page(%Page{} = page, state), do: impl(state, "Pages").delete_page(page, local_or_remote_opts(state))

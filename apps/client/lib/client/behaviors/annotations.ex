@@ -10,7 +10,7 @@ defmodule Client.Annotations do
   def create_annotation(attrs, state),
     do: impl(state, "Annotations").create_annotation(attrs, local_or_remote_opts(state)) # TODO: subsume Module.concat into impl
   
-   def update_annotation(annotation, attrs, state),
+  def update_annotation(annotation, attrs, state),
     do: impl(state, "Annotations").update_annotation(annotation, attrs, local_or_remote_opts(state))
   
   def delete_annotation(%Annotation{} = annotation, state), do: impl(state, "Annotations").delete_annotation(annotation, local_or_remote_opts(state))

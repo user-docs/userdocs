@@ -10,7 +10,7 @@ defmodule Client.Projects do
   def create_project(attrs, state),
     do: impl(state, "Projects").create_project(attrs, local_or_remote_opts(state)) # TODO: subsume Module.concat into impl
   
-   def update_project(project, attrs, state),
+  def update_project(project, attrs, state),
     do: impl(state, "Projects").update_project(project, attrs, local_or_remote_opts(state))
   
   def delete_project(%Project{} = project, state), do: impl(state, "Projects").delete_project(project, local_or_remote_opts(state))
