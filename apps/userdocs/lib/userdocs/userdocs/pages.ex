@@ -47,10 +47,7 @@ defmodule Userdocs.Pages do
     %Page{}
     |> Page.changeset(attrs)
     |> RepoHandler.insert(opts)
-    |> case do
-      {:ok, page} = result -> maybe_broadcast_page(result, "create", channel(page, opts[:broadcast]), opts[:broadcast])
-      result -> result
-    end
+    |> handle_broadcast(opts)
   end
 
   def create_page_structs(attrs_list) do
@@ -71,14 +68,13 @@ defmodule Userdocs.Pages do
     page
     |> Page.changeset(attrs)
     |> RepoHandler.update(opts)
-    |> maybe_broadcast_page("update", channel(page, opts[:broadcast]), opts[:broadcast])
+    |> handle_broadcast(opts)
   end
 
   @doc "Deletes a page."
   def delete_page(%Page{} = page, opts) do
-    channel = channel(page, opts[:broadcast])
     RepoHandler.delete(page, opts)
-    |> maybe_broadcast_page("delete", channel, opts[:broadcast])
+    |> handle_broadcast(opts)
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking page changes."
@@ -86,18 +82,23 @@ defmodule Userdocs.Pages do
     Page.changeset(page, attrs)
   end
 
-  @doc "Broadcasts a page to the team it belongs to"
-  def maybe_broadcast_page({:error, _} = state, _, _, _), do: state
-  def maybe_broadcast_page({:ok, %Page{} = page}, action, channel, true) do
-    Logger.debug("#{__MODULE__} broadcasting a Page struct")
-    payload = %{type: "Schemas.Pages.Page", attrs: page}
-    Subscription.broadcast(channel, action, payload)
-    {:ok, page}
+  @doc "Broadcasts a screenshot to the team it belongs to"
+  def handle_broadcast({:error, _changeset} = response, _opts), do: response
+  def handle_broadcast({:ok, %{__meta__: %{state: :deleted}} = struct}, opts) do
+    Subscription.broadcast(channel(struct, opts), "delete", struct)
+    {:ok, struct}
   end
-  def maybe_broadcast_page(state, _, _, _), do: state
+  def handle_broadcast({:ok, %{inserted_at: same_time, updated_at: same_time} = struct}, opts) do
+    Subscription.broadcast(channel(struct, opts), "create", struct)
+    {:ok, struct}
+  end
+  def handle_broadcast({:ok, struct}, opts) do
+    Subscription.broadcast(channel(struct, opts), "update", struct)
+    {:ok, struct}
+  end
 
-  def channel(%Page{} = page, true) do
-    team = Teams.get_page_team!(page.id)
+  def channel(%Page{project_id: project_id}, opts) do
+    team = Teams.get_project_team!(project_id, opts)
     "team:#{team.id}"
   end
   def channel(_, _), do: ""
