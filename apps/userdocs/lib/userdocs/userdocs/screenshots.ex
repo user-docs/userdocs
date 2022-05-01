@@ -123,7 +123,7 @@
     "team:#{team.id}"
   end
   def channel(page_id, opts) when is_binary(page_id) do
-    team = Teams.get_page_team(page_id, opts)
+    team = Teams.get_page_team!(page_id, opts)
     "team:#{team.id}"
   end
   def channel(_), do: ""

@@ -63,9 +63,9 @@ defmodule Userdocs.Annotations do
       {:ok, annotation} ->
         opts_with_preloads = Map.put(opts, :preloads, [element_annotations: true])
         preloaded_annotation = get_annotation!(annotation.id, opts_with_preloads)
-        channel = annotation_channel(preloaded_annotation, opts[:broadcast])
+        channel = channel(preloaded_annotation, opts)
         maybe_broadcast_children(preloaded_annotation, changeset, channel, opts[:broadcast])
-        maybe_broadcast_annotation({:ok, annotation}, "create", channel, opts[:broadcast])
+        handle_broadcast({:ok, annotation}, opts)
       {:error, %Ecto.Changeset{}} = result -> result
     end
   end
@@ -87,33 +87,36 @@ defmodule Userdocs.Annotations do
     changeset = Annotation.changeset(annotation, attrs)
     case RepoHandler.update(changeset, opts) do
       {:ok, annotation} ->
-        channel = annotation_channel(annotation, opts[:broadcast])
+        channel = channel(annotation, opts)
         maybe_broadcast_children(annotation, changeset, channel, opts[:broadcast])
-        maybe_broadcast_annotation({:ok, annotation}, "update", channel, opts[:broadcast])
+        handle_broadcast({:ok, annotation}, opts)
       {:error, %Ecto.Changeset{}} = result -> result
     end
   end
 
   def delete_annotation(%Annotation{} = annotation, opts) do
-    channel = annotation_channel(annotation, opts[:broadcast])
-    {:ok, annotation} = RepoHandler.delete(annotation, opts)
-    maybe_broadcast_annotation({:ok, annotation}, "delete", channel, opts[:broadcast])
+    RepoHandler.delete(annotation, opts)
+    |> handle_broadcast(opts)
   end
 
   def change_annotation(%Annotation{} = annotation, attrs \\ %{}) do
     Annotation.changeset(annotation, attrs)
   end
 
-  @doc "Broadcasts a annotation to the team it belongs to"
-  def maybe_broadcast_annotation({:error, _} = state, _, _, _), do: state
-  def maybe_broadcast_annotation({:ok, %Annotation{} = annotation}, action, channel, true) do
-    Logger.debug("#{__MODULE__} broadcasting a Annotation struct")
-    payload = %{type: "Schemas.Annotations.Annotation", attrs: annotation}
-    Userdocs.Subsc
-    Subscription.broadcast(channel, action, payload)
-    {:ok, annotation}
+  @doc "Broadcasts a screenshot to the team it belongs to"
+  def handle_broadcast({:error, _changeset} = response, _opts), do: response
+  def handle_broadcast({:ok, %{__meta__: %{state: :deleted}} = struct}, opts) do
+    Subscription.broadcast(channel(struct, opts), "delete", struct)
+    {:ok, struct}
   end
-  def maybe_broadcast_annotation(state, _, _, _), do: state
+  def handle_broadcast({:ok, %{inserted_at: same_time, updated_at: same_time} = struct}, opts) do
+    Subscription.broadcast(channel(struct, opts), "create", struct)
+    {:ok, struct}
+  end
+  def handle_broadcast({:ok, struct}, opts) do
+    Subscription.broadcast(channel(struct, opts), "update", struct)
+    {:ok, struct}
+  end
 
   def maybe_broadcast_children(
     %Annotation{element_annotations: [%ElementAnnotation{} | _] = ea_data},
@@ -152,9 +155,8 @@ defmodule Userdocs.Annotations do
     changeset.data
   end
 
-  def annotation_channel(%Annotation{} = annotation, true) do
-    team = Teams.get_annotation_team(annotation.id)
+  def channel(%Annotation{} = annotation, opts) do
+    team = Teams.get_page_team!(annotation.page_id, opts)
     "team:#{team.id}"
   end
-  def annotation_channel(_, _), do: ""
 end

@@ -70,7 +70,7 @@ defmodule Userdocs.Teams do
     |> RepoHandler.one!(opts)
   end
 
-  def get_page_team(page_id, opts) do
+  def get_page_team!(page_id, opts) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], pr in assoc(t, :projects), as: :projects)
     |> join(:left, [projects: pr], pa in assoc(pr, :pages), as: :pages)
@@ -78,7 +78,7 @@ defmodule Userdocs.Teams do
     |> RepoHandler.one!(opts)
   end
 
-  def get_annotation_team(id, opts) do
+  def get_annotation_team!(id, opts) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], pr in assoc(t, :projects), as: :projects)
     |> join(:left, [projects: pr], pa in assoc(pr, :pages), as: :pages)
@@ -98,7 +98,6 @@ defmodule Userdocs.Teams do
   def get_project_team!(id, opts) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], p in assoc(t, :projects), as: :projects)
-    |> join(:left, [projects: p], v in assoc(p, :processes), as: :processes)
     |> where([projects: p], p.id == ^id)
     |> RepoHandler.one!(opts)
   end

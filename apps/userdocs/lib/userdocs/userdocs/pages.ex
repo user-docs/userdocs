@@ -97,7 +97,7 @@ defmodule Userdocs.Pages do
   def maybe_broadcast_page(state, _, _, _), do: state
 
   def channel(%Page{} = page, true) do
-    team = Teams.get_page_team(page.id)
+    team = Teams.get_page_team!(page.id)
     "team:#{team.id}"
   end
   def channel(_, _), do: ""

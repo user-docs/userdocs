@@ -92,7 +92,7 @@ defmodule Client.Loaders do
       [
         Task.async(fn -> Client.Remote.Pages.list_pages(opts) end),
         Task.async(fn -> Client.Remote.Processes.list_processes(opts) end),
-        Task.async(fn -> Client.Screenshots.list_screenshots(opts) end),
+        Task.async(fn -> Client.Remote.Screenshots.list_screenshots(opts) end),
         Task.async(fn -> Client.Remote.Steps.list_steps(opts) end),
         Task.async(fn -> Client.Remote.Elements.list_elements(opts) end),
         Task.async(fn -> Client.Remote.Annotations.list_annotations(opts) end),

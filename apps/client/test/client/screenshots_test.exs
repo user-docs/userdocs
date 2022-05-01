@@ -101,7 +101,6 @@ defmodule ClientTest.Screenshots do
     end
 
     test "deletes", %{local_screenshot: screenshot, local_page: page, local_project: project} do
-      Userdocs.Teams.get_page_team(screenshot.page_id, @local_opts) |> IO.inspect()
       Client.delete_screenshot(screenshot)
       assert_raise Ecto.NoResultsError, fn -> Userdocs.Screenshots.get_screenshot!(screenshot.id, @local_opts) end
     end
