@@ -19,6 +19,9 @@ defmodule Schemas.Teams.Team do
 
     field :type, Ecto.Enum, values: [:personal, :team, :enterprise]
     field :css, :string
+    field :aws_host, :string
+    field :aws_port, :integer
+    field :aws_scheme, :string
     field :aws_region, :string
     field :aws_bucket, :string
     field :aws_access_key_id, Schemas.Encrypted.Binary

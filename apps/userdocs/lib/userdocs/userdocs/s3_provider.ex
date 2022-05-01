@@ -4,7 +4,7 @@ defmodule Userdocs.S3Provider do
   require Logger
 
   # alias Userdocs.Teams
-  alias Schemas.Screenshots.Screenshot
+  # alias Schemas.Screenshots.Screenshot
   # alias Schemas.Screenshots.PresignedURLs
   # @placeholder_path Path.join([:code.priv_dir(:userdocs), "static", "images", "userdocs_placeholder.png"])
 
@@ -14,15 +14,24 @@ defmodule Userdocs.S3Provider do
   def cast_config(%Team{
         aws_region: region,
         aws_access_key_id: access_key_id,
-        aws_secret_access_key: secret_access_key
+        aws_secret_access_key: secret_access_key,
+        aws_host: host,
+        aws_port: port,
+        aws_scheme: scheme
       }) do
     Config.build_base(:s3)
     |> Map.put(:region, region)
     |> Map.put(:access_key_id, access_key_id)
     |> Map.put(:secret_access_key, secret_access_key)
     |> Map.put(:region, region)
+    |> maybe_put(:host, host)
+    |> maybe_put(:port, port)
+    |> maybe_put(:scheme, scheme)
     |> Config.parse_host_for_region()
   end
+
+  def maybe_put(config, nil), do: config
+  def maybe_put(config, key, value), do: Map.put(config, key, value)
 
   #   def create_aws_files(id, base64, bucket \\ "userdocs-screenshots") do
   #     source_path = Path.join([:code.priv_dir(:userdocs), "static", "images", "userdocs_placeholder.png"])
