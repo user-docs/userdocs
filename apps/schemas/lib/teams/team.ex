@@ -40,7 +40,18 @@ defmodule Schemas.Teams.Team do
   @doc false
   def changeset(team, attrs) do
     team
-    |> cast(attrs, [:name, :aws_bucket, :aws_region, :aws_access_key_id, :aws_secret_access_key, :css, :type])
+    |> cast(attrs, [
+      :name,
+      :css,
+      :type,
+      :aws_host,
+      :aws_port,
+      :aws_scheme,
+      :aws_bucket,
+      :aws_region,
+      :aws_access_key_id,
+      :aws_secret_access_key,
+    ])
     |> cast_assoc(:team_users)
     |> cast_assoc(:projects)
     |> handle_users(attrs)
@@ -51,7 +62,19 @@ defmodule Schemas.Teams.Team do
 
   def api_changeset(team, attrs) do
     team
-    |> cast(attrs, [:id, :name, :css, :aws_bucket, :aws_region, :aws_access_key_id, :aws_secret_access_key, :type])
+    |> cast(attrs, [
+      :id,
+      :name,
+      :css,
+      :type,
+      :aws_host,
+      :aws_port,
+      :aws_scheme,
+      :aws_bucket,
+      :aws_region,
+      :aws_access_key_id,
+      :aws_secret_access_key,
+    ])
     |> cast_assoc(:projects, with: &Project.api_changeset/2)
   end
 
@@ -66,6 +89,6 @@ defmodule Schemas.Teams.Team do
     team
     |> put_assoc(:users, users)
   end
-  defp handle_users(team, _), do: team
 
+  defp handle_users(team, _), do: team
 end

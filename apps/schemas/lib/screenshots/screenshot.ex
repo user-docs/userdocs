@@ -1,6 +1,6 @@
 defmodule Schemas.Screenshots.Screenshot do
   @moduledoc """
-  mix phx.gen.json Screenshots Screenshot screenshots name:string aws_file:string aws_screenshot:string aws_provisional_screenshot aws_diff_screenshot:string project_id:references:projects
+  mix phx.gen.json Screenshots Screenshot screenshots name:string project_id:references:projects
   mix phx.gen.live Screenshots Screenshot screenshots name:string file_name:string project_id:references:projects page_id:references:pages
   """
   use Schemas.Schema
@@ -12,18 +12,13 @@ defmodule Schemas.Screenshots.Screenshot do
 
   @primary_key {:id, Ecto.UUID, autogenerate: false}
   @derive {Jason.Encoder, only: [
-    :id, :name, :base64, :aws_screenshot, :file_name, :status,
-    :aws_provisional_screenshot, :aws_diff_screenshot,
+    :id, :name, :base64, :file_name, :status,
     :presigned_urls, :score, :page_id, :step_id
   ]}
   schema "screenshots" do
     field :name, :string
     field :file_name, :string
     field :base64, :string, virtual: true
-    field :aws_file, :string
-    field :aws_screenshot, :string
-    field :aws_provisional_screenshot, :string
-    field :aws_diff_screenshot, :string
     field :status, Ecto.Enum, values: [:ok, :difference, :size_difference]
     field :score, :float
 
@@ -38,16 +33,14 @@ defmodule Schemas.Screenshots.Screenshot do
   @doc false
   def changeset(screenshot, attrs) do
     screenshot
-    |> cast(attrs, [:id, :name, :file_name, :status, :base64, :aws_file,
-      :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot,
+    |> cast(attrs, [:id, :name, :file_name, :status, :base64,
       :score, :page_id, :step_id])
     |> validate_required([:id])
   end
 
   def api_changeset(screenshot, attrs) do
     screenshot
-    |> cast(attrs, [:id, :name, :file_name, :status, :base64, :aws_file,
-      :aws_screenshot, :aws_provisional_screenshot, :aws_diff_screenshot,
+    |> cast(attrs, [:id, :name, :file_name, :status, :base64,
       :score, :page_id, :step_id])
     |> cast_embed(:presigned_urls, with: &PresignedURLs.changeset/2)
   end
@@ -60,17 +53,20 @@ defmodule Schemas.Screenshots.PresignedURLs do
   @primary_key false
   @derive Jason.Encoder
   embedded_schema do
-    embeds_one :screenshot, PresignedURL
+    embeds_one :image, PresignedURL
     embeds_one :provisional, PresignedURL
     embeds_one :diff, PresignedURL
+    embeds_one :export, PresignedURL
+    embeds_one :dir, PresignedURL
   end
 
   def changeset(presigned_urls, attrs) do
     presigned_urls
     |> cast(attrs, [])
-    |> cast_embed(:screenshot, with: &PresignedURL.changeset/2)
+    |> cast_embed(:image, with: &PresignedURL.changeset/2)
     |> cast_embed(:provisional, with: &PresignedURL.changeset/2)
     |> cast_embed(:diff, with: &PresignedURL.changeset/2)
+    |> cast_embed(:export, with: &PresignedURL.changeset/2)
   end
 end
 

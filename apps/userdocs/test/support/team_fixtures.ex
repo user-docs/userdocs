@@ -3,13 +3,18 @@ defmodule Userdocs.TeamsFixtures do
   alias Userdocs.Teams
   alias Userdocs.TeamUsers
 
+  @default_bucket "userdocs-image-repo"
+
   def team_attrs(:valid, attrs) do
     %{
       name: UUID.uuid4(),
-      aws_bucket: "userdocs-test",
-      aws_access_key_id: "AKIAT5VKLWBUOAYXO656",
-      aws_secret_access_key: "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",
-      aws_region: "us-east-2",
+      aws_region: "local",
+      aws_access_key_id: "minioadmin",
+      aws_secret_access_key: "minioadmin",
+      aws_bucket: @default_bucket,
+      aws_host: "localhost",
+      aws_port: 9000,
+      aws_scheme: "http://",
       css: "{test: value}",
       type: :team
     }

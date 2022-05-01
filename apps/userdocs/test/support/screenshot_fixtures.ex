@@ -16,23 +16,20 @@ defmodule Userdocs.ScreenshotFixtures do
     %{
       id: UUID.uuid4(),
       name: UUID.uuid4(),
-      aws_diff_screenshot: UUID.uuid4(),
-      aws_screenshot: UUID.uuid4(),
-      aws_provisional_screenshot: UUID.uuid4(),
       score: 0.0,
-      status: :ok
+      status: :ok,
+      base64: single_black_pixel()
     }
     |> Map.merge(params)
   end
 
   def screenshot_attrs(:valid_string_keys, params) do
     %{
+      "id" => UUID.uuid4(),
       "name" => UUID.uuid4(),
-      "aws_diff_screenshot" => UUID.uuid4(),
-      "aws_screenshot" => UUID.uuid4(),
-      "aws_provisional_screenshot" => UUID.uuid4(),
       "score" => 0.0,
-      "status" => :ok
+      "status" => :ok,
+      "base64" => single_black_pixel()
     }
     |> Map.merge(params)
   end
@@ -41,9 +38,7 @@ defmodule Userdocs.ScreenshotFixtures do
     %{
       id: nil,
       name: UUID.uuid4(),
-      aws_diff_screenshot: UUID.uuid4(),
-      aws_screenshot: UUID.uuid4(),
-      aws_provisional_screenshot: UUID.uuid4()
+      base64: single_black_pixel()
     }
     |> Map.merge(params)
   end
@@ -52,9 +47,7 @@ defmodule Userdocs.ScreenshotFixtures do
     %{
       "id" => "",
       "name" => UUID.uuid4(),
-      "aws_diff_screenshot" => UUID.uuid4(),
-      "aws_screenshot" => UUID.uuid4(),
-      "aws_provisional_screenshot" => UUID.uuid4()
+      "base64" => single_black_pixel()
     }
     |> Map.merge(params)
   end

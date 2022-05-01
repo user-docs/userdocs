@@ -57,8 +57,8 @@ defmodule ClientTest.Screenshots do
     end
 
     test "creates", %{remote_page: page, remote_project: project} do
-      attrs = ScreenshotFixtures.screenshot_attrs(:valid, %{page_id: page.id, project_id: project.id})
-      assert {:ok, %{id: screenshot_id}} = Client.create_screenshot(attrs)
+      attrs = ScreenshotFixtures.screenshot_attrs(:valid_string_keys, %{"page_id" => page.id, "project_id" => project.id})
+      assert {:ok, %{screenshot: %{id: screenshot_id}} = screenshot} = Client.create_screenshot(attrs)
       assert %{id: ^screenshot_id} = Userdocs.Screenshots.get_screenshot!(screenshot_id, @remote_opts)
     end
 

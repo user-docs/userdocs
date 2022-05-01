@@ -30,7 +30,7 @@ defmodule Userdocs.S3Provider do
     |> Config.parse_host_for_region()
   end
 
-  def maybe_put(config, nil), do: config
+  def maybe_put(config, _, nil), do: config
   def maybe_put(config, key, value), do: Map.put(config, key, value)
 
   #   def create_aws_files(id, base64, bucket \\ "userdocs-screenshots") do

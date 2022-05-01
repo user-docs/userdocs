@@ -9,7 +9,7 @@ defmodule Userdocs.Repo.Migrations.CreateTeams do
       add :aws_bucket, :string
       add :aws_region, :string
       add :aws_host, :string
-      add :aws_port, :string
+      add :aws_port, :integer
       add :aws_scheme, :string
       add :aws_access_key_id, :binary
       add :aws_access_key_id_hash, :binary

@@ -3,21 +3,17 @@ defmodule Client.Screenshots.AwsRepo do
   alias Schemas.Screenshots.Screenshot
   alias Local.ImageComparison
   alias Client.Screenshots.FileSupport
-  alias Client.Constants
   alias Client.Remote.PresignedUrls
 
   require Logger
 
-  def create_screenshot(%Screenshot{id: id, presigned_urls: urls} = screenshot, opts \\ %{}) do
-    bucket = Map.get(opts, :bucket, Constants.bucket())
-    image_path = image_path(id)
+  def create_screenshot(%Screenshot{id: id, presigned_urls: urls} = screenshot, _opts \\ %{}) do
     %{presigned_urls: %{image: %{put: url}}} = screenshot
 
     with base64 <- Map.get(screenshot, :base64, FileSupport.encoded_placeholder_image()),
          binary <- Base.decode64!(base64),
-         {:ok, _} <- PresignedUrls.put_object(urls.dir.put, ""),
          {:ok, _} <- PresignedUrls.put_object(url, binary) do
-      {:ok, %{id: id, image: urls.image.get}}
+      {:ok, %{image: urls.image.get}}
     end
   end
 
