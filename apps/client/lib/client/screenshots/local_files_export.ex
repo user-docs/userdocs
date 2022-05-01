@@ -46,14 +46,9 @@ defmodule Client.Screenshots.LocalFilesExport do
     {:ok, %{image: image_path(id, images_path)}}
   end
 
-  defp image_path(%Screenshot{} = screenshot, path) do
-    filename = Map.get(screenshot, :name) || Map.get(screenshot, :id)
-    Path.join(path, filename <> ".png")
-  end
-
   defp image_path(%Screenshot{id: id} = screenshot, path) do
-    filename = Map.get(screenshot, :name, id) <> ".png"
-    Path.join(path, filename)
+    filename = Map.get(screenshot, :name) || id
+    Path.join(path, filename <> ".png")
   end
 
   defp image_path(id, path),

@@ -28,7 +28,7 @@ defmodule Client.Screenshots.AwsRepoTest do
 
     screenshot =
       %Screenshot{id: id}
-      |> Userdocs.S3Provider.put_presigned_urls(config)
+      |> Userdocs.Screenshots.PresignedURLS.put_presigned_urls(config)
       |> Map.put(:base64, black_attrs)
 
     %{
