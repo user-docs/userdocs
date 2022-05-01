@@ -87,7 +87,7 @@ defmodule Userdocs.Teams do
     |> RepoHandler.one!(opts)
   end
 
-  def get_process_team(id, opts) do
+  def get_process_team!(id, opts) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], p in assoc(t, :projects), as: :projects)
     |> join(:left, [projects: p], v in assoc(p, :processes), as: :processes)

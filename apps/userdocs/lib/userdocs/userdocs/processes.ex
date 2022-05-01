@@ -110,7 +110,7 @@ defmodule Userdocs.Processes do
   def maybe_broadcast_process(state, _, _, _), do: state
 
   def channel(%Process{} = process, true) do
-    team = Teams.get_process_team(process.id)
+    team = Teams.get_process_team!(process.id)
     "team:#{team.id}"
   end
   def channel(_, _), do: ""
