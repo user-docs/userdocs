@@ -120,7 +120,7 @@ defmodule Client do
   def load_step_instances(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_step_instances, opts}, @timeout)
   def list_step_instances(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_step_instances, opts}, @timeout)
   def create_step_instance(attrs), do: GenServer.call(__MODULE__.Server, {:create_step_instance, attrs}, @timeout)
-  def update_step_instance(step_instance, attrs), do: GenServer.call(__MODULE__.Server, {:update_step_instance, attrs}, @timeout)
+  def update_step_instance(step_instance, attrs), do: GenServer.call(__MODULE__.Server, {:update_step_instance, step_instance, attrs}, @timeout)
 
   def trim_and_create_step_instance(attrs), do: GenServer.call(__MODULE__.Server, {:trim_and_create_step_instance, attrs}, @timeout)
   def delete_step_instance(id, opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:delete_step_instance, id, opts}, @timeout)

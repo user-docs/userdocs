@@ -95,6 +95,14 @@ defmodule Userdocs.Teams do
     |> RepoHandler.one!(opts)
   end
 
+  def get_project_team!(id, opts) do
+    from(t in Team, as: :teams)
+    |> join(:left, [teams: t], p in assoc(t, :projects), as: :projects)
+    |> join(:left, [projects: p], v in assoc(p, :processes), as: :processes)
+    |> where([projects: p], p.id == ^id)
+    |> RepoHandler.one!(opts)
+  end
+
   def list_user_teams(id) do
     from(t in Team, as: :teams)
     |> join(:left, [teams: t], tu in assoc(t, :team_users), as: :team_users)

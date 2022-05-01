@@ -60,10 +60,7 @@ defmodule Userdocs.Processes do
     %Process{}
     |> Process.changeset(attrs)
     |> RepoHandler.insert(opts)
-    |> case do
-      {:ok, process} = result -> maybe_broadcast_process(result, "create", channel(process, opts[:broadcast]), opts[:broadcast])
-      result -> result
-    end
+    |> handle_broadcast(opts)
   end
 
   def create_process_structs(attrs_list) do
@@ -84,14 +81,13 @@ defmodule Userdocs.Processes do
     process
     |> Process.changeset(attrs)
     |> RepoHandler.update(opts)
-    |> maybe_broadcast_process("update", channel(process, opts[:broadcast]), opts[:broadcast])
+    |> handle_broadcast(opts)
   end
 
   @doc "Deletes a process."
   def delete_process(%Process{} = process, opts) do
-    channel = channel(process, opts[:broadcast])
     RepoHandler.delete(process, opts)
-    |> maybe_broadcast_process("delete", channel, opts[:broadcast])
+    |> handle_broadcast(opts)
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking process changes."
@@ -99,18 +95,23 @@ defmodule Userdocs.Processes do
     Process.changeset(process, attrs)
   end
 
-  @doc "Broadcasts a process to the team it belongs to"
-  def maybe_broadcast_process({:error, _} = state, _, _, _), do: state
-  def maybe_broadcast_process({:ok, %Process{} = process}, action, channel, true) do
-    Logger.debug("#{__MODULE__} broadcasting a Process struct")
-    payload = %{type: "Schemas.Processes.Process", attrs: process}
-    Subscription.broadcast(channel, action, payload)
-    {:ok, process}
+  @doc "Broadcasts a screenshot to the team it belongs to"
+  def handle_broadcast({:error, _changeset} = response, _opts), do: response
+  def handle_broadcast({:ok, %{__meta__: %{state: :deleted}} = struct}, opts) do
+    Subscription.broadcast(channel(struct, opts), "delete", struct)
+    {:ok, struct}
   end
-  def maybe_broadcast_process(state, _, _, _), do: state
+  def handle_broadcast({:ok, %{inserted_at: same_time, updated_at: same_time} = struct}, opts) do
+    Subscription.broadcast(channel(struct, opts), "create", struct)
+    {:ok, struct}
+  end
+  def handle_broadcast({:ok, struct}, opts) do
+    Subscription.broadcast(channel(struct, opts), "update", struct)
+    {:ok, struct}
+  end
 
-  def channel(%Process{} = process, true) do
-    team = Teams.get_process_team!(process.id)
+  def channel(%Process{} = process, opts) do
+    team = Teams.get_project_team!(process.project_id, opts)
     "team:#{team.id}"
   end
   def channel(_, _), do: ""
