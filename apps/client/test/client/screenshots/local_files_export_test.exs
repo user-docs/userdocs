@@ -52,9 +52,8 @@ defmodule Client.Screenshots.LocalFilesExportTest do
   end
 
   describe "LocalFileRepo approve_screenshot" do
-    test "Overwrites the image and writes to history", %{screenshot: screenshot, white_attrs: white_attrs} do
+    test "Overwrites the image and writes to history", %{screenshot: screenshot} do
       LocalFileRepo.create_screenshot(screenshot)
-      {:ok, %{provisional: provisional}} = LocalFileRepo.update_screenshot(screenshot, white_attrs)
       assert {:ok, result} = LocalFileRepo.approve_screenshot(screenshot)
       assert File.exists?(result.image)
       assert File.read!(result.image) |> Base.encode64() == ScreenshotFixtures.single_white_pixel()
@@ -64,7 +63,7 @@ defmodule Client.Screenshots.LocalFilesExportTest do
   describe "LocalFileRepo reject_screenshot" do
     test "does nothing", %{screenshot: screenshot, white_attrs: white_attrs} do
       LocalFileRepo.create_screenshot(screenshot)
-      assert {:ok, result} = LocalFilesExport.create_screenshot(screenshot)
+      assert {:ok, _result} = LocalFilesExport.create_screenshot(screenshot)
       screenshot |>  LocalFileRepo.update_screenshot(white_attrs)
       assert {:ok, result} = LocalFilesExport.reject_screenshot(screenshot)
       assert File.exists?(result.image)

@@ -100,7 +100,7 @@ defmodule ClientTest.Screenshots do
       assert %{name: ^name} = Userdocs.Screenshots.get_screenshot!(screenshot.id, @local_opts)
     end
 
-    test "deletes", %{local_screenshot: screenshot, local_page: page, local_project: project} do
+    test "deletes", %{local_screenshot: screenshot} do
       Client.delete_screenshot(screenshot)
       assert_raise Ecto.NoResultsError, fn -> Userdocs.Screenshots.get_screenshot!(screenshot.id, @local_opts) end
     end
