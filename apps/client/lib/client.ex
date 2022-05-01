@@ -49,7 +49,7 @@ defmodule Client do
 
   def load_projects(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_projects, opts}, @timeout)
   def list_projects(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_projects, opts}, @timeout)
-  def get_project!(id, opts), do: GenServer.call(__MODULE__.Server, {:get_project!, id, opts}, @timeout)
+  def get_project!(id, opts \\ []), do: GenServer.call(__MODULE__.Server, {:get_project!, id, opts}, @timeout)
   def create_project(attrs), do: GenServer.call(__MODULE__.Server, {:create_project, attrs}, @timeout)
   def update_project(project, attrs), do: GenServer.call(__MODULE__.Server, {:update_project, project, attrs}, @timeout)
   def delete_project(project), do: GenServer.call(__MODULE__.Server, {:delete_project, project}, @timeout)
@@ -120,6 +120,8 @@ defmodule Client do
   def load_step_instances(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_step_instances, opts}, @timeout)
   def list_step_instances(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_step_instances, opts}, @timeout)
   def create_step_instance(attrs), do: GenServer.call(__MODULE__.Server, {:create_step_instance, attrs}, @timeout)
+  def update_step_instance(step_instance, attrs), do: GenServer.call(__MODULE__.Server, {:update_step_instance, attrs}, @timeout)
+
   def trim_and_create_step_instance(attrs), do: GenServer.call(__MODULE__.Server, {:trim_and_create_step_instance, attrs}, @timeout)
   def delete_step_instance(id, opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:delete_step_instance, id, opts}, @timeout)
 
