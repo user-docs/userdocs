@@ -211,6 +211,8 @@ defmodule BrowserController.Browser.Commands do
           {:error, :navigation_failed} ->
             {:error, :navigation_failed}
         end
+      {:error, %{"error" => %{"message" => message}}} ->
+        {:error, message}
     end
   end
 

@@ -47,8 +47,6 @@ defmodule Userdocs.ScreenshotsTest do
       screenshot = ScreenshotFixtures.screenshot(%{id: UUID.uuid4()}, @opts)
       db_screenshot = Screenshots.get_screenshot!(screenshot.id, @opts)
       assert screenshot.name == db_screenshot.name
-      assert screenshot.aws_diff_screenshot == db_screenshot.aws_diff_screenshot
-      assert screenshot.aws_screenshot == db_screenshot.aws_screenshot
     end
 
     test "create_screenshot/1 with valid data creates a screenshot" do
@@ -56,18 +54,6 @@ defmodule Userdocs.ScreenshotsTest do
       assert {:ok, %Screenshot{} = screenshot} = Screenshots.create_screenshot(attrs, @opts)
       assert screenshot.name == attrs.name
     end
-
-    # test "create_aws_files/1 does the things" do
-    #   id = "create_aws_file_test"
-    #   Screenshots.create_aws_files(id, nil, "userdocs-test")
-    #   {:ok, %{status_code: status_code}} = ExAws.S3.head_object("userdocs-test", "screenshots/" <> id <> ".png") |> ExAws.request()
-    #   assert status_code == 200
-    #   {:ok, %{status_code: status_code}} = ExAws.S3.head_object("userdocs-test", "screenshots/" <> id <> "-provisional.png") |> ExAws.request()
-    #   assert status_code == 200
-    #   {:ok, %{status_code: status_code}} =  ExAws.S3.head_object("userdocs-test", "screenshots/" <> id <> "-diff.png") |> ExAws.request()
-    #   assert status_code == 200
-    #   clean_bucket(id)
-    # end
 
     test "create_screenshot/1 with invalid data returns error changeset" do
       attrs = ScreenshotFixtures.screenshot_attrs(:invalid, %{})
@@ -87,8 +73,6 @@ defmodule Userdocs.ScreenshotsTest do
       assert {:error, %Ecto.Changeset{}} = Screenshots.update_screenshot(screenshot, attrs, @opts)
       db_screenshot = Screenshots.get_screenshot!(screenshot.id, @opts)
       assert screenshot.name == db_screenshot.name
-      assert screenshot.aws_diff_screenshot == db_screenshot.aws_diff_screenshot
-      assert screenshot.aws_screenshot == db_screenshot.aws_screenshot
     end
 
     test "delete_screenshot/1 deletes the screenshot", %{page: page} do

@@ -12,6 +12,7 @@ defmodule Client.Authentication do
   @headers [{"Content-Type", "application/json"}]
 
   def init(params) do
+    Logger.debug("#{__MODULE__} initializing session with credentials")
     case create_session(params) do
       {:ok, %{access_token: at} = tokens} ->
         Tokens.upsert_all_tokens(tokens, @opts)
@@ -77,6 +78,7 @@ defmodule Client.Authentication do
     {:ok, body} = Jason.encode(params)
     HTTPoison.post(@session_url, body, @headers)
     |> handle_server_response()
+    |> IO.inspect()
     |> case do
       {:ok, %{"data" => %{"access_token" => at, "renewal_token" => rt, "user_id" => uid}}} ->
         {:ok, %{access_token: at, renewal_token: rt, user_id: uid}}

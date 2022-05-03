@@ -11,7 +11,7 @@ defmodule Local.Paths do
   def chromium_downloaded_file_path(), do: Path.join(chromium_download_path(), "chromium.zip")
   def chromium_executable_path() do
     case Desktop.OS.type() do
-      Windows -> chromium_path() |> Path.join("chrome.exe")
+      Windows -> chromium_path() |> Path.join("chrome-win") |> Path.join("chrome.exe")
       Linux -> chromium_path() |> Path.join("chrome")
       MacOS -> Path.join([chromium_path(), "Chromium.app", "Contents", "MacOS", "chrome.exe"])
     end
