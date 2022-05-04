@@ -1,4 +1,6 @@
 defmodule Client.RemoteFixtures do
+  alias PhoenixClient.{Socket, Channel}
+
   def ensure_web_started(_) do
     Application.ensure_all_started(:userdocs_web)
     :ok
@@ -64,4 +66,13 @@ defmodule Client.RemoteFixtures do
 
   def sign_token(conn, token, config),
     do: Pow.Plug.sign_token(conn, Atom.to_string(UserdocsWeb.API.Auth.Plug), token, config)
+
+  def create_channel(%{access_token: token}) do
+    url = Application.get_env(:userdocs_desktop, :channels_url)
+    {:ok, socket} = Socket.start_link([url: url, params: %{token: token}])
+    Client.Remote.Channel.wait_until_connected(socket)
+    topic = "team:test"
+    {:ok, _, channel} = Channel.join(socket, topic, %{app: "client"})
+    %{channel: channel, socket: socket}
+  end
 end

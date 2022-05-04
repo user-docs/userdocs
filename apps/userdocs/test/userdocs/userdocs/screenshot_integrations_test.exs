@@ -84,9 +84,9 @@ defmodule Userdocs.ScreenshotIntegrationsTest do
       assert_raise Ecto.NoResultsError, fn -> ScreenshotIntegrations.get_screenshot_integration!(si.id, @opts) end
     end
 
-    test "change_screenshot_integration/1 returns a screenshot_integration changeset" do
-      screenshot_integration = screenshot_integration_fixture()
-      assert %Ecto.Changeset{} = Integrations.change_screenshot_integration(screenshot_integration)
+    test "change_screenshot_integration/1 returns a screenshot_integration changeset", context do
+      %{screenshot_integration: si} = context
+      assert %Ecto.Changeset{} = ScreenshotIntegrations.change_screenshot_integration(si)
     end
   end
 end

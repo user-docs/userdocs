@@ -5,7 +5,7 @@ defmodule Schemas.Integrations.Integration do
 
   alias Schemas.Projects.Project
 
-  @derive {Jason.Encoder, only: [:id, :name, :type, :project_id]}
+  @derive {Jason.Encoder, except: [:__meta__, :project]}
   schema "integrations" do
     field :name, :string
     field :type, Ecto.Enum, values: [:team_aws]

@@ -7,6 +7,7 @@ defmodule Userdocs.RemoteFixtures do
   alias Userdocs.AutomationFixtures
   alias Userdocs.ElementAnnotationFixtures
   alias Userdocs.ScreenshotFixtures
+  alias Userdocs.IntegrationFixtures
 
   @remote_opts %{context: %{repo: Userdocs.Repo}}
 
@@ -42,9 +43,18 @@ defmodule Userdocs.RemoteFixtures do
 
   def create_remote_step_type(_), do: %{remote_step_type: AutomationFixtures.step_type()}
 
-  def create_remote_element_annotation(%{remote_element: element, remote_annotation: annotation}),
-    do: %{remote_element_annotation: ElementAnnotationFixtures.element_annotation(element.id, annotation.id, @remote_opts)}
+  def create_remote_element_annotation(%{remote_element: element, remote_annotation: annotation}) do
+    ea = ElementAnnotationFixtures.element_annotation(element.id, annotation.id, @remote_opts)
+    %{remote_element_annotation: ea}
+  end
 
-  def create_remote_screenshot(%{remote_page: page}),
-    do: %{remote_screenshot: ScreenshotFixtures.screenshot(%{id: UUID.uuid4(), page_id: page.id}, @remote_opts)}
+  def create_remote_screenshot(%{remote_page: page}) do
+    s = ScreenshotFixtures.screenshot(%{id: UUID.uuid4(), page_id: page.id}, @remote_opts)
+    %{remote_screenshot: s}
+  end
+
+  def create_remote_integration(%{remote_project: project}) do
+    i = IntegrationFixtures.integration(%{project_id: project.id}, @remote_opts)
+    %{remote_integration: i}
+  end
 end
