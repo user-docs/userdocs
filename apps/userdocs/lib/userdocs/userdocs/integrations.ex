@@ -19,7 +19,7 @@ defmodule Userdocs.Integrations do
     |> Subscription.broadcast_result(opts)
   end
 
-  def create_page_structs(attrs_list) do
+  def create_integration_structs(attrs_list) do
     Enum.map(attrs_list, fn(attrs) ->
       {:ok, page} = create_integration_struct(attrs)
       page

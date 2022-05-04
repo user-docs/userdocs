@@ -29,4 +29,8 @@ defmodule Userdocs.Subscription do
     team = Teams.get_project_team!(project_id, opts)
     "team:#{team.id}"
   end
+  def channel(%Schemas.Integrations.ScreenshotIntegration{integration_id: integration_id}, opts) do
+    team = Teams.get_integration_team!(integration_id, opts)
+    "team:#{team.id}"
+  end
 end

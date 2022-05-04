@@ -7,6 +7,7 @@ defmodule Schemas.Projects.Project do
   alias Schemas.Pages.Page
   alias Schemas.Processes.Process
   alias Schemas.Screenshots.Screenshot
+  alias Schemas.Integrations.Integration
 
   alias Schemas.Teams.Team
 
@@ -24,6 +25,7 @@ defmodule Schemas.Projects.Project do
     has_many :pages, Page
     has_many :processes, Process
     has_many :screenshots, Screenshot
+    has_many :integrations, Integration
 
     timestamps()
   end

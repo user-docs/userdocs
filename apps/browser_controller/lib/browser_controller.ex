@@ -259,8 +259,6 @@ defmodule BrowserController do
 
   ################# INTERNALS ##############################
 
-  alias ChromeRemoteInterface.RPC.Runtime
-
   def display_command({:navigate, %{url: url}}), do: "Navigate to #{url}"
   def display_command({:full_screen_screenshot, _params}), do: "Full Screen Screenshot"
   def display_command({:element_screenshot, _params}), do: "Element Screenshot"

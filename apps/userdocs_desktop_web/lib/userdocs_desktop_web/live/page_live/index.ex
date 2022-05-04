@@ -176,8 +176,12 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
   defp screenshot_command(page, project, screenshot_id) do
     width = page.default_width || project.default_width
     height = page.default_height || project.default_height
+    user = Client.current_user()
+    project = Client.current_project()
+    page = Client.get_page!(page.id)
+    url = Pages.effective_url(page, project, user)
     [
-      {:navigate, %{url: page.url}},
+      {:navigate, %{url: url}},
       {:set_size, %{width: width, height: height}},
       {:full_document_screenshot, %{width: width, screenshot_id: screenshot_id}}
     ]
