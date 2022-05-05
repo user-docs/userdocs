@@ -9,6 +9,7 @@ defmodule Userdocs.ScreenshotIntegrationsTest do
   alias Userdocs.ProjectsFixtures
   alias Userdocs.ScreenshotFixtures
   alias Userdocs.IntegrationFixtures
+  alias Userdocs.ScreenshotIntegrationFixtures
   @opts %{context: %{repo: Userdocs.Repo}}
 
   defp create_user(_), do: %{user: UsersFixtures.user()}
@@ -29,7 +30,7 @@ defmodule Userdocs.ScreenshotIntegrationsTest do
 
   defp create_screenshot_integration(%{integration: i, screenshot: s}) do
     attrs = %{screenshot_id: s.id, integration_id: i.id}
-    %{screenshot_integration: IntegrationFixtures.screenshot_integration(attrs, @opts)}
+    %{screenshot_integration: ScreenshotIntegrationFixtures.screenshot_integration(attrs, @opts)}
   end
 
   describe "screenshot_integrations" do
@@ -56,7 +57,7 @@ defmodule Userdocs.ScreenshotIntegrationsTest do
 
     test "create_screenshot_integration/1 with valid data creates a screenshot_integration", context do
       %{integration: integration, screenshot: screenshot} = context
-      valid_attrs = IntegrationFixtures.integration_attrs(%{screenshot_id: screenshot.id, integration_id: integration.id})
+      valid_attrs = ScreenshotIntegrationFixtures.screenshot_integration_attrs(%{screenshot_id: screenshot.id, integration_id: integration.id})
       assert {:ok, %ScreenshotIntegration{}} = ScreenshotIntegrations.create_screenshot_integration(valid_attrs, @opts)
     end
 
