@@ -1,7 +1,7 @@
 defmodule Client.Remote.<%= module_plural %> do
   require Logger
   alias Client.Remote.Channel
-  alias Schemas.<%= module_plural %>.<%= module_singular %>
+  alias Schemas.<%= schemas_module %>.<%= module_singular %>
 
   def <%= list_function_name %>(%{channel: channel} = opts) do
     filters =  Map.take(opts, [:filters])

@@ -13,9 +13,9 @@ defmodule Generate do
     attrs_function_args = Map.get(args, :attrs_function_args, singular <> "_attrs")
     invalid_attrs_function_args = Map.get(args, :invalid_attrs_function_args, singular <> "")
     fixture_module = Map.get(args, :fixture_module, nil)
-    module_singular = Map.get(args, :module_singular, String.capitalize(singular))
-    module_plural = Map.get(args, :module_plural, String.capitalize(plural))
-    schema_module = Map.get(args, :schema_module, module_plural)
+    module_singular = Map.get(args, :module_singular, Inflex.camelize(singular))
+    module_plural = Map.get(args, :module_plural, Inflex.camelize(plural))
+    schemas_module = Map.get(args, :schemas_module, module_plural)
     create_function_name = Map.get(args, :create_function_name, "create_" <> singular)
     create_struct_function_name = Map.get(args, :create_struct_function_name, "create_" <> singular <> "_struct")
     create_structs_function_name = Map.get(args, :create_structs_function_name, "create_" <> singular <> "_structs")
@@ -25,6 +25,7 @@ defmodule Generate do
     get_bang_function_name = Map.get(args, :get_function_name, "get_" <> singular <> "!")
     struct_args = Map.get(args, :struct_args, "")
     local = Map.get(args, :local, true)
+    match_field = Map.get(args, :match_field, "name")
     [
       atom_singular: String.to_atom(singular),
       module_singular: module_singular,
@@ -32,7 +33,7 @@ defmodule Generate do
       variable_name_singular: singular,
       variable_name_plural: plural,
       fixture_module: fixture_module,
-      schemas_module: schema_module,
+      schemas_module: schemas_module,
       attrs_function_name: singular <>"_attrs",
       attrs_function_args: attrs_function_args,
       invalid_attrs_function_args: invalid_attrs_function_args,
@@ -51,7 +52,8 @@ defmodule Generate do
       remote_fixtures: remote_fixtures_text,
       local_fixtures: local_fixtures_text,
       struct_args: struct_args,
-      local: local
+      local: local,
+      match_field: match_field
     ]
   end
 
@@ -106,6 +108,14 @@ defmodule Generate do
     |> Path.join("mix")
     |> Path.join("generate")
     |> Path.join("remote_tests.ex.eex")
+    |> EEx.eval_file(fields)
+  end
+
+  def cast_remote_channel_handlers( fields) do
+    Path.join(".", "lib")
+    |> Path.join("mix")
+    |> Path.join("generate")
+    |> Path.join("channel_handlers.ex.eex")
     |> EEx.eval_file(fields)
   end
 

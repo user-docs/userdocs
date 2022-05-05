@@ -50,8 +50,12 @@ end
 
 defmodule UserdocsWeb.TeamChannel.Context do
   alias UserdocsWeb.TeamChannel.Context.Integrations
+  alias UserdocsWeb.TeamChannel.Context.ScreenshotIntegrations
   def handle_call("Userdocs.Integrations" <> _ = mf, payload),
     do: Integrations.handle_call(mf, parse_params(payload))
+
+  def handle_call("Userdocs.ScreenshotIntegrations" <> _ = mf, payload),
+    do: ScreenshotIntegrations.handle_call(mf, parse_params(payload))
 
   defp parse_params(payload), do: UserdocsWeb.API.Helpers.parse_params(payload)
 end
@@ -75,6 +79,28 @@ defmodule UserdocsWeb.TeamChannel.Context.Integrations do
   def handle_call("Userdocs.Integrations.update_integration", %{id: id, attrs: attrs}) do
     Integrations.get_integration!(id, @opts)
     |> Integrations.update_integration(attrs, @opts)
+  end
+end
+
+defmodule UserdocsWeb.TeamChannel.Context.ScreenshotIntegrations do
+  alias Userdocs.ScreenshotIntegrations
+  @opts %{context: %{repo: Userdocs.Repo}}
+
+  def handle_call("Userdocs.ScreenshotIntegrations.list_screenshot_integrations", opts),
+    do: {:ok, ScreenshotIntegrations.list_screenshot_integrations(Map.merge(opts, @opts))}
+
+  def handle_call("Userdocs.ScreenshotIntegrations.create_screenshot_integration", %{attrs: attrs}) do
+    ScreenshotIntegrations.create_screenshot_integration(attrs, @opts)
+  end
+
+  def handle_call("Userdocs.ScreenshotIntegrations.delete_screenshot_integration", %{struct: struct}) do
+    {:ok, screenshot_integration} = ScreenshotIntegrations.create_screenshot_integration_struct(struct)
+    ScreenshotIntegrations.delete_screenshot_integration(screenshot_integration, @opts)
+  end
+
+  def handle_call("Userdocs.ScreenshotIntegrations.update_screenshot_integration", %{id: id, attrs: attrs}) do
+    ScreenshotIntegrations.get_screenshot_integration!(id, @opts)
+    |> ScreenshotIntegrations.update_screenshot_integration(attrs, @opts)
   end
 end
 

@@ -22,5 +22,10 @@ defmodule Mix.Tasks.GenerateRemote do
     |> Enum.map(fn {k, v} -> {k, Generate.cast_args(v)} end)
     |> Enum.map(fn {k, v} -> {k, Generate.cast_remote_tests(v)} end)
     |> Enum.map(fn {k, v} -> Generate.write_remote_test_file(k, v) end)
+
+    [{key, seed}]
+    |> Enum.map(fn {k, v} -> {k, Generate.cast_args(v)} end)
+    |> Enum.map(fn {k, v} -> {k, Generate.cast_remote_channel_handlers(v)} end)
+    |> Enum.each(fn {_k, v} -> IO.puts(v) end)
   end
 end

@@ -8,6 +8,7 @@ defmodule Userdocs.RemoteFixtures do
   alias Userdocs.ElementAnnotationFixtures
   alias Userdocs.ScreenshotFixtures
   alias Userdocs.IntegrationFixtures
+  alias Userdocs.ScreenshotIntegrationFixtures
 
   @remote_opts %{context: %{repo: Userdocs.Repo}}
 
@@ -56,5 +57,10 @@ defmodule Userdocs.RemoteFixtures do
   def create_remote_integration(%{remote_project: project}) do
     i = IntegrationFixtures.integration(%{project_id: project.id}, @remote_opts)
     %{remote_integration: i}
+  end
+
+  def create_remote_screenshot_integration(%{remote_integration: i, remote_screenshot: s}) do
+    attrs = %{screenshot_id: s.id, integration_id: i.id}
+    %{remote_screenshot_integration: ScreenshotIntegrationFixtures.screenshot_integration(attrs, @remote_opts)}
   end
 end

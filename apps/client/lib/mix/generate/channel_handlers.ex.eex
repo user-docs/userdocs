@@ -1,0 +1,22 @@
+
+defmodule UserdocsWeb.TeamChannel.Context.<%= module_plural %> do
+  alias Userdocs.<%= module_plural %>
+  @opts %{context: %{repo: Userdocs.Repo}}
+
+  def handle_call("Userdocs.<%= module_plural %>.<%= list_function_name %>", opts),
+    do: {:ok, <%= module_plural %>.<%= list_function_name %>(Map.merge(opts, @opts))}
+
+  def handle_call("Userdocs.<%= module_plural %>.<%= create_function_name %>", %{attrs: attrs}) do
+    <%= module_plural %>.<%= create_function_name %>(attrs, @opts)
+  end
+
+  def handle_call("Userdocs.<%= module_plural %>.<%= delete_function_name %>", %{struct: struct}) do
+    {:ok, <%= variable_name_singular %>} = <%= module_plural %>.<%= create_struct_function_name %>(struct)
+    <%= module_plural %>.<%= delete_function_name %>(<%= variable_name_singular %>, @opts)
+  end
+
+  def handle_call("Userdocs.<%= module_plural %>.<%= update_function_name %>", %{id: id, attrs: attrs}) do
+    <%= module_plural %>.<%= get_bang_function_name %>(id, @opts)
+    |> <%= module_plural %>.<%= update_function_name %>(attrs, @opts)
+  end
+end

@@ -4,7 +4,7 @@ defmodule Client.Remote.<%= module_plural %>Test do
   use Client.Case
   alias Client.Remote.<%= module_plural %>
   alias Userdocs.<%= fixture_module %>
-  alias Schemas.<%= module_plural %>.<%= module_singular %>
+  alias Schemas.<%= schemas_module %>.<%= module_singular %>
 
   describe "<%= module_plural %>"  do
     setup [
@@ -26,8 +26,8 @@ defmodule Client.Remote.<%= module_plural %>Test do
     end
 
     test "creates", %{channel: channel, <%= Generate.cast_remote_args(required_context) |> String.slice(0..-3) %>} do
-      %{name: name} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
-      assert {:ok, %<%= module_singular %>{name: ^name}} = <%= module_plural %>.<%= create_function_name %>(attrs, %{channel: channel})
+      %{<%= match_field %>: <%= match_field %>} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
+      assert {:ok, %<%= module_singular %>{<%= match_field %>: ^<%= match_field %>}} = <%= module_plural %>.<%= create_function_name %>(attrs, %{channel: channel})
     end
 
     test "create fails gracefully", %{channel: channel} do
@@ -35,9 +35,9 @@ defmodule Client.Remote.<%= module_plural %>Test do
       assert {:error, %{}} = <%= module_plural %>.<%= create_function_name %>(attrs, %{channel: channel})
     end
 
-    test "updates", %{channel: channel, remote_project: project, remote_<%= variable_name_singular %>: <%= variable_name_singular %>} do
-      %{name: name} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
-      assert {:ok, %<%= module_singular %>{name: ^name}} = <%= module_plural %>.<%= update_function_name %>(<%= variable_name_singular %>, attrs, %{channel: channel})
+    test "updates", %{channel: channel, <%= Generate.cast_remote_args(required_context ++ [atom_singular]) |> String.slice(0..-3) %>} do
+      %{<%= match_field %>: <%= match_field %>} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
+      assert {:ok, %<%= module_singular %>{<%= match_field %>: ^<%= match_field %>}} = <%= module_plural %>.<%= update_function_name %>(<%= variable_name_singular %>, attrs, %{channel: channel})
     end
 
     test "update fails gracefully", %{channel: channel, remote_<%= variable_name_singular %>: <%= variable_name_singular %>} do
