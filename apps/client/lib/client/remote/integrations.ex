@@ -1,12 +1,9 @@
 defmodule Client.Remote.Integrations do
-  @moduledoc """
-  The Steps context.
-  """
   require Logger
   alias Client.Remote.Channel
   alias Schemas.Integrations.Integration
 
-  def list_integration(%{channel: channel} = opts) do
+  def list_integrations(%{channel: channel} = opts) do
     filters =  Map.take(opts, [:filters])
     payload = %{filters: filters}
     mf = "Userdocs.Integrations.list_integrations"
@@ -32,7 +29,6 @@ defmodule Client.Remote.Integrations do
 
   end
 
-  @doc "Deletes a step."
   def delete_integration(integration, %{channel: channel}) do
     payload = %{struct: integration}
     mf = "Userdocs.Integrations.delete_integration"

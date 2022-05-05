@@ -26,7 +26,7 @@ defmodule Client.Remote.IntegrationsTest do
     ]
 
     test "Lists", %{channel: channel, remote_integration: %{id: id}} do
-      assert [%{id: ^id}] = Integrations.list_integration(%{channel: channel})
+      assert [%{id: ^id}] = Integrations.list_integrations(%{channel: channel})
     end
 
     test "creates", %{channel: channel, remote_project: project} do
@@ -34,14 +34,14 @@ defmodule Client.Remote.IntegrationsTest do
       assert {:ok, %Integration{name: ^name}} = Integrations.create_integration(attrs, %{channel: channel})
     end
 
-    test "updates", %{channel: channel, remote_project: project, remote_integration: ri} do
+    test "updates", %{channel: channel, remote_project: project, remote_integration: integration} do
       %{name: name} = attrs = IntegrationFixtures.integration_attrs(%{project_id: project.id})
-      assert {:ok, %Integration{name: ^name}} = Integrations.update_integration(ri, attrs, %{channel: channel})
+      assert {:ok, %Integration{name: ^name}} = Integrations.update_integration(integration, attrs, %{channel: channel})
     end
 
-    test "deletes", %{remote_integration: ri, channel: channel} do
-      Integrations.delete_integration(ri, %{channel: channel})
-      assert_raise Ecto.NoResultsError, fn -> Userdocs.Integrations.get_integration!(ri.id, @remote_opts) end
+    test "deletes", %{remote_integration: integration, channel: channel} do
+      Integrations.delete_integration(integration, %{channel: channel})
+      assert_raise Ecto.NoResultsError, fn -> Userdocs.Integrations.get_integration!(integration.id, @remote_opts) end
     end
   end
 end

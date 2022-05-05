@@ -1,0 +1,39 @@
+defmodule Client.Remote.<%= module_plural %> do
+  require Logger
+  alias Client.Remote.Channel
+  alias Schemas.<%= module_plural %>.<%= module_singular %>
+
+  def <%= list_function_name %>(%{channel: channel} = opts) do
+    filters =  Map.take(opts, [:filters])
+    payload = %{filters: filters}
+    mf = "Userdocs.<%= module_plural %>.<%= list_function_name %>"
+    with {:ok, attrs} <- Channel.push(channel, mf, payload) do
+      Userdocs.<%= module_plural %>.<%= create_structs_function_name %>(attrs)
+    end
+  end
+
+  def <%= create_function_name %>(attrs, %{channel: channel}) do
+    payload = %{attrs: attrs}
+    mf = "Userdocs.<%= module_plural %>.<%= create_function_name %>"
+    with {:ok, attrs} <- Channel.push(channel, mf, payload) do
+      Userdocs.<%= module_plural %>.<%= create_struct_function_name %>(attrs)
+    end
+  end
+
+  def <%= update_function_name %>(%<%= module_singular %>{} = <%= variable_name_singular %>, attrs, %{channel: channel}) do
+    payload = %{id: <%= variable_name_singular %>.id, attrs: attrs}
+    mf = "Userdocs.<%= module_plural %>.<%= update_function_name %>"
+    with {:ok, attrs} <- Channel.push(channel, mf, payload) do
+      Userdocs.<%= module_plural %>.<%= create_struct_function_name %>(attrs)
+    end
+
+  end
+
+  def <%= delete_function_name %>(<%= variable_name_singular %>, %{channel: channel}) do
+    payload = %{struct: <%= variable_name_singular %>}
+    mf = "Userdocs.<%= module_plural %>.<%= delete_function_name %>"
+    with {:ok, attrs} <- Channel.push(channel, mf, payload) do
+      Userdocs.<%= module_plural %>.<%= create_struct_function_name %>(attrs)
+    end
+  end
+end

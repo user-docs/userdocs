@@ -16,9 +16,12 @@ defmodule Generate do
     module_plural = Map.get(args, :module_plural, String.capitalize(plural))
     schema_module = Map.get(args, :schema_module, module_plural)
     create_function_name = Map.get(args, :create_function_name, "create_" <> singular)
+    create_struct_function_name = Map.get(args, :create_struct_function_name, "create_" <> singular <> "_struct")
+    create_structs_function_name = Map.get(args, :create_structs_function_name, "create_" <> singular <> "_structs")
     update_function_name = Map.get(args, :update_function_name, "update_" <> singular)
     delete_function_name = Map.get(args, :delete_function_name, "delete_" <> singular)
     get_function_name = Map.get(args, :get_function_name, "get_" <> singular)
+    get_bang_function_name = Map.get(args, :get_function_name, "get_" <> singular <> "!")
     struct_args = Map.get(args, :struct_args, "")
     local = Map.get(args, :local, true)
     [
@@ -33,8 +36,11 @@ defmodule Generate do
       attrs_function_args: attrs_function_args,
       load_function_name: "load_" <> plural,
       get_function_name: get_function_name,
+      get_bang_function_name: get_bang_function_name,
       list_function_name: "list_" <> plural,
       create_function_name: create_function_name,
+      create_struct_function_name: create_struct_function_name,
+      create_structs_function_name: create_structs_function_name,
       update_function_name: update_function_name,
       delete_function_name: delete_function_name,
       required_context: args.required_context,
@@ -85,6 +91,30 @@ defmodule Generate do
     |> EEx.eval_file(fields)
   end
 
+  def cast_remote_code(fields) do
+    Path.join(".", "lib")
+    |> Path.join("mix")
+    |> Path.join("generate")
+    |> Path.join("remote_client_calls.ex.eex")
+    |> EEx.eval_file(fields)
+  end
+
+  def cast_remote_tests( fields) do
+    Path.join(".", "lib")
+    |> Path.join("mix")
+    |> Path.join("generate")
+    |> Path.join("remote_tests.ex.eex")
+    |> EEx.eval_file(fields)
+  end
+
+  def write_remote_test_file(name, text) do
+    Path.join(".", "test")
+    |> Path.join("client")
+    |> Path.join("remote")
+    |> Path.join(to_string(name) <> "_test.exs")
+    |> File.write!(text)
+  end
+
   def write_test_file(name, text) do
     Path.join(".", "test")
     |> Path.join("client")
@@ -96,6 +126,14 @@ defmodule Generate do
     Path.join(".", "lib")
     |> Path.join("client")
     |> Path.join("behaviors")
+    |> Path.join(to_string(name) <> ".ex")
+    |> File.write!(text)
+  end
+
+  def write_remote_client_calls_file(name, text) do
+    Path.join(".", "lib")
+    |> Path.join("client")
+    |> Path.join("remote")
     |> Path.join(to_string(name) <> ".ex")
     |> File.write!(text)
   end

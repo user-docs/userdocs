@@ -62,26 +62,26 @@ defmodule Client.Screenshots.AwsRepo do
 
   defp screenshot_dir(id), do: "/#{id}/"
 
-  # defp deleted_dir(id, path), do: screenshot_dir(id, path) <> "-deleted"
-
-  defp image_path(id),
-    do: screenshot_dir(id) |> Path.join("image.png")
-
-  def provisional_path(id),
-    do: screenshot_dir(id) |> Path.join("provisional.png")
-
-  defp diff_path(id),
-    do: screenshot_dir(id) |> Path.join("diff.png")
-
   defp paths(%Screenshot{presigned_urls: urls}), do: %{
     image: urls.image.get,
     diff: urls.diff.get,
     provisional: urls.provisional.get,
   }
 
-  defp paths(id) when is_binary(id), do: %{
-    image: image_path(id),
-    provisional: provisional_path(id),
-    diff: diff_path(id)
-  }
+  # defp deleted_dir(id, path), do: screenshot_dir(id, path) <> "-deleted"
+
+  # defp image_path(id),
+  #   do: screenshot_dir(id) |> Path.join("image.png")
+
+  # def provisional_path(id),
+  #   do: screenshot_dir(id) |> Path.join("provisional.png")
+
+  # defp diff_path(id),
+  #   do: screenshot_dir(id) |> Path.join("diff.png")
+
+  # defp paths(id) when is_binary(id), do: %{
+  #   image: image_path(id),
+  #   provisional: provisional_path(id),
+  #   diff: diff_path(id)
+  # }
 end

@@ -152,6 +152,15 @@ defmodule Generate.Seeds do
         common_fixtures: [:strategy, :project, :page, :screenshot],
         struct_args: "id: UUID.uuid4()",
       },
+      integrations: %{
+        singular: "integration",
+        fixture_module: "IntegrationFixtures",
+        attrs_function_args: "%{project_id: project.id}",
+        required_context: [:project],
+        local_fixtures: [:team],
+        remote_fixtures: [:team, :team_user],
+        common_fixtures: [:strategy, :project, :integration]
+      },
       # Can't use this yet. Tests are custom
       # users: %{
       #   singular: "user",

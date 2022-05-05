@@ -1,0 +1,43 @@
+defmodule Client.Remote.<%= module_plural %>Test do
+  use Client.RemoteCase
+  use Client.LocalCase
+  use Client.Case
+  alias Client.Remote.<%= module_plural %>
+  alias Userdocs.<%= fixture_module %>
+  alias Schemas.<%= module_plural %>.<%= module_singular %>
+
+  describe "<%= module_plural %>"  do
+    setup [
+      :reinitialize_state,
+      :ensure_web_started,
+      :create_password,
+      :create_user,
+<%= remote_fixtures %>
+      :create_remote_tokens,
+      :put_access_token_in_state,
+      :create_remote_user_context,
+      :put_remote_context_data,
+      :put_user_in_state,
+      :create_channel
+    ]
+
+    test "Lists", %{channel: channel, remote_<%= variable_name_singular %>: %{id: id}} do
+      assert [%{id: ^id}] = <%= module_plural %>.<%= list_function_name %>(%{channel: channel})
+    end
+
+    test "creates", %{channel: channel, <%= Generate.cast_remote_args(required_context) |> String.slice(0..-3) %>} do
+      %{name: name} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
+      assert {:ok, %<%= module_singular %>{name: ^name}} = <%= module_plural %>.<%= create_function_name %>(attrs, %{channel: channel})
+    end
+
+    test "updates", %{channel: channel, remote_project: project, remote_<%= variable_name_singular %>: <%= variable_name_singular %>} do
+      %{name: name} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
+      assert {:ok, %<%= module_singular %>{name: ^name}} = <%= module_plural %>.<%= update_function_name %>(<%= variable_name_singular %>, attrs, %{channel: channel})
+    end
+
+    test "deletes", %{remote_<%= variable_name_singular %>: <%= variable_name_singular %>, channel: channel} do
+      <%= module_plural %>.<%= delete_function_name %>(<%= variable_name_singular %>, %{channel: channel})
+      assert_raise Ecto.NoResultsError, fn -> Userdocs.<%= module_plural %>.<%= get_bang_function_name %>(<%= variable_name_singular %>.id, @remote_opts) end
+    end
+  end
+end
