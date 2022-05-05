@@ -34,9 +34,19 @@ defmodule Client.Remote.IntegrationsTest do
       assert {:ok, %Integration{name: ^name}} = Integrations.create_integration(attrs, %{channel: channel})
     end
 
+    test "create fails gracefully", %{channel: channel} do
+      attrs = IntegrationFixtures.integration_attrs(%{project_id: nil})
+      assert {:error, %{}} = Integrations.create_integration(attrs, %{channel: channel})
+    end
+
     test "updates", %{channel: channel, remote_project: project, remote_integration: integration} do
       %{name: name} = attrs = IntegrationFixtures.integration_attrs(%{project_id: project.id})
       assert {:ok, %Integration{name: ^name}} = Integrations.update_integration(integration, attrs, %{channel: channel})
+    end
+
+    test "update fails gracefully", %{channel: channel, remote_integration: integration} do
+      attrs = IntegrationFixtures.integration_attrs(%{project_id: nil})
+      assert {:error, %{}} = Integrations.update_integration(integration, attrs, %{channel: channel})
     end
 
     test "deletes", %{remote_integration: integration, channel: channel} do

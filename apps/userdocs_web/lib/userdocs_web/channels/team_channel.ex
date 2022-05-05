@@ -63,8 +63,9 @@ defmodule UserdocsWeb.TeamChannel.Context.Integrations do
   def handle_call("Userdocs.Integrations.list_integrations", opts),
     do: {:ok, Integrations.list_integrations(Map.merge(opts, @opts))}
 
-  def handle_call("Userdocs.Integrations.create_integration", %{attrs: attrs}),
-    do: Integrations.create_integration(attrs, @opts)
+  def handle_call("Userdocs.Integrations.create_integration", %{attrs: attrs}) do
+    Integrations.create_integration(attrs, @opts)
+  end
 
   def handle_call("Userdocs.Integrations.delete_integration", %{struct: struct}) do
     {:ok, integration} = Integrations.create_integration_struct(struct)
@@ -74,5 +75,40 @@ defmodule UserdocsWeb.TeamChannel.Context.Integrations do
   def handle_call("Userdocs.Integrations.update_integration", %{id: id, attrs: attrs}) do
     Integrations.get_integration!(id, @opts)
     |> Integrations.update_integration(attrs, @opts)
+  end
+end
+
+defimpl Jason.Encoder, for: Ecto.Changeset do
+  def encode(%{
+    valid?: valid?,
+    data: data,
+    params: params,
+    changes: changes,
+    required: required,
+    action: action,
+    errors: errors,
+    empty_values: empty_values,
+    repo: repo,
+    repo_opts: repo_opts
+  }, opts) do
+    %{
+      valid?: valid?,
+      data: data,
+      params: params,
+      changes: changes,
+      errors: cast_errors(errors),
+      required: required,
+      action: action,
+      empty_values: empty_values,
+      repo: repo,
+      repo_opts: repo_opts
+    }
+    |> Jason.Encode.map(opts)
+  end
+
+  def cast_errors(errors) do
+    Enum.reduce(errors, %{}, fn {field, {msg, opts}}, acc ->
+      Map.put(acc, field, %{message: msg, options: Enum.into(opts, %{})})
+    end)
   end
 end

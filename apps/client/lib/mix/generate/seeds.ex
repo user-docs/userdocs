@@ -156,6 +156,7 @@ defmodule Generate.Seeds do
         singular: "integration",
         fixture_module: "IntegrationFixtures",
         attrs_function_args: "%{project_id: project.id}",
+        invalid_attrs_function_args: "%{project_id: nil}",
         required_context: [:project],
         local_fixtures: [:team],
         remote_fixtures: [:team, :team_user],

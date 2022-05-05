@@ -30,9 +30,19 @@ defmodule Client.Remote.<%= module_plural %>Test do
       assert {:ok, %<%= module_singular %>{name: ^name}} = <%= module_plural %>.<%= create_function_name %>(attrs, %{channel: channel})
     end
 
+    test "create fails gracefully", %{channel: channel} do
+      attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= invalid_attrs_function_args %>)
+      assert {:error, %{}} = <%= module_plural %>.<%= create_function_name %>(attrs, %{channel: channel})
+    end
+
     test "updates", %{channel: channel, remote_project: project, remote_<%= variable_name_singular %>: <%= variable_name_singular %>} do
       %{name: name} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
       assert {:ok, %<%= module_singular %>{name: ^name}} = <%= module_plural %>.<%= update_function_name %>(<%= variable_name_singular %>, attrs, %{channel: channel})
+    end
+
+    test "update fails gracefully", %{channel: channel, remote_<%= variable_name_singular %>: <%= variable_name_singular %>} do
+      attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= invalid_attrs_function_args %>)
+      assert {:error, %{}} = <%= module_plural %>.<%= update_function_name %>(<%= variable_name_singular %>, attrs, %{channel: channel})
     end
 
     test "deletes", %{remote_<%= variable_name_singular %>: <%= variable_name_singular %>, channel: channel} do
