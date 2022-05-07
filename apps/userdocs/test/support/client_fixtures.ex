@@ -1,4 +1,5 @@
 defmodule Userdocs.ClientFixtures do
+  alias Userdocs.UsersFixtures
   alias Userdocs.StepFixtures
   alias Userdocs.AnnotationFixtures
   alias Userdocs.ElementAnnotationFixtures
@@ -8,6 +9,7 @@ defmodule Userdocs.ClientFixtures do
   alias Userdocs.ProjectsFixtures
   alias Userdocs.LocalOptionsFixtures
   alias Userdocs.IntegrationFixtures
+  alias Userdocs.ContextsFixtures
 
   @local_opts %{context: %{repo: Userdocs.LocalRepo}}
 
@@ -37,6 +39,7 @@ defmodule Userdocs.ClientFixtures do
       )
 
   def local_data() do
+    user = UsersFixtures.confirmed_user()
     team = TeamsFixtures.team(@local_opts)
     strategy = WebFixtures.strategy(@local_opts)
     project = ProjectsFixtures.project(team.id, strategy.id, @local_opts)
@@ -76,6 +79,9 @@ defmodule Userdocs.ClientFixtures do
     integration =
       IntegrationFixtures.integration_struct(%{project_id: project.id, type: :local_files})
 
+    context =
+      ContextsFixtures.context(%{project_id: project.id, team_id: team.id, user_id: user.id}, @local_opts)
+
     data = %{
       projects: [project],
       annotations: [
@@ -114,7 +120,11 @@ defmodule Userdocs.ClientFixtures do
       badge: badge_annotation_step,
       nothing: nothing_step,
       screenshot: screenshot,
-      integration: integration
+      integration: integration,
+      project: project,
+      team: team,
+      user: user,
+      context: context
     }
 
     {data, context}

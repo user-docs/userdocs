@@ -15,7 +15,9 @@ defmodule Client.Constants do
       Schemas.Annotations.Annotation,
       Schemas.Screenshots.Screenshot,
       Schemas.Pages.Page,
-      Schemas.StepInstances.StepInstance
+      Schemas.StepInstances.StepInstance,
+      Schemas.Integrations.Integration,
+      Schemas.Integrations.ScreenshotIntegration
     ]
   end
 

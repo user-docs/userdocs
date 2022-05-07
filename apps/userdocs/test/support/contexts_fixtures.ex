@@ -8,6 +8,13 @@ defmodule Userdocs.ContextsFixtures do
     context
   end
 
+  def context_struct(attrs) do
+    {:ok, context} =
+      context_attrs(attrs)
+      |> Contexts.create_context_struct()
+    context
+  end
+
   def context_attrs(attrs) do
     %{
       team_id: UUID.uuid4(),

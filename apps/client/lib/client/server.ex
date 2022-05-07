@@ -20,25 +20,6 @@ defmodule Client.Server do
 
   alias Userdocs.Tokens
 
-  @types [
-    Schemas.Users.User,
-    Schemas.Teams.TeamUser,
-    Schemas.Teams.Team,
-    Schemas.Strategies.Strategy,
-    Schemas.Annotations.AnnotationType,
-    Schemas.Steps.StepType,
-    Schemas.Projects.Project,
-    Schemas.Processes.Process,
-    Schemas.Steps.Step,
-    Schemas.Elements.Element,
-    Schemas.Elements.ElementAnnotation,
-    Schemas.Annotations.Annotation,
-    Schemas.Screenshots.Screenshot,
-    Schemas.Pages.Page,
-    Schemas.StepInstances.StepInstance
-  ]
-
-  @state_opts [data_type: :list, strategy: :by_type, location: :data, types: @types]
   @local_opts %{context: %{repo: Userdocs.LocalRepo}}
 
   def start_link(args), do: GenServer.start_link(__MODULE__, Enum.into(args, %{}), name: __MODULE__)
@@ -476,7 +457,7 @@ defmodule Client.Server do
     |> kw_opts(state)
   end
   def kw_opts(opts, _) do
-    Keyword.merge(opts, @state_opts)
+    Keyword.merge(opts, Constants.state_opts())
   end
 
   def object_counts(%{data: data}), do:
@@ -494,7 +475,7 @@ defmodule Client.Server do
 
   def get_current_team(state) do
     %{context: %Context{team_id: team_id}} = state
-    State.Teams.get_team!(team_id, state, @state_opts)
+    State.Teams.get_team!(team_id, state, Constants.state_opts())
   end
 
   def maybe_join_team_channel(%{context: %{team_id: nil}}), do: {:ok, nil}
