@@ -1,8 +1,8 @@
-defmodule Client.Screenshots.LocalFilesExportTest do
+defmodule Client.Screenshots.Integrations.LocalFileTest do
 	use ExUnit.Case
-  alias Client.Screenshots.LocalFilesExport
+  alias Client.Screenshots.Integrations.LocalFile
   alias Schemas.Screenshots.Screenshot
-  alias Client.Screenshots.Repo.LocalFile
+  alias Client.Screenshots.Repo
   alias Userdocs.ScreenshotFixtures
 
   defp cleanup(id) do
@@ -27,25 +27,25 @@ defmodule Client.Screenshots.LocalFilesExportTest do
 
   describe "LocalFiles create_screenshot" do
     test "creates the file with id", %{screenshot: screenshot}  do
-      assert {:ok, result} = LocalFilesExport.create_screenshot(screenshot)
+      assert {:ok, result} = LocalFile.create_screenshot(screenshot)
       assert File.read!(result.image) |> Base.encode64() == ScreenshotFixtures.single_black_pixel()
     end
     test "creates the file with name", %{screenshot: screenshot}  do
-      assert {:ok, result} = LocalFilesExport.create_screenshot(Map.put(screenshot, :name, "test"))
+      assert {:ok, result} = LocalFile.create_screenshot(Map.put(screenshot, :name, "test"))
       assert File.read!(result.image) |> Base.encode64() == ScreenshotFixtures.single_black_pixel()
     end
   end
 
   describe "LocalFiles update_screenshot" do
     test "is a no op", %{black_attrs: black_attrs} do
-      assert LocalFilesExport.update_screenshot(%Screenshot{}, black_attrs) == {:ok, nil}
+      assert LocalFile.update_screenshot(%Screenshot{}, black_attrs) == {:ok, nil}
     end
   end
 
   describe "LocalFiles delete_screenshot" do
     test "Deletes everything but history", %{screenshot: screenshot}  do
-      LocalFilesExport.create_screenshot(screenshot)
-      assert {:ok, paths} = LocalFilesExport.delete_screenshot(screenshot)
+      LocalFile.create_screenshot(screenshot)
+      assert {:ok, paths} = LocalFile.delete_screenshot(screenshot)
       assert !File.exists?(paths.id)
       assert !File.exists?(paths.image)
     end
@@ -53,9 +53,9 @@ defmodule Client.Screenshots.LocalFilesExportTest do
 
   describe "LocalFiles approve_screenshot" do
     test "Overwrites the image and writes to history", %{screenshot: screenshot, white_attrs: white_attrs} do
-      LocalFile.create_screenshot(screenshot)
-      screenshot |>  LocalFile.update_screenshot(white_attrs)
-      assert {:ok, result} = LocalFile.approve_screenshot(screenshot)
+      Repo.LocalFile.create_screenshot(screenshot)
+      screenshot |>  Repo.LocalFile.update_screenshot(white_attrs)
+      assert {:ok, result} = Repo.LocalFile.approve_screenshot(screenshot)
       assert File.exists?(result.image)
       assert File.read!(result.image) |> Base.encode64() == ScreenshotFixtures.single_white_pixel()
     end
@@ -63,10 +63,10 @@ defmodule Client.Screenshots.LocalFilesExportTest do
 
   describe "LocalFile reject_screenshot" do
     test "does nothing", %{screenshot: screenshot, white_attrs: white_attrs} do
-      LocalFile.create_screenshot(screenshot)
-      assert {:ok, _result} = LocalFilesExport.create_screenshot(screenshot)
-      screenshot |>  LocalFile.update_screenshot(white_attrs)
-      assert {:ok, result} = LocalFilesExport.reject_screenshot(screenshot)
+      Repo.LocalFile.create_screenshot(screenshot)
+      assert {:ok, _result} = LocalFile.create_screenshot(screenshot)
+      screenshot |>  Repo.LocalFile.update_screenshot(white_attrs)
+      assert {:ok, result} = LocalFile.reject_screenshot(screenshot)
       assert File.exists?(result.image)
       assert File.read!(result.image) |> Base.encode64() == ScreenshotFixtures.single_black_pixel()
     end

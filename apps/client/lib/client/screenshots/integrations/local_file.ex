@@ -1,4 +1,4 @@
-defmodule Client.Screenshots.LocalFilesExport do
+defmodule Client.Screenshots.Integrations.LocalFile do
   alias Local.Paths
   alias Schemas.Screenshots.Screenshot
   alias Client.Screenshots.Repo.LocalFile
