@@ -1,4 +1,4 @@
-defmodule Client.Screenshots.LocalFileRepo do
+defmodule Client.Screenshots.Repo.LocalFile do
   alias Local.Paths
   alias Schemas.Screenshots.Screenshot
   alias Local.ImageComparison

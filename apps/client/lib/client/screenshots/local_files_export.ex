@@ -1,7 +1,7 @@
 defmodule Client.Screenshots.LocalFilesExport do
   alias Local.Paths
   alias Schemas.Screenshots.Screenshot
-  alias Client.Screenshots.LocalFileRepo
+  alias Client.Screenshots.Repo.LocalFile
   alias Client.Screenshots.FileSupport, as: Support
 
   require Logger
@@ -32,7 +32,7 @@ defmodule Client.Screenshots.LocalFilesExport do
 
   def approve_screenshot(%Screenshot{id: id}, opts \\ %{}) do
     repo_path = Map.get(opts, :image_repo_path, Paths.image_repo_path())
-    provisional_path = LocalFileRepo.provisional_path(id, repo_path)
+    provisional_path = LocalFile.provisional_path(id, repo_path)
     images_path = Map.get(opts, :images_path, Paths.default_images_path())
     image_path = image_path(id, images_path)
 

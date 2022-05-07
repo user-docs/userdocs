@@ -98,10 +98,10 @@ defmodule Client.Screenshots.AwsExportTest do
 
   describe "AwsExport approve_screenshot" do
     test "Overwrites the image and writes to history", %{screenshot: screenshot, white_attrs: white_attrs} do
-      alias Client.Screenshots.AwsRepo
-      AwsRepo.create_screenshot(screenshot)
-      screenshot |> Map.put(:base64, white_attrs) |> AwsRepo.update_screenshot()
-      AwsRepo.approve_screenshot(screenshot)
+      alias Client.Screenshots.Repo.S3
+      S3.create_screenshot(screenshot)
+      screenshot |> Map.put(:base64, white_attrs) |> S3.update_screenshot()
+      S3.approve_screenshot(screenshot)
       assert {:ok, result} = AwsExport.approve_screenshot(screenshot)
 
       assert {:ok, base64} = PresignedUrls.get_object(result.export)

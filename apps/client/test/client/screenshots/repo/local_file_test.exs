@@ -1,6 +1,6 @@
-defmodule Client.Screenshots.LocalFileRepoTest do
+defmodule Client.Screenshots.Repo.LocalFileTest do
 	use ExUnit.Case
-  alias Client.Screenshots.LocalFileRepo
+  alias Client.Screenshots.Repo.LocalFile
   alias Schemas.Screenshots.Screenshot
   alias Userdocs.ScreenshotFixtures
 
@@ -24,35 +24,35 @@ defmodule Client.Screenshots.LocalFileRepoTest do
     }
   end
 
-  describe "LocalFileRepo create_screenshot" do
+  describe "LocalFile create_screenshot" do
     test "creates the dir, history dir, and file properly", %{screenshot: screenshot}  do
-      assert {:ok, result} = LocalFileRepo.create_screenshot(screenshot)
+      assert {:ok, result} = LocalFile.create_screenshot(screenshot)
       assert File.exists?(result.image)
       assert File.exists?(result.dir)
       assert File.exists?(result.history)
     end
   end
 
-  describe "LocalFileRepo update_screenshot" do
+  describe "LocalFile update_screenshot" do
     test "creates the diff and provisional", %{screenshot: screenshot, white_attrs: white_attrs} do
-      LocalFileRepo.create_screenshot(screenshot)
-      assert {:ok, result} = LocalFileRepo.update_screenshot(screenshot, white_attrs)
+      LocalFile.create_screenshot(screenshot)
+      assert {:ok, result} = LocalFile.update_screenshot(screenshot, white_attrs)
       assert %{score: 1.0, result_code: :image_difference} = result
       assert File.exists?(result.provisional)
       assert File.exists?(result.diff)
     end
     test "creates the file when it doesn't exist", %{screenshot: screenshot, white_attrs: attrs}  do
-      assert {:warn, result} = LocalFileRepo.update_screenshot(screenshot, attrs)
+      assert {:warn, result} = LocalFile.update_screenshot(screenshot, attrs)
       assert File.exists?(result.image)
       assert File.exists?(result.dir)
       assert File.exists?(result.history)
     end
   end
 
-  describe "LocalFileRepo delete_screenshot" do
+  describe "LocalFile delete_screenshot" do
     test "Deletes everything but history", %{screenshot: screenshot}  do
-      LocalFileRepo.create_screenshot(screenshot)
-      assert {:ok, paths} = LocalFileRepo.delete_screenshot(screenshot)
+      LocalFile.create_screenshot(screenshot)
+      assert {:ok, paths} = LocalFile.delete_screenshot(screenshot)
       assert !File.exists?(paths.image)
       assert !File.exists?(paths.provisional)
       assert !File.exists?(paths.diff)
@@ -60,11 +60,11 @@ defmodule Client.Screenshots.LocalFileRepoTest do
     end
   end
 
-  describe "LocalFileRepo approve_screenshot" do
+  describe "LocalFile approve_screenshot" do
     test "Overwrites the image and writes to history", %{screenshot: screenshot, white_attrs: white_attrs} do
-      LocalFileRepo.create_screenshot(screenshot)
-      LocalFileRepo.update_screenshot(screenshot, white_attrs)
-      assert {:ok, result} = LocalFileRepo.approve_screenshot(screenshot)
+      LocalFile.create_screenshot(screenshot)
+      LocalFile.update_screenshot(screenshot, white_attrs)
+      assert {:ok, result} = LocalFile.approve_screenshot(screenshot)
       assert File.exists?(result.image)
       assert File.exists?(result.provisional)
       assert File.exists?(result.history)
@@ -72,11 +72,11 @@ defmodule Client.Screenshots.LocalFileRepoTest do
     end
   end
 
-  describe "LocalFileRepo reject_screenshot" do
+  describe "LocalFile reject_screenshot" do
     test "removes the provisonal and diff", %{screenshot: screenshot, white_attrs: white_attrs} do
-      LocalFileRepo.create_screenshot(screenshot)
-      LocalFileRepo.update_screenshot(screenshot, white_attrs)
-      assert {:ok, result} = LocalFileRepo.reject_screenshot(screenshot)
+      LocalFile.create_screenshot(screenshot)
+      LocalFile.update_screenshot(screenshot, white_attrs)
+      assert {:ok, result} = LocalFile.reject_screenshot(screenshot)
       assert !File.exists?(result.diff)
       assert !File.exists?(result.provisional)
     end
