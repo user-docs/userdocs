@@ -1,6 +1,6 @@
-defmodule Client.Screenshots.AwsExportTest do
+defmodule Client.Screenshots.Integrations.S3Test do
   use ExUnit.Case
-  alias Client.Screenshots.AwsExport
+  alias Client.Screenshots.Integrations.S3
   alias Userdocs.ScreenshotFixtures
   alias Schemas.Screenshots.Screenshot
   alias Client.Remote.PresignedUrls
@@ -55,7 +55,7 @@ defmodule Client.Screenshots.AwsExportTest do
 
   describe "AwsRepo create_screenshot" do
     test "creates the file with id", %{screenshot: screenshot, team: team} do
-      assert {:ok, result} = AwsExport.create_screenshot(screenshot)
+      assert {:ok, result} = S3.create_screenshot(screenshot)
       assert {:ok, base64} = PresignedUrls.get_object(result.export)
       assert result.export =~ team.name
       assert result.export =~ screenshot.page.project.name
@@ -64,7 +64,7 @@ defmodule Client.Screenshots.AwsExportTest do
     end
 
     test "creates the file with file_name", %{file_named_screenshot: screenshot, team: team} do
-      assert {:ok, result} = AwsExport.create_screenshot(screenshot)
+      assert {:ok, result} = S3.create_screenshot(screenshot)
       assert {:ok, base64} = PresignedUrls.get_object(result.export)
       assert result.export =~ team.name
       assert result.export =~ screenshot.page.project.name
@@ -73,7 +73,7 @@ defmodule Client.Screenshots.AwsExportTest do
     end
 
     test "creates the file with name", %{named_screenshot: screenshot, team: team} do
-      assert {:ok, result} = AwsExport.create_screenshot(screenshot)
+      assert {:ok, result} = S3.create_screenshot(screenshot)
       assert {:ok, base64} = PresignedUrls.get_object(result.export)
       assert result.export =~ team.name
       assert result.export =~ screenshot.page.project.name
@@ -82,36 +82,35 @@ defmodule Client.Screenshots.AwsExportTest do
     end
   end
 
-  describe "AwsExport update_screenshot" do
+  describe "S3 update_screenshot" do
     test "is a no op", %{black_attrs: black_attrs} do
-      assert AwsExport.update_screenshot(%Screenshot{}, black_attrs) == {:ok, nil}
+      assert S3.update_screenshot(%Screenshot{}, black_attrs) == {:ok, nil}
     end
   end
 
-  describe "AwsExport delete_screenshot" do
+  describe "S3 delete_screenshot" do
     test "Deletes everything but history", %{screenshot: screenshot}  do
-      AwsExport.create_screenshot(screenshot)
-      assert {:ok, paths} = AwsExport.delete_screenshot(screenshot)
+      S3.create_screenshot(screenshot)
+      assert {:ok, paths} = S3.delete_screenshot(screenshot)
       assert {:error, "File not found"} = PresignedUrls.get_object(paths.export)
     end
   end
 
-  describe "AwsExport approve_screenshot" do
+  describe "S3 approve_screenshot" do
     test "Overwrites the image and writes to history", %{screenshot: screenshot, white_attrs: white_attrs} do
-      alias Client.Screenshots.Repo.S3
-      S3.create_screenshot(screenshot)
-      screenshot |> Map.put(:base64, white_attrs) |> S3.update_screenshot()
-      S3.approve_screenshot(screenshot)
-      assert {:ok, result} = AwsExport.approve_screenshot(screenshot)
-
+      alias Client.Screenshots.Repo
+      Repo.S3.create_screenshot(screenshot)
+      screenshot |> Map.put(:base64, white_attrs) |> Repo.S3.update_screenshot()
+      Repo.S3.approve_screenshot(screenshot)
+      assert {:ok, result} = S3.approve_screenshot(screenshot)
       assert {:ok, base64} = PresignedUrls.get_object(result.export)
       assert Base.encode64(base64) == white_attrs
     end
   end
 
-  describe "AwsExport reject_screenshot" do
+  describe "S3 reject_screenshot" do
     test "is a no op", %{black_attrs: black_attrs} do
-      assert AwsExport.reject_screenshot(%Screenshot{}, black_attrs) == {:ok, nil}
+      assert S3.reject_screenshot(%Screenshot{}, black_attrs) == {:ok, nil}
     end
   end
 end

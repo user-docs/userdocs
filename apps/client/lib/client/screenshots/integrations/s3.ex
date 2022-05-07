@@ -1,4 +1,4 @@
-defmodule Client.Screenshots.AwsExport do
+defmodule Client.Screenshots.Integrations.S3 do
   alias Schemas.Screenshots.Screenshot
   alias Client.Remote.PresignedUrls
   alias Client.Screenshots.FileSupport
