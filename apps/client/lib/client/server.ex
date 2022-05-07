@@ -16,6 +16,7 @@ defmodule Client.Server do
   alias Client.Subscription
   alias Client.Initialize
   alias Local.Paths
+  alias Client.Context.Projects
 
   alias Userdocs.Tokens
 
@@ -103,7 +104,7 @@ defmodule Client.Server do
   def handle_call(:current_user, _from, state), do: {:reply, nil, state}
 
   def handle_call(:current_project, _from, state) when state.context.project_id != nil do
-    {:reply, get_current_project(state), state}
+    {:reply, Projects.get_current_project(state), state}
   end
   def handle_call(:current_project, _from, state), do: {:reply, nil, state}
 
@@ -494,11 +495,6 @@ defmodule Client.Server do
   def get_current_team(state) do
     %{context: %Context{team_id: team_id}} = state
     State.Teams.get_team!(team_id, state, @state_opts)
-  end
-
-  def get_current_project(state) do
-    %{state_opts: state_opts, context: %Context{project_id: project_id}} = state
-    State.Projects.get_project!(project_id, state, state_opts)
   end
 
   def maybe_join_team_channel(%{context: %{team_id: nil}}), do: {:ok, nil}
