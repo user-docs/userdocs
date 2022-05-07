@@ -7,10 +7,15 @@ defmodule Userdocs.IntegrationFixtures do
     integration
   end
 
+  def integration_struct(attrs) do
+    {:ok, integration} = integration_attrs(attrs) |> Integrations.create_integration_struct()
+    integration
+  end
+
   def integration_attrs(params) do
     %{
       name: UUID.uuid4(),
-      type: :team_aws
+      type: :team_s3
     }
     |> Map.merge(params)
   end
