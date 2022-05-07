@@ -1,6 +1,6 @@
-defmodule Client.Screenshots.AwsRepoTest do
+defmodule Client.Screenshots.Repo.S3Test do
   use ExUnit.Case
-  alias Client.Screenshots.AwsRepo
+  alias Client.Screenshots.Repo.S3
   alias Userdocs.ScreenshotFixtures
   alias Schemas.Screenshots.Screenshot
   alias Client.Remote.PresignedUrls
@@ -42,24 +42,24 @@ defmodule Client.Screenshots.AwsRepoTest do
     }
   end
 
-  describe "AwsRepo create_screenshot" do
+  describe "S3 create_screenshot" do
     test "creates the dir and file properly", context do
       %{screenshot: screenshot, black_attrs: black_attrs} = context
-      assert {:ok, result} = AwsRepo.create_screenshot(screenshot)
+      assert {:ok, result} = S3.create_screenshot(screenshot)
       assert {:ok, base64} = PresignedUrls.get_object(result.image)
       assert Base.encode64(base64) == black_attrs
     end
   end
 
-  describe "AwsRepo update_screenshot" do
+  describe "S3 update_screenshot" do
     test "updates the file properly", context do
       %{white_attrs: white_attrs, screenshot: screenshot, black_attrs: black_attrs} = context
-      AwsRepo.create_screenshot(screenshot)
+      S3.create_screenshot(screenshot)
 
       assert {:ok, %{score: 1.0, result_code: :image_difference} = paths} =
                screenshot
                |> Map.put(:base64, white_attrs)
-               |> AwsRepo.update_screenshot(screenshot)
+               |> S3.update_screenshot(screenshot)
 
       assert {:ok, base64} = PresignedUrls.get_object(paths.image)
       assert Base.encode64(base64) == black_attrs
@@ -72,21 +72,21 @@ defmodule Client.Screenshots.AwsRepoTest do
     end
   end
 
-  describe "LocalFileRepo delete_screenshot" do
+  describe "S3 delete_screenshot" do
     test "Deletes everything but history", %{screenshot: screenshot} do
-      AwsRepo.create_screenshot(screenshot)
-      assert {:ok, paths} = AwsRepo.delete_screenshot(screenshot)
+      S3.create_screenshot(screenshot)
+      assert {:ok, paths} = S3.delete_screenshot(screenshot)
 
       assert {:error, "File not found"} = PresignedUrls.get_object(paths.diff)
       assert {:error, "File not found"} = PresignedUrls.get_object(paths.provisional)
     end
   end
 
-  describe "LocalFileRepo approve_screenshot" do
+  describe "S3 approve_screenshot" do
     test "Overwrites the image and writes to history", %{screenshot: screenshot, white_attrs: white_attrs} do
-      AwsRepo.create_screenshot(screenshot)
-      screenshot |> Map.put(:base64, white_attrs) |> AwsRepo.update_screenshot()
-      assert {:ok, result} = AwsRepo.approve_screenshot(screenshot)
+      S3.create_screenshot(screenshot)
+      screenshot |> Map.put(:base64, white_attrs) |> S3.update_screenshot()
+      assert {:ok, result} = S3.approve_screenshot(screenshot)
 
       assert {:ok, base64} = PresignedUrls.get_object(result.image)
       assert Base.encode64(base64) == white_attrs
@@ -96,11 +96,11 @@ defmodule Client.Screenshots.AwsRepoTest do
     end
   end
 
-  describe "LocalFileRepo reject_screenshot" do
+  describe "S3 reject_screenshot" do
     test "removes the provisonal and diff", %{screenshot: screenshot, white_attrs: white_attrs} do
-      AwsRepo.create_screenshot(screenshot)
-      screenshot |> Map.put(:base64, white_attrs) |> AwsRepo.update_screenshot()
-      assert {:ok, result} = AwsRepo.reject_screenshot(screenshot)
+      S3.create_screenshot(screenshot)
+      screenshot |> Map.put(:base64, white_attrs) |> S3.update_screenshot()
+      assert {:ok, result} = S3.reject_screenshot(screenshot)
 
       assert {:error, "File not found"} = PresignedUrls.get_object(result.diff)
       assert {:error, "File not found"} = PresignedUrls.get_object(result.provisional)

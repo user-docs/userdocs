@@ -12,7 +12,7 @@ defmodule Client.APISupport do
 
   def file_repo_impl(state) do
     case is_remote?(state) do
-      true -> Client.Screenshots.AwsRepo
+      true -> Client.Screenshots.Repo.S3
       false -> Client.Screenshots.LocalFileRepo
     end
   end

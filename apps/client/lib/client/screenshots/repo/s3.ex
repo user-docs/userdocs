@@ -1,4 +1,4 @@
-defmodule Client.Screenshots.AwsRepo do
+defmodule Client.Screenshots.Repo.S3 do
   alias Local.Paths
   alias Schemas.Screenshots.Screenshot
   alias Local.ImageComparison
