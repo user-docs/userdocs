@@ -17,13 +17,13 @@ defmodule ClientTest.Screenshots do
     setup do
       %{screenshot: %Schemas.Screenshots.Screenshot{id: UUID.uuid4()}}
     end
-
+    
     test "Gets Screenshot", %{screenshot: screenshot} do
       Client.put_in_state(:data, %{screenshots: [screenshot]})
       result = Client.get_screenshot!(screenshot.id)
       assert result == screenshot
     end
-
+    
     test "Lists Screenshots", %{screenshot: screenshot} do
       Client.put_in_state(:data, %{screenshots: [screenshot]})
       [result] = Client.list_screenshots()
@@ -55,19 +55,19 @@ defmodule ClientTest.Screenshots do
       %{screenshots: [result]} = Client.data()
       assert result.id == screenshot.id
     end
-
+    
     test "creates", %{remote_page: page, remote_project: project} do
-      attrs = ScreenshotFixtures.screenshot_attrs(:valid_string_keys, %{"page_id" => page.id, "project_id" => project.id})
-      assert {:ok, %{screenshot: %{id: screenshot_id}} = screenshot} = Client.create_screenshot(attrs)
+      attrs = ScreenshotFixtures.screenshot_attrs(:valid, %{page_id: page.id, project_id: project.id})
+      assert {:ok, %{id: screenshot_id}} = Client.create_screenshot(attrs)
       assert %{id: ^screenshot_id} = Userdocs.Screenshots.get_screenshot!(screenshot_id, @remote_opts)
     end
-
+    
     test "updates", %{remote_page: page, remote_project: project, remote_screenshot: screenshot} do
       %{name: name} = attrs = ScreenshotFixtures.screenshot_attrs(:valid, %{page_id: page.id, project_id: project.id})
       assert {:ok, screenshot} = Client.update_screenshot(screenshot, attrs)
       assert %{name: ^name} = Userdocs.Screenshots.get_screenshot!(screenshot.id, @remote_opts)
     end
-
+    
     test "deletes", %{remote_screenshot: screenshot} do
       Client.delete_screenshot(screenshot)
       assert_raise Ecto.NoResultsError, fn -> Userdocs.Screenshots.get_screenshot!(screenshot.id, @remote_opts) end
@@ -87,24 +87,24 @@ defmodule ClientTest.Screenshots do
       :create_local_user_context,
       :put_local_context_data
     ]
-
+    
     test "creates", %{local_page: page, local_project: project} do
       attrs = ScreenshotFixtures.screenshot_attrs(:valid, %{page_id: page.id, project_id: project.id})
       assert {:ok, %{id: screenshot_id}} = Client.create_screenshot(attrs)
       assert %{id: ^screenshot_id} = Userdocs.Screenshots.get_screenshot!(screenshot_id, @local_opts)
     end
-
+    
     test "updates", %{local_page: page, local_project: project, local_screenshot: screenshot} do
       %{name: name} = attrs = ScreenshotFixtures.screenshot_attrs(:valid, %{page_id: page.id, project_id: project.id})
       assert {:ok, screenshot} = Client.update_screenshot(screenshot, attrs)
       assert %{name: ^name} = Userdocs.Screenshots.get_screenshot!(screenshot.id, @local_opts)
     end
-
+    
     test "deletes", %{local_screenshot: screenshot} do
       Client.delete_screenshot(screenshot)
       assert_raise Ecto.NoResultsError, fn -> Userdocs.Screenshots.get_screenshot!(screenshot.id, @local_opts) end
     end
-
+    
     test "load_screenshots/0 loads screenshots", %{local_screenshot: screenshot} do
       Client.load_screenshots()
       %{screenshots: [result]} = Client.data()

@@ -14,4 +14,9 @@ defmodule Client.BaseFixtures do
     Client.put_in_state(context)
     :ok
   end
+
+  def connect_channel(context) do
+    Client.connect()
+    :ok
+  end
 end

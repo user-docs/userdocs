@@ -3,14 +3,13 @@ defmodule Client.Server do
 
   require Logger
   use GenServer
-  import Client.Constants
   import Client.StateSupport
 
-  alias Schemas.Screenshots.Screenshot
   alias Schemas.StepInstances.StepInstance
   alias Schemas.Users.Context
 
   alias PhoenixClient.{Message, Socket}
+  alias Client.Constants
   alias Client.Channel
   alias Client.Authentication
   alias Client.Subscription
@@ -377,7 +376,27 @@ defmodule Client.Server do
 
   def handle_call(:init_state, _from, %{data: _} = state), do: {:reply, :ok, state}
   def handle_call(:init_state, _from, state),
-    do: {:reply, :ok, StateHandlers.initialize(state, state_opts())}
+    do: {:reply, :ok, StateHandlers.initialize(state, Constants.state_opts())}
+
+  alias Client.ScreenshotIntegrations
+
+  def handle_call({:load_screenshot_integrations, opts}, _from, state),
+    do: {:reply, :ok, ScreenshotIntegrations.load_screenshot_integrations(state, opts)}
+
+  def handle_call({:list_screenshot_integrations, opts}, _from, state),
+    do: {:reply, State.ScreenshotIntegrations.list_screenshot_integrations(state, kw_opts(opts, state)), state}
+
+  def handle_call({:get_screenshot_integration!, id, opts}, _from, state),
+    do: {:reply, State.ScreenshotIntegrations.get_screenshot_integration!(id, state, kw_opts(opts, state)), state}
+
+  def handle_call({:create_screenshot_integration, attrs}, _from, state),
+    do: {:reply, ScreenshotIntegrations.create_screenshot_integration(attrs, state), state}
+
+  def handle_call({:update_screenshot_integration, step, attrs}, _from, state),
+    do: {:reply, ScreenshotIntegrations.update_screenshot_integration(step, attrs, state), state}
+
+  def handle_call({:delete_screenshot_integration, id}, _from, state),
+    do: {:reply, ScreenshotIntegrations.delete_screenshot_integration(id, state), state}
 
   @impl true
   def handle_cast(:destroy_state, state), do: {:noreply, Map.delete(state, :data)}

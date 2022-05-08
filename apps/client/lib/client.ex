@@ -125,4 +125,11 @@ defmodule Client do
   def trim_and_create_step_instance(attrs), do: GenServer.call(__MODULE__.Server, {:trim_and_create_step_instance, attrs}, @timeout)
   def delete_step_instance(id, opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:delete_step_instance, id, opts}, @timeout)
 
+  def load_screenshot_integrations(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_screenshot_integrations, opts}, @timeout)
+  def list_screenshot_integrations(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_screenshot_integrations, opts}, @timeout)
+  def get_screenshot_integration!(id), do: GenServer.call(__MODULE__.Server, {:get_screenshot_integration!, id, []}, @timeout)
+  def get_screenshot_integration!(id, opts), do: GenServer.call(__MODULE__.Server, {:get_screenshot_integration!, id, opts}, @timeout)
+  def create_screenshot_integration(attrs), do: GenServer.call(__MODULE__.Server, {:create_screenshot_integration, attrs}, @timeout)
+  def update_screenshot_integration(annotation, attrs), do: GenServer.call(__MODULE__.Server, {:update_screenshot_integration, annotation, attrs}, @timeout)
+  def delete_screenshot_integration(annotation), do: GenServer.call(__MODULE__.Server, {:delete_screenshot_integration, annotation}, @timeout)
 end

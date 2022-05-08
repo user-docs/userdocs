@@ -24,7 +24,8 @@ defmodule Client.APISupport do
     end
   end
 
-  def merge_token(opts, %{access_token: token}), do: Map.put(opts, :access_token, token)
+  def merge_token(opts, %{access_token: token, team_channel: channel}),
+    do: Map.merge(opts, %{access_token: token, channel: channel})
 
   def merge_local_opts(opts), do: Map.merge(opts, local_opts())
 

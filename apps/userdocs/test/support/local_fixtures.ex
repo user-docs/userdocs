@@ -9,6 +9,8 @@ defmodule Userdocs.LocalFixtures do
   alias Userdocs.StepInstanceFixtures
   alias Userdocs.ScreenshotFixtures
   alias Userdocs.Tokens
+  alias Userdocs.IntegrationFixtures
+  alias Userdocs.ScreenshotIntegrationFixtures
 
   @local_opts %{context: %{repo: Userdocs.LocalRepo}}
 
@@ -65,4 +67,14 @@ defmodule Userdocs.LocalFixtures do
 
   def create_local_screenshot(%{local_page: page}),
     do: %{local_screenshot: ScreenshotFixtures.screenshot(%{id: UUID.uuid4(), page_id: page.id}, @local_opts)}
+
+  def create_local_integration(%{local_project: project}) do
+    i = IntegrationFixtures.integration(%{project_id: project.id}, @local_opts)
+    %{local_integration: i}
+  end
+
+  def create_local_screenshot_integration(%{local_integration: i, local_screenshot: s}) do
+    attrs = %{screenshot_id: s.id, integration_id: i.id}
+    %{local_screenshot_integration: ScreenshotIntegrationFixtures.screenshot_integration(attrs, @local_opts)}
+  end
 end
