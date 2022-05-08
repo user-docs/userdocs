@@ -46,7 +46,8 @@ defmodule ClientTest.Pages do
       :put_access_token_in_state,
       :create_remote_user_context,
       :put_remote_context_data,
-      :put_user_in_state
+      :put_user_in_state,
+      :connect_channel
     ]
 
     test "Loads", %{user: user, remote_page: page} do
