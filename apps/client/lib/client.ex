@@ -132,4 +132,12 @@ defmodule Client do
   def create_screenshot_integration(attrs), do: GenServer.call(__MODULE__.Server, {:create_screenshot_integration, attrs}, @timeout)
   def update_screenshot_integration(annotation, attrs), do: GenServer.call(__MODULE__.Server, {:update_screenshot_integration, annotation, attrs}, @timeout)
   def delete_screenshot_integration(annotation), do: GenServer.call(__MODULE__.Server, {:delete_screenshot_integration, annotation}, @timeout)
+
+  def load_integrations(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_integrations, opts}, @timeout)
+  def list_integrations(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_integrations, opts}, @timeout)
+  def get_integration!(id), do: GenServer.call(__MODULE__.Server, {:get_integration!, id, []}, @timeout)
+  def get_integration!(id, opts), do: GenServer.call(__MODULE__.Server, {:get_integration!, id, opts}, @timeout)
+  def create_integration(attrs), do: GenServer.call(__MODULE__.Server, {:create_integration, attrs}, @timeout)
+  def update_integration(annotation, attrs), do: GenServer.call(__MODULE__.Server, {:update_integration, annotation, attrs}, @timeout)
+  def delete_integration(annotation), do: GenServer.call(__MODULE__.Server, {:delete_integration, annotation}, @timeout)
 end

@@ -42,7 +42,8 @@ defmodule ClientTest.<%= module_plural %> do
       :put_access_token_in_state,
       :create_remote_user_context,
       :put_remote_context_data,
-      :put_user_in_state
+      :put_user_in_state,
+      :connect_channel
     ]
 
     test "Loads", %{user: user, remote_<%= variable_name_singular %>: <%= variable_name_singular %>} do
@@ -58,9 +59,9 @@ defmodule ClientTest.<%= module_plural %> do
     end
     <% end %><%= if update_function_name do %>
     test "updates", %{<%= Generate.cast_remote_args(required_context ++ [atom_singular]) |> String.slice(0..-3) %>} do
-      %{name: name} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
+      %{<%= match_field %>: <%= match_field %>} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
       assert {:ok, <%= variable_name_singular %>} = Client.<%= update_function_name %>(<%= variable_name_singular %>, attrs)
-      assert %{name: ^name} = Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>.id, @remote_opts)
+      assert %{<%= match_field %>: ^<%= match_field %>} = Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>.id, @remote_opts)
     end
     <% end %><%= if delete_function_name do %>
     test "deletes", %{remote_<%= variable_name_singular %>: <%= variable_name_singular %>} do
@@ -86,9 +87,9 @@ defmodule ClientTest.<%= module_plural %> do
     end
     <% end %><%= if update_function_name do %>
     test "updates", %{<%= Generate.cast_local_args(required_context ++ [atom_singular]) |> String.slice(0..-3) %>} do
-      %{name: name} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
+      %{<%= match_field %>: <%= match_field %>} = attrs = <%= fixture_module %>.<%= attrs_function_name %>(<%= attrs_function_args %>)
       assert {:ok, <%= variable_name_singular %>} = Client.<%= update_function_name %>(<%= variable_name_singular %>, attrs)
-      assert %{name: ^name} = Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>.id, @local_opts)
+      assert %{<%= match_field %>: ^<%= match_field %>} = Userdocs.<%= module_plural %>.<%= get_function_name %>!(<%= variable_name_singular %>.id, @local_opts)
     end
     <% end %><%= if delete_function_name do %>
     test "deletes", %{local_<%= variable_name_singular %>: <%= variable_name_singular %>} do

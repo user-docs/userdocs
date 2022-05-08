@@ -398,6 +398,26 @@ defmodule Client.Server do
   def handle_call({:delete_screenshot_integration, id}, _from, state),
     do: {:reply, ScreenshotIntegrations.delete_screenshot_integration(id, state), state}
 
+  alias Client.Integrations
+
+  def handle_call({:load_integrations, opts}, _from, state),
+    do: {:reply, :ok, Integrations.load_integrations(state, opts)}
+
+  def handle_call({:list_integrations, opts}, _from, state),
+    do: {:reply, State.Integrations.list_integrations(state, kw_opts(opts, state)), state}
+
+  def handle_call({:get_integration!, id, opts}, _from, state),
+    do: {:reply, State.Integrations.get_integration!(id, state, kw_opts(opts, state)), state}
+
+  def handle_call({:create_integration, attrs}, _from, state),
+    do: {:reply, Integrations.create_integration(attrs, state), state}
+
+  def handle_call({:update_integration, step, attrs}, _from, state),
+    do: {:reply, Integrations.update_integration(step, attrs, state), state}
+
+  def handle_call({:delete_integration, id}, _from, state),
+    do: {:reply, Integrations.delete_integration(id, state), state}
+
   @impl true
   def handle_cast(:destroy_state, state), do: {:noreply, Map.delete(state, :data)}
   def handle_cast({:update_context, attrs}, %{current_user: user, context: context} = state) do
