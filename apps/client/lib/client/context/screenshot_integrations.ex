@@ -2,7 +2,7 @@ defmodule Client.Context.ScreenshotIntegrations do
   alias Client.Context.Projects
   alias Client.Constants
 
-  def create_screenshot_integrations(state, screenshot) do
+  def create_screenshot_integrations(screenshot, state) do
     project = Projects.get_current_project(state)
 
     opts =

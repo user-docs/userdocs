@@ -22,8 +22,7 @@ defmodule Client.Context.ScreenshotIntegrationsTest do
       integration_id = integration.id
 
       assert {:ok, [%{integration_id: ^integration_id, screenshot_id: ^screenshot_id}]} =
-               Client.state()
-               |> ScreenshotIntegrations.create_screenshot_integrations(screenshot)
+               ScreenshotIntegrations.create_screenshot_integrations(screenshot, Client.state())
     end
   end
 end
