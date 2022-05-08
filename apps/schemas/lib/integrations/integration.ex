@@ -8,7 +8,7 @@ defmodule Schemas.Integrations.Integration do
   @derive {Jason.Encoder, except: [:__meta__, :project]}
   schema "integrations" do
     field :name, :string
-    field :type, Ecto.Enum, values: [:team_s3, :local_files]
+    field :type, Ecto.Enum, values: [:team_s3, :local]
     belongs_to :project, Project
 
     timestamps()

@@ -4,6 +4,8 @@ defmodule Client.Context.ScreenshotIntegrationsTest do
   use Client.LocalCase
   use Client.Case
 
+  alias Userdocs.ScreenshotIntegrationFixtures
+  alias Userdocs.IntegrationFixtures
   alias Client.Context.ScreenshotIntegrations
 
   describe "Screenshot Integrations" do
@@ -23,6 +25,25 @@ defmodule Client.Context.ScreenshotIntegrationsTest do
 
       assert {:ok, [%{integration_id: ^integration_id, screenshot_id: ^screenshot_id}]} =
                ScreenshotIntegrations.create_screenshot_integrations(screenshot, Client.state())
+    end
+
+    test "creates an additional screenshot integration",
+         context do
+      %{integration: integration, screenshot: screenshot, project: project} = context
+
+      integration_two = IntegrationFixtures.integration(%{project_id: project.id}, @local_opts)
+      screenshot_integration =
+        %{screenshot_id: screenshot.id, integration_id: integration.id}
+        |> ScreenshotIntegrationFixtures.screenshot_integration(@local_opts)
+
+      data =
+        Client.state().data
+        |> Map.put(:integrations, [integration, integration_two])
+        |> Map.put(:screenshot_integrations, [screenshot_integration])
+
+      Client.put_in_state(:data, data)
+
+      ScreenshotIntegrations.ensure_screenshot_integrations(screenshot, Client.state())
     end
   end
 end

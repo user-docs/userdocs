@@ -6,14 +6,12 @@ defmodule Client.Screenshots.Integrations.LocalFile do
 
   require Logger
 
-  def create_screenshot(%Screenshot{id: id} = screenshot, opts \\ %{}) do
-    images_path = Map.get(opts, :images_path, Paths.default_images_path())
-    image_path = image_path(screenshot, images_path)
+  def create_screenshot(%Screenshot{} = screenshot, %{source_path: _} = opts) do
+    export_path = export_path(screenshot, opts)
+    source_path = source_path(opts)
 
-    with base64 <- Map.get(screenshot, :base64, Support.encoded_placeholder_image()),
-         binary <- Base.decode64!(base64),
-         :ok <- File.write(image_path, binary) do
-      {:ok, %{id: id, image: image_path}}
+    with :ok <- File.cp(source_path, export_path) do
+      {:ok, %{location: export_path}}
     end
   end
 
@@ -46,6 +44,23 @@ defmodule Client.Screenshots.Integrations.LocalFile do
     {:ok, %{image: image_path(id, images_path)}}
   end
 
+  defp source_path(opts) do
+    Map.get(opts, :source_path, nil)
+  end
+
+  defp export_path(screenshot, opts) do
+    file_name =
+      screenshot.file_name
+      || paramaterize_name(screenshot.name)
+      || screenshot.id
+
+    Path.join(export_dir(opts), file_name <> ".png")
+  end
+
+  defp export_dir(opts) do
+    Map.get(opts, :images_path, Paths.default_images_path())
+  end
+
   defp image_path(%Screenshot{id: id} = screenshot, path) do
     filename = Map.get(screenshot, :name) || id
     Path.join(path, filename <> ".png")
@@ -53,4 +68,7 @@ defmodule Client.Screenshots.Integrations.LocalFile do
 
   defp image_path(id, path),
     do: Path.join(path, id <> ".png")
+
+  defp paramaterize_name(nil), do: nil
+  defp paramaterize_name(name), do: Inflex.parameterize(name, "_")
 end

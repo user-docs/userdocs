@@ -77,7 +77,7 @@ defmodule Userdocs.ClientFixtures do
       StepFixtures.step_struct(%{step_type_id: "fill_field", element_id: element.id})
 
     integration =
-      IntegrationFixtures.integration(%{project_id: project.id, type: :local_files}, @local_opts)
+      IntegrationFixtures.integration(%{project_id: project.id, type: :local}, @local_opts)
 
     context =
       ContextsFixtures.context(%{project_id: project.id, team_id: team.id, user_id: user.id}, @local_opts)

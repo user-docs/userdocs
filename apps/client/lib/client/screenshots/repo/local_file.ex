@@ -6,6 +6,11 @@ defmodule Client.Screenshots.Repo.LocalFile do
 
   require Logger
 
+  def prepare_screenshot(%Screenshot{id: id}, opts \\ %{}) do
+    repo_path = Map.get(opts, :image_repo_path, Paths.image_repo_path())
+    {:ok, %{file_path: image_path(id, repo_path)}}
+  end
+
   def create_screenshot(%Screenshot{id: id} = screenshot, opts \\ %{}) do
     repo_path = Map.get(opts, :image_repo_path, Paths.image_repo_path())
     screenshot_dir = screenshot_dir(id, repo_path)
