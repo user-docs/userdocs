@@ -44,7 +44,8 @@ defmodule ClientTest.Users do
       :put_access_token_in_state,
       :create_remote_user_context,
       :put_remote_context_data,
-      :put_user_in_state
+      :put_user_in_state,
+      :connect_client
     ]
 
     test "Loads", %{user: user} do
@@ -60,6 +61,4 @@ defmodule ClientTest.Users do
     end
 
   end
-
-
 end
