@@ -41,7 +41,9 @@ defmodule Client.LoadersTest do
       strategies: 1,
       team_users: 1,
       teams: 1,
-      users: 1
+      users: 1,
+      integrations: 0,
+      screenshot_integrations: 0
     }
   end
 
@@ -61,7 +63,9 @@ defmodule Client.LoadersTest do
       strategies: 1,
       team_users: 1,
       teams: 1,
-      users: 1
+      users: 1,
+      integrations: 0,
+      screenshot_integrations: 0
     }
   end
 
