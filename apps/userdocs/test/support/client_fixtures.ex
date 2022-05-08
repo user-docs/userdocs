@@ -13,19 +13,19 @@ defmodule Userdocs.ClientFixtures do
 
   @local_opts %{context: %{repo: Userdocs.LocalRepo}}
 
-  def base_client(initial_state \\ %{}) do
-    team = TeamsFixtures.team(%{type: :personal}, @local_opts)
-    strategy = WebFixtures.strategy(@local_opts)
-    project = ProjectsFixtures.project(team.id, strategy.id, @local_opts)
+  # def base_client(initial_state \\ %{}) do
+  #   team = TeamsFixtures.team(%{type: :personal}, @local_opts)
+  #   strategy = WebFixtures.strategy(@local_opts)
+  #   project = ProjectsFixtures.project(team.id, strategy.id, @local_opts)
 
-    context = %{
-      team: team,
-      strategy: strategy,
-      project: project
-    }
+  #   context = %{
+  #     team: team,
+  #     strategy: strategy,
+  #     project: project
+  #   }
 
-    Map.merge(initial_state, context)
-  end
+  #   Map.merge(initial_state, context)
+  # end
 
   def page(context),
     do: Map.put(context, :page, WebFixtures.page(context.project.id, @local_opts))
@@ -40,7 +40,7 @@ defmodule Userdocs.ClientFixtures do
 
   def local_data() do
     user = UsersFixtures.confirmed_user()
-    team = TeamsFixtures.team(@local_opts)
+    team = TeamsFixtures.team(%{type: :personal}, @local_opts)
     strategy = WebFixtures.strategy(@local_opts)
     project = ProjectsFixtures.project(team.id, strategy.id, @local_opts)
     page = WebFixtures.page(project.id, @local_opts)
@@ -77,7 +77,7 @@ defmodule Userdocs.ClientFixtures do
       StepFixtures.step_struct(%{step_type_id: "fill_field", element_id: element.id})
 
     integration =
-      IntegrationFixtures.integration_struct(%{project_id: project.id, type: :local_files})
+      IntegrationFixtures.integration(%{project_id: project.id, type: :local_files}, @local_opts)
 
     context =
       ContextsFixtures.context(%{project_id: project.id, team_id: team.id, user_id: user.id}, @local_opts)
@@ -106,7 +106,8 @@ defmodule Userdocs.ClientFixtures do
       elements: [element],
       annotation_types: Userdocs.AnnotationTypeFixtures.all_valid_annotation_type_structs(),
       step_types: Userdocs.StepTypeFixtures.all_valid_step_type_structs(),
-      integrations: [integration]
+      integrations: [integration],
+      teams: [team]
     }
 
     context = %{
