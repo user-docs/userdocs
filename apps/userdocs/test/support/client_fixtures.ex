@@ -44,7 +44,7 @@ defmodule Userdocs.ClientFixtures do
     strategy = WebFixtures.strategy(@local_opts)
     project = ProjectsFixtures.project(team.id, strategy.id, @local_opts)
     page = WebFixtures.page(project.id, @local_opts)
-    screenshot = ScreenshotFixtures.screenshot(%{}, @local_opts)
+    screenshot = ScreenshotFixtures.screenshot(%{page_id: page.id}, @local_opts)
     LocalOptionsFixtures.local_options()
     Userdocs.Tokens.create_all_tokens("asdf", "asdf", 1, @local_opts)
 
@@ -125,7 +125,8 @@ defmodule Userdocs.ClientFixtures do
       project: project,
       team: team,
       user: user,
-      context: context
+      context: context,
+      page: page
     }
 
     {data, context}
