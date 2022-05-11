@@ -44,7 +44,7 @@ defmodule Client.Screenshots.Integrations.LocalFileTest do
                Map.put(screenshot, :name, "test")
                |> LocalFile.create_screenshot(%{source_path: source_path})
 
-      assert File.read!(result.file_path) |> Base.encode64() ==
+      assert File.read!(result.location) |> Base.encode64() ==
                ScreenshotFixtures.single_black_pixel()
     end
   end
@@ -56,8 +56,8 @@ defmodule Client.Screenshots.Integrations.LocalFileTest do
   end
 
   describe "LocalFiles delete_screenshot" do
-    test "Deletes everything but history", %{screenshot: screenshot} do
-      LocalFile.create_screenshot(screenshot)
+    test "Deletes everything but history", %{screenshot: screenshot, source_path: source_path} do
+      LocalFile.create_screenshot(screenshot, %{source_path: source_path})
       assert {:ok, paths} = LocalFile.delete_screenshot(screenshot)
       assert !File.exists?(paths.id)
       assert !File.exists?(paths.image)
@@ -67,7 +67,8 @@ defmodule Client.Screenshots.Integrations.LocalFileTest do
   describe "LocalFiles approve_screenshot" do
     test "Overwrites the image and writes to history", %{
       screenshot: screenshot,
-      white_attrs: white_attrs
+      white_attrs: white_attrs,
+      source_path: source_path
     } do
       Repo.LocalFile.create_screenshot(screenshot)
       screenshot |> Repo.LocalFile.update_screenshot(white_attrs)
@@ -80,9 +81,9 @@ defmodule Client.Screenshots.Integrations.LocalFileTest do
   end
 
   describe "LocalFile reject_screenshot" do
-    test "does nothing", %{screenshot: screenshot, white_attrs: white_attrs} do
+    test "does nothing", %{screenshot: screenshot, white_attrs: white_attrs, source_path: source_path} do
       Repo.LocalFile.create_screenshot(screenshot)
-      assert {:ok, _result} = LocalFile.create_screenshot(screenshot)
+      assert {:ok, _result} = LocalFile.create_screenshot(screenshot, %{source_path: source_path})
       screenshot |> Repo.LocalFile.update_screenshot(white_attrs)
       assert {:ok, result} = LocalFile.reject_screenshot(screenshot)
       assert File.exists?(result.image)

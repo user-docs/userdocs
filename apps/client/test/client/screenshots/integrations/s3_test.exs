@@ -100,7 +100,7 @@ defmodule Client.Screenshots.Integrations.S3Test do
     test "Overwrites the image and writes to history", %{screenshot: screenshot, white_attrs: white_attrs} do
       alias Client.Screenshots.Repo
       Repo.S3.create_screenshot(screenshot)
-      screenshot |> Map.put(:base64, white_attrs) |> Repo.S3.update_screenshot()
+      Repo.S3.update_screenshot(screenshot, white_attrs())
       Repo.S3.approve_screenshot(screenshot)
       assert {:ok, result} = S3.approve_screenshot(screenshot)
       assert {:ok, base64} = PresignedUrls.get_object(result.export)
@@ -112,5 +112,10 @@ defmodule Client.Screenshots.Integrations.S3Test do
     test "is a no op", %{black_attrs: black_attrs} do
       assert S3.reject_screenshot(%Screenshot{}, black_attrs) == {:ok, nil}
     end
+  end
+
+  defp white_attrs() do
+    attrs = ScreenshotFixtures.screenshot_attrs(:valid_string_keys, %{})
+            |> Map.put("base64", ScreenshotFixtures.single_white_pixel())
   end
 end

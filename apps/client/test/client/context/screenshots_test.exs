@@ -6,6 +6,7 @@ defmodule Client.Context.ScreenshotsTest do
 
   alias Userdocs.ScreenshotFixtures
 	alias Client.Context.Screenshots
+  alias Schemas.Screenshots.Screenshot
 
   describe "Screenshots" do
     setup do
@@ -19,9 +20,29 @@ defmodule Client.Context.ScreenshotsTest do
 
     test "creates screenshot works" do
       attrs = ScreenshotFixtures.screenshot_attrs(:valid_string_keys, %{})
-      assert {:ok, result} = Screenshots.create_screenshot(attrs, Client.state())
-      %{local: %{location: export_location}} = result
-      assert export_location =~ attrs["name"]
+      assert {:ok, %Screenshot{} = screenshot} = Screenshots.create_screenshot(attrs, Client.state())
+      screenshot.name == attrs["name"]
+    end
+
+    test "update screenshot works with an existing screenshot", %{page: page} do
+      attrs = ScreenshotFixtures.screenshot_attrs(:valid_string_keys, %{"page_id" => page.id})
+      {:ok, screenshot} = Screenshots.create_screenshot(attrs, Client.state())
+      update_attrs = attrs |> Map.put("base64", ScreenshotFixtures.single_white_pixel())
+      assert {:ok, %Screenshot{} = screenshot} = Screenshots.update_screenshot(screenshot, update_attrs, Client.state())
+      assert screenshot.score == 1.0
+    end
+
+    test "update screenshot works with missing file screenshot", %{screenshot: screenshot, page: page} do
+      attrs = ScreenshotFixtures.screenshot_attrs(:valid_string_keys, %{"page_id" => page.id})
+      {:ok, %Screenshot{} = screenshot} = Screenshots.update_screenshot(screenshot, attrs, Client.state())
+    end
+
+    test "approve screenshot works", %{page: page} do
+      attrs = ScreenshotFixtures.screenshot_attrs(:valid_string_keys, %{"page_id" => page.id})
+      {:ok, screenshot} = Screenshots.create_screenshot(attrs, Client.state())
+      update_attrs = attrs |> Map.put("base64", ScreenshotFixtures.single_white_pixel())
+      {:ok, %Screenshot{} = screenshot} = Screenshots.update_screenshot(screenshot, update_attrs, Client.state())
+      Screenshots.approve_screenshot(screenshot, Client.state())
     end
   end
 end

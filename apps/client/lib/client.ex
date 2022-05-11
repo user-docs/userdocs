@@ -60,6 +60,8 @@ defmodule Client do
   def create_screenshot(attrs), do: GenServer.call(__MODULE__.Server, {:create_screenshot, attrs}, @timeout)
   def update_screenshot(screenshot, attrs), do: GenServer.call(__MODULE__.Server, {:update_screenshot, screenshot, attrs}, @timeout)
   def delete_screenshot(screenshot), do: GenServer.call(__MODULE__.Server, {:delete_screenshot, screenshot}, @timeout)
+  def update_screenshot(screenshot), do: GenServer.call(__MODULE__.Server, {:update_screenshot, screenshot}, @timeout)
+  def reject_screenshot(screenshot), do: GenServer.call(__MODULE__.Server, {:reject_screenshot, screenshot}, @timeout)
 
   def load_processes(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_processes, opts}, @timeout)
   def list_processes(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_processes, opts}, @timeout)

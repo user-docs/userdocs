@@ -6,15 +6,10 @@ defmodule Client.Context.ScreenshotIntegrations do
 
   def create_screenshot_integrations(screenshot, state) do
     screenshot_integrations =
-      list_screenshot_integrations(state)
+      state
+      |> list_integrations()
       |> Enum.map(fn integration ->
-        {:ok, screenshot_integration} =
-          %{integration_id: integration.id, screenshot_id: screenshot.id}
-          |> Client.ScreenshotIntegrations.create_screenshot_integration(state)
-
-        screenshot_integration
-        |> Map.put(:integration, integration)
-        |> Map.put(:screenshot, screenshot)
+        create_screenshot_integration(state, screenshot, integration)
       end)
 
     {:ok, screenshot_integrations}
@@ -22,10 +17,25 @@ defmodule Client.Context.ScreenshotIntegrations do
 
   def ensure_screenshot_integrations(screenshot, state) do
     screenshot_integrations =
-      list_screenshot_integrations(state)
+      state
+      |> list_integrations()
       |> Enum.map(fn integration ->
-        IO.inspect(integration)
+        filters = [&(&1.integration_id == integration.id), &(&1.screenshot_id == screenshot.id)]
+        opts = Keyword.put(Constants.state_opts(), :filter_functions, filters)
+
+        state
+        |> State.ScreenshotIntegrations.list_screenshot_integrations(opts)
+        |> Enum.filter(&(&1.screenshot_id == screenshot.id))
+        |> case do
+          [] ->
+            create_screenshot_integration(state, screenshot, integration)
+
+          [screenshot_integration] ->
+            put_preloads(screenshot_integration, screenshot, integration)
+        end
       end)
+
+    {:ok, screenshot_integrations}
   end
 
   def execute_screenshot_integrations(paths, screenshot_integrations, operation) do
@@ -45,7 +55,15 @@ defmodule Client.Context.ScreenshotIntegrations do
     end
   end
 
-  defp list_screenshot_integrations(state) do
+  def execute_screenshot_integration(screenshot_integration, %{fun: :approve_screenshot} = state) do
+    %{screenshot: screenshot, integration: %{type: type}} = screenshot_integration
+
+    with {:ok, result} <- impl(type).approve_screenshot(screenshot, state) do
+      merge_result(state, type, result)
+    end
+  end
+
+  defp list_integrations(state) do
     project = Projects.get_current_project(state)
     opts = Keyword.put(Constants.state_opts(), :filter, {:project_id, project.id})
     State.Integrations.list_integrations(state, opts)
@@ -60,5 +78,19 @@ defmodule Client.Context.ScreenshotIntegrations do
     current = Map.get(state, key, %{})
     new = Map.merge(current, result)
     Map.put(state, key, new)
+  end
+
+  defp create_screenshot_integration(state, screenshot, integration) do
+    {:ok, screenshot_integration} =
+      %{integration_id: integration.id, screenshot_id: screenshot.id}
+      |> Client.ScreenshotIntegrations.create_screenshot_integration(state)
+
+    put_preloads(screenshot_integration, screenshot, integration)
+  end
+
+  defp put_preloads(screenshot_integration, screenshot, integration) do
+    screenshot_integration
+    |> Map.put(:integration, integration)
+    |> Map.put(:screenshot, screenshot)
   end
 end

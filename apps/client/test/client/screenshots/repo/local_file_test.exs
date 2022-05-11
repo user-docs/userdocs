@@ -37,7 +37,7 @@ defmodule Client.Screenshots.Repo.LocalFileTest do
     test "creates the diff and provisional", %{screenshot: screenshot, white_attrs: white_attrs} do
       LocalFile.create_screenshot(screenshot)
       assert {:ok, result} = LocalFile.update_screenshot(screenshot, white_attrs)
-      assert %{score: 1.0, result_code: :image_difference} = result
+      assert %{score: 1.0, status: :difference} = result
       assert File.exists?(result.provisional)
       assert File.exists?(result.diff)
     end

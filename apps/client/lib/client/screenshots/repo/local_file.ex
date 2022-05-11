@@ -37,14 +37,16 @@ defmodule Client.Screenshots.Repo.LocalFile do
     with binary <- Base.decode64!(base64),
          :ok <- Support.ensure_dir_exists(screenshot_dir),
          :ok <- File.write(provisional_path, binary),
-         {:ok, result} <- ImageComparison.compare(paths, magick_path)  do
+         {:ok, result} <- ImageComparison.compare(paths, magick_path) do
       {:ok, Map.merge(paths(id, repo_path), result)}
     else
       {:error, "File not found"} ->
         with {:ok, result} <- create_screenshot(screenshot, opts) do
           {:warn, Map.put(result, :message, "File not found, screenshot re-created")}
         end
-      {:error, reason} -> {:error, reason}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -73,6 +75,8 @@ defmodule Client.Screenshots.Repo.LocalFile do
     with :ok <- File.cp(provisional_path, image_path),
          :ok <- File.cp(provisional_path, history_image) do
       {:ok, %{provisional: provisional_path, image: image_path, history: history_image}}
+    else
+      {:error, :enoent} -> {:error, :provisional_not_exist}
     end
   end
 
@@ -85,7 +89,6 @@ defmodule Client.Screenshots.Repo.LocalFile do
          :ok <- Support.ensure_deleted(diff_path) do
       {:ok, %{provisional: provisional_path, diff: diff_path}}
     end
-
   end
 
   defp screenshot_dir(id, path), do: Path.join(path, id)
@@ -115,9 +118,10 @@ defmodule Client.Screenshots.Repo.LocalFile do
   defp diff_path(id, path),
     do: screenshot_dir(id, path) |> Path.join("diff.png")
 
-  defp paths(id, path), do: %{
-    image: image_path(id, path),
-    provisional: provisional_path(id, path),
-    diff: diff_path(id, path)
-  }
+  defp paths(id, path),
+    do: %{
+      image: image_path(id, path),
+      provisional: provisional_path(id, path),
+      diff: diff_path(id, path)
+    }
 end

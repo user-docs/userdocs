@@ -39,7 +39,7 @@ defmodule Local.ImageComparison do
   defp compare_size(dimensions, dimensions), do: {:ok, dimensions}
 
   defp compare_size(dimensions, _different),
-    do: {:size_difference, Map.merge(dimensions, %{score: 1, result_code: :size_difference})}
+    do: {:size_difference, Map.merge(dimensions, %{score: 1, status: :size_difference})}
 
   def compare_images(dimensions, paths, magick_path) do
     magick_path
@@ -55,9 +55,9 @@ defmodule Local.ImageComparison do
   defp normalize_compare_result({result, 1}), do: {:ok, result}
   defp normalize_compare_result({result, 0}), do: {:ok, result}
 
-  defp score_result({:ok, "0"}, _), do: {:ok, %{score: 0.0, result_code: :no_difference}}
+  defp score_result({:ok, "0"}, _), do: {:ok, %{score: 0.0, status: :ok}}
   defp score_result({:ok, result}, %{w: w, h: h}) do
     score = String.to_integer(result) / (w * h)
-    {:ok, %{score: score, result_code: :image_difference}}
+    {:ok, %{score: score, status: :difference}}
   end
 end

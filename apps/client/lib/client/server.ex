@@ -243,10 +243,10 @@ defmodule Client.Server do
   def handle_call({:list_strategies, opts}, _from, state),
     do: {:reply, State.Strategies.list_strategies(state, kw_opts(opts, state)), state}
 
-  alias Client.Screenshots
+  alias Client.Context.Screenshots
 
   def handle_call({:load_screenshots, opts}, _from, state),
-    do: {:reply, :ok, Screenshots.load_screenshots(state, opts)}
+    do: {:reply, :ok, Client.Screenshots.load_screenshots(state, opts)}
 
   def handle_call({:list_screenshots, opts}, _from, state),
     do: {:reply, State.Screenshots.list_screenshots(state, kw_opts(opts, state)), state}
@@ -257,11 +257,17 @@ defmodule Client.Server do
   def handle_call({:create_screenshot, attrs}, _from, state),
     do: {:reply, Screenshots.create_screenshot(attrs, state), state}
 
-  def handle_call({:update_screenshot, step, attrs}, _from, state),
-    do: {:reply, Screenshots.update_screenshot(step, attrs, state), state}
+  def handle_call({:update_screenshot, screenshot, attrs}, _from, state),
+    do: {:reply, Screenshots.update_screenshot(screenshot, attrs, state), state}
 
   def handle_call({:delete_screenshot, id}, _from, state),
     do: {:reply, Screenshots.delete_screenshot(id, state), state}
+
+  def handle_call({:approve_screenshot, screenshot}, _from, state),
+    do: {:reply, Screenshots.approve_screenshot(screenshot, state), state}
+
+  def handle_call({:reject_screenshot, screenshot}, _from, state),
+    do: {:reply, Screenshots.reject_screenshot(screenshot, state), state}
 
   alias Client.Pages
 
@@ -464,21 +470,10 @@ defmodule Client.Server do
     {:noreply, state}
   end
 
-  def screenshot_opts(), do: screenshot_opts(%{})
-  def screenshot_opts(opts) do
-    %{magick_path: magick_path, image_repo_path: repo_path} = Userdocs.LocalOptions.get_local_options()
-    %{magick_path: magick_path, repo_path: repo_path, access_token: access_token()}
-    |> Map.merge(opts)
-  end
-
   def opts(opts, %{state_opts: state_opts}) do
     opts
     |> Map.put(:state_opts, state_opts)
     |> include_token()
-  end
-
-  defp local_opts(opts \\ %{}) do
-    Map.merge(@local_opts, opts)
   end
 
   def include_token(opts) do
@@ -501,16 +496,6 @@ defmodule Client.Server do
 
   def object_counts(%{data: data}), do:
     Enum.reduce(data, %{}, fn({k, v}, acc) -> Map.put(acc, k, Enum.count(v)) end)
-
-  def is_remote?(state) do
-    case get_current_team(state) do
-      %{type: type} when type in [:personal] -> false
-      %{type: type} when type in [:team, :enterprise] -> true
-      nil ->
-        Logger.error("Team id is probably nil #{inspect state.context}")
-        false
-    end
-  end
 
   def get_current_team(state) do
     %{context: %Context{team_id: team_id}} = state

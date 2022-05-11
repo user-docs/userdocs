@@ -7,6 +7,7 @@ defmodule Client.Context.ScreenshotIntegrationsTest do
   alias Userdocs.ScreenshotIntegrationFixtures
   alias Userdocs.IntegrationFixtures
   alias Client.Context.ScreenshotIntegrations
+  alias Schemas.Integrations.ScreenshotIntegration
 
   describe "Screenshot Integrations" do
     setup do
@@ -32,6 +33,7 @@ defmodule Client.Context.ScreenshotIntegrationsTest do
       %{integration: integration, screenshot: screenshot, project: project} = context
 
       integration_two = IntegrationFixtures.integration(%{project_id: project.id}, @local_opts)
+
       screenshot_integration =
         %{screenshot_id: screenshot.id, integration_id: integration.id}
         |> ScreenshotIntegrationFixtures.screenshot_integration(@local_opts)
@@ -43,7 +45,10 @@ defmodule Client.Context.ScreenshotIntegrationsTest do
 
       Client.put_in_state(:data, data)
 
-      ScreenshotIntegrations.ensure_screenshot_integrations(screenshot, Client.state())
+      assert {:ok, [
+               %ScreenshotIntegration{integration: ^integration},
+               %ScreenshotIntegration{integration: ^integration_two}
+             ]} = ScreenshotIntegrations.ensure_screenshot_integrations(screenshot, Client.state())
     end
   end
 end

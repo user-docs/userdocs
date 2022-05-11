@@ -56,10 +56,8 @@ defmodule Client.Screenshots.Repo.S3Test do
       %{white_attrs: white_attrs, screenshot: screenshot, black_attrs: black_attrs} = context
       S3.create_screenshot(screenshot)
 
-      assert {:ok, %{score: 1.0, result_code: :image_difference} = paths} =
-               screenshot
-               |> Map.put(:base64, white_attrs)
-               |> S3.update_screenshot(screenshot)
+      assert {:ok, %{score: 1.0, status: :difference} = paths} =
+               S3.update_screenshot(screenshot, white_attrs())
 
       assert {:ok, base64} = PresignedUrls.get_object(paths.image)
       assert Base.encode64(base64) == black_attrs
@@ -85,7 +83,7 @@ defmodule Client.Screenshots.Repo.S3Test do
   describe "S3 approve_screenshot" do
     test "Overwrites the image and writes to history", %{screenshot: screenshot, white_attrs: white_attrs} do
       S3.create_screenshot(screenshot)
-      screenshot |> Map.put(:base64, white_attrs) |> S3.update_screenshot()
+      S3.update_screenshot(screenshot, white_attrs())
       assert {:ok, result} = S3.approve_screenshot(screenshot)
 
       assert {:ok, base64} = PresignedUrls.get_object(result.image)
@@ -99,11 +97,15 @@ defmodule Client.Screenshots.Repo.S3Test do
   describe "S3 reject_screenshot" do
     test "removes the provisonal and diff", %{screenshot: screenshot, white_attrs: white_attrs} do
       S3.create_screenshot(screenshot)
-      screenshot |> Map.put(:base64, white_attrs) |> S3.update_screenshot()
+      S3.update_screenshot(screenshot, white_attrs())
       assert {:ok, result} = S3.reject_screenshot(screenshot)
-
       assert {:error, "File not found"} = PresignedUrls.get_object(result.diff)
       assert {:error, "File not found"} = PresignedUrls.get_object(result.provisional)
     end
+  end
+
+  defp white_attrs() do
+    attrs = ScreenshotFixtures.screenshot_attrs(:valid_string_keys, %{})
+            |> Map.put("base64", ScreenshotFixtures.single_white_pixel())
   end
 end

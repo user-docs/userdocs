@@ -10,6 +10,7 @@ defmodule Userdocs.ClientFixtures do
   alias Userdocs.LocalOptionsFixtures
   alias Userdocs.IntegrationFixtures
   alias Userdocs.ContextsFixtures
+  alias Userdocs.ScreenshotIntegrationFixtures
 
   @local_opts %{context: %{repo: Userdocs.LocalRepo}}
 
@@ -79,6 +80,9 @@ defmodule Userdocs.ClientFixtures do
     integration =
       IntegrationFixtures.integration(%{project_id: project.id, type: :local}, @local_opts)
 
+    screenshot_integration =
+      ScreenshotIntegrationFixtures.screenshot_integration(%{screenshot_id: screenshot.id, integration_id: integration.id}, @local_opts)
+
     context =
       ContextsFixtures.context(%{project_id: project.id, team_id: team.id, user_id: user.id}, @local_opts)
 
@@ -107,6 +111,7 @@ defmodule Userdocs.ClientFixtures do
       annotation_types: Userdocs.AnnotationTypeFixtures.all_valid_annotation_type_structs(),
       step_types: Userdocs.StepTypeFixtures.all_valid_step_type_structs(),
       integrations: [integration],
+      screenshot_integrations: [screenshot_integration],
       teams: [team]
     }
 
