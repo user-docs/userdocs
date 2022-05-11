@@ -33,4 +33,8 @@ defmodule Userdocs.Subscription do
     team = Teams.get_integration_team!(integration_id, opts)
     "team:#{team.id}"
   end
+  def channel(%Schemas.Screenshots.Screenshot{page_id: page_id}, opts) do
+    team = Teams.get_page_team!(page_id, opts)
+    "team:#{team.id}"
+  end
 end

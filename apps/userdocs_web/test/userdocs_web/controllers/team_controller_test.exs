@@ -22,7 +22,7 @@ defmodule UserdocsWeb.TeamControllerTest do
 
   describe "create team" do
     test "renders team when data is valid", %{conn: conn} do
-      attrs = TeamsFixtures.team_attrs(:valid)
+      attrs = TeamsFixtures.team_attrs(:valid, %{})
       conn = post(conn, Routes.api_team_path(conn, :create), team: attrs)
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
@@ -52,7 +52,7 @@ defmodule UserdocsWeb.TeamControllerTest do
     ]
 
     test "renders team when data is valid", %{conn: conn, team: %Team{id: id} = team} do
-      attrs = TeamsFixtures.team_attrs(:valid)
+      attrs = TeamsFixtures.team_attrs(:valid, %{})
       conn = put(conn, Routes.api_team_path(conn, :update, team), team: attrs)
       assert %{"id" => ^id} = json_response(conn, 200)["data"]
 

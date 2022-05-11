@@ -42,6 +42,7 @@
     %Screenshot{}
     |> Screenshot.changeset(attrs)
     |> RepoHandler.insert(opts)
+    |> Subscription.broadcast_result(opts)
   end
   def create_aws_files(id, base64, bucket \\ "userdocs-screenshots") do
     source_path = Path.join([:code.priv_dir(:userdocs), "static", "images", "userdocs_placeholder.png"])
@@ -89,44 +90,19 @@
     screenshot
     |> Screenshot.changeset(attrs)
     |> RepoHandler.update(opts)
-    |> handle_broadcast(opts)
+    |> Subscription.broadcast_result(opts)
   end
 
   @doc "Deletes a screenshot."
   def delete_screenshot(%Screenshot{} = screenshot, opts) do
     RepoHandler.delete(screenshot, opts)
-    |> handle_broadcast(opts)
+    |> Subscription.broadcast_result(opts)
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking screenshot changes."
   def change_screenshot(%Screenshot{} = screenshot, attrs \\ %{}) do
     Screenshot.changeset(screenshot, attrs)
   end
-
-  @doc "Broadcasts a screenshot to the team it belongs to"
-  def handle_broadcast({:error, _changeset} = response, _), do: response
-  def handle_broadcast({:ok, %{__meta__: %{state: :deleted}} = struct}, opts) do
-    Subscription.broadcast(channel(struct.page_id, opts), "delete", struct)
-    {:ok, struct}
-  end
-  def handle_broadcast({:ok, %{inserted_at: same_time, updated_at: same_time} = struct}, opts) do
-    Subscription.broadcast(channel(struct, opts), "create", struct)
-    {:ok, struct}
-  end
-  def handle_broadcast({:ok, struct}, opts) do
-    Subscription.broadcast(channel(struct, opts), "update", struct)
-    {:ok, struct}
-  end
-
-  def channel(%Screenshot{} = screenshot, opts) do
-    team = Teams.get_screenshot_team!(screenshot.id, opts)
-    "team:#{team.id}"
-  end
-  def channel(page_id, opts) when is_binary(page_id) do
-    team = Teams.get_page_team!(page_id, opts)
-    "team:#{team.id}"
-  end
-  def channel(_), do: ""
 
   def original_path(screenshot, repo_path), do: Path.join(repo_path, "#{screenshot.id}.png")
   def provisional_path(screenshot, repo_path), do: Path.join(repo_path, "#{screenshot.id}-provisional.png")

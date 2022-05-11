@@ -1,7 +1,6 @@
 defmodule UserdocsWeb.UserControllerTest do
   use UserdocsWeb.ConnCase
 
-  alias Schemas.Users.User
   alias Userdocs.UsersFixtures
   alias Userdocs.TeamsFixtures
   alias Userdocs.WebFixtures
@@ -33,18 +32,6 @@ defmodule UserdocsWeb.UserControllerTest do
       :create_strategy,
       :create_project
     ]
-
-    test "renders user when data is valid", %{conn: conn, user: %User{id: id} = user, team: team, project: project} do
-      attrs = %{selected_team_id: team.id, selected_project_id: project.id}
-      conn = put(conn, Routes.api_user_path(conn, :update, user), user: attrs)
-      assert %{"id" => ^id} = json_response(conn, 200)["data"]
-
-      conn = get(conn, Routes.api_user_path(conn, :show, id))
-
-      result = json_response(conn, 200)["data"]
-      assert result["selected_team_id"] == attrs.selected_team_id
-      assert result["selected_project_id"] == attrs.selected_project_id
-    end
     """
     test "renders errors when data is invalid", %{conn: conn, user: user} do
       attrs = %{selected_team_id: nil, selected_project_id: nil}

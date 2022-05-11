@@ -28,7 +28,8 @@ defmodule UserdocsWeb.StepControllerTest do
     :create_team_user,
     :create_strategy,
     :create_project,
-    :create_process
+    :create_process,
+    :create_page
   ]
 
   describe "index" do
@@ -39,8 +40,8 @@ defmodule UserdocsWeb.StepControllerTest do
   end
 
   describe "create step" do
-    test "renders step when data is valid", %{process: process, conn: conn} do
-      attrs = AutomationFixtures.step_attrs(:valid) |> Map.put(:process_id, process.id)
+    test "renders step when data is valid", %{page: page, process: process, conn: conn} do
+      attrs = AutomationFixtures.step_attrs(:valid, page.id, process.id)
       conn = post(conn, Routes.api_step_path(conn, :create), step: attrs)
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
@@ -81,8 +82,8 @@ defmodule UserdocsWeb.StepControllerTest do
       :create_step
     ]
 
-    test "renders step when data is valid", %{conn: conn, process: process, step: %Step{id: id} = step} do
-      attrs = AutomationFixtures.step_attrs(:valid) |> Map.put(:process_id, process.id)
+    test "renders step when data is valid", %{conn: conn, process: process, step: %Step{id: id} = step, page: page} do
+      attrs = AutomationFixtures.step_attrs(:valid, page.id, process.id)
       conn = put(conn, Routes.api_step_path(conn, :update, step), step: attrs)
       assert %{"id" => ^id} = json_response(conn, 200)["data"]
 

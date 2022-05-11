@@ -25,8 +25,10 @@ defmodule Userdocs.ScreenshotIntegrationsTest do
   defp create_integration(%{project: project}),
     do: %{integration: IntegrationFixtures.integration(%{project_id: project.id}, @opts)}
 
-  defp create_screenshot(%{project: project}),
-    do: %{screenshot: ScreenshotFixtures.screenshot(%{project_id: project.id}, @opts)}
+  defp create_page(%{project: project}), do: %{page: WebFixtures.page(project.id, @opts)}
+
+  defp create_screenshot(%{page: page}),
+    do: %{screenshot: ScreenshotFixtures.screenshot(%{page_id: page.id}, @opts)}
 
   defp create_screenshot_integration(%{integration: i, screenshot: s}) do
     attrs = %{screenshot_id: s.id, integration_id: i.id}
@@ -40,6 +42,7 @@ defmodule Userdocs.ScreenshotIntegrationsTest do
       :create_team,
       :create_team_user,
       :create_project,
+      :create_page,
       :create_integration,
       :create_screenshot,
       :create_screenshot_integration
@@ -50,39 +53,61 @@ defmodule Userdocs.ScreenshotIntegrationsTest do
       assert ScreenshotIntegrations.list_screenshot_integrations(@opts) == [si]
     end
 
-    test "get_screenshot_integration!/1 returns the screenshot_integration with given id", context do
+    test "get_screenshot_integration!/1 returns the screenshot_integration with given id",
+         context do
       %{screenshot_integration: si} = context
       assert ScreenshotIntegrations.get_screenshot_integration!(si.id, @opts) == si
     end
 
-    test "create_screenshot_integration/1 with valid data creates a screenshot_integration", context do
+    test "create_screenshot_integration/1 with valid data creates a screenshot_integration",
+         context do
       %{integration: integration, screenshot: screenshot} = context
-      valid_attrs = ScreenshotIntegrationFixtures.screenshot_integration_attrs(%{screenshot_id: screenshot.id, integration_id: integration.id})
-      assert {:ok, %ScreenshotIntegration{}} = ScreenshotIntegrations.create_screenshot_integration(valid_attrs, @opts)
+
+      valid_attrs =
+        ScreenshotIntegrationFixtures.screenshot_integration_attrs(%{
+          screenshot_id: screenshot.id,
+          integration_id: integration.id
+        })
+
+      assert {:ok, %ScreenshotIntegration{}} =
+               ScreenshotIntegrations.create_screenshot_integration(valid_attrs, @opts)
     end
 
     test "create_screenshot_integration/1 with invalid data returns error changeset" do
       invalid_attrs = %{screenshot_id: nil, project_id: nil}
-      assert {:error, %Ecto.Changeset{}} =  ScreenshotIntegrations.create_screenshot_integration(invalid_attrs, @opts)
+
+      assert {:error, %Ecto.Changeset{}} =
+               ScreenshotIntegrations.create_screenshot_integration(invalid_attrs, @opts)
     end
 
-    test "update_screenshot_integration/2 with valid data updates the screenshot_integration", context do
+    test "update_screenshot_integration/2 with valid data updates the screenshot_integration",
+         context do
       %{integration: integration, screenshot: screenshot, screenshot_integration: si} = context
       attrs = %{integration_id: integration.id, screenshot_id: screenshot.id}
-      assert {:ok, %ScreenshotIntegration{}} = ScreenshotIntegrations.update_screenshot_integration(si, attrs, @opts)
+
+      assert {:ok, %ScreenshotIntegration{}} =
+               ScreenshotIntegrations.update_screenshot_integration(si, attrs, @opts)
     end
 
     test "update_screenshot_integration/2 with invalid data returns error changeset", context do
       %{screenshot_integration: si} = context
       invalid_attrs = %{screenshot_id: nil, project_id: nil}
-      assert {:error, %Ecto.Changeset{}} = ScreenshotIntegrations.update_screenshot_integration(si, invalid_attrs, @opts)
+
+      assert {:error, %Ecto.Changeset{}} =
+               ScreenshotIntegrations.update_screenshot_integration(si, invalid_attrs, @opts)
+
       assert si == ScreenshotIntegrations.get_screenshot_integration!(si.id, @opts)
     end
 
     test "delete_screenshot_integration/1 deletes the screenshot_integration", context do
       %{screenshot_integration: si} = context
-      assert {:ok, %ScreenshotIntegration{}} = ScreenshotIntegrations.delete_screenshot_integration(si, @opts)
-      assert_raise Ecto.NoResultsError, fn -> ScreenshotIntegrations.get_screenshot_integration!(si.id, @opts) end
+
+      assert {:ok, %ScreenshotIntegration{}} =
+               ScreenshotIntegrations.delete_screenshot_integration(si, @opts)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        ScreenshotIntegrations.get_screenshot_integration!(si.id, @opts)
+      end
     end
 
     test "change_screenshot_integration/1 returns a screenshot_integration changeset", context do

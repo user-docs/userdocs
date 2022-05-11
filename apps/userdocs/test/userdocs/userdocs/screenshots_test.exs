@@ -37,20 +37,20 @@ defmodule Userdocs.ScreenshotsTest do
       :create_project,
       :create_page
     ]
-    test "list_screenshots/0 returns all screenshots" do
-      screenshot = ScreenshotFixtures.screenshot(%{id: UUID.uuid4()}, @opts)
+    test "list_screenshots/0 returns all screenshots", %{page: page} do
+      screenshot = ScreenshotFixtures.screenshot(%{id: UUID.uuid4(), page_id: page.id}, @opts)
       [queried_screenshot] = Screenshots.list_screenshots(@opts)
       assert screenshot.name == queried_screenshot.name
     end
 
-    test "get_screenshot!/1 returns the screenshot with given id" do
-      screenshot = ScreenshotFixtures.screenshot(%{id: UUID.uuid4()}, @opts)
+    test "get_screenshot!/1 returns the screenshot with given id", %{page: page} do
+      screenshot = ScreenshotFixtures.screenshot(%{id: UUID.uuid4(), page_id: page.id}, @opts)
       db_screenshot = Screenshots.get_screenshot!(screenshot.id, @opts)
       assert screenshot.name == db_screenshot.name
     end
 
-    test "create_screenshot/1 with valid data creates a screenshot" do
-      attrs = ScreenshotFixtures.screenshot_attrs(:valid, %{})
+    test "create_screenshot/1 with valid data creates a screenshot", %{page: page} do
+      attrs = ScreenshotFixtures.screenshot_attrs(:valid, %{ page_id: page.id})
       assert {:ok, %Screenshot{} = screenshot} = Screenshots.create_screenshot(attrs, @opts)
       assert screenshot.name == attrs.name
     end
@@ -62,13 +62,13 @@ defmodule Userdocs.ScreenshotsTest do
 
     test "update_screenshot/2 with valid data updates the screenshot", %{page: page} do
       screenshot = ScreenshotFixtures.screenshot(%{id: UUID.uuid4(), page_id: page.id}, @opts)
-      attrs = ScreenshotFixtures.screenshot_attrs(:valid, %{})
+      attrs = ScreenshotFixtures.screenshot_attrs(:valid, %{ page_id: page.id})
       assert {:ok, %Screenshot{} = screenshot} = Screenshots.update_screenshot(screenshot, attrs, @opts)
       assert screenshot.name == attrs.name
     end
 
-    test "update_screenshot/2 with invalid data returns error changeset" do
-      screenshot = ScreenshotFixtures.screenshot(%{id: UUID.uuid4()}, @opts)
+    test "update_screenshot/2 with invalid data returns error changeset", %{page: page} do
+      screenshot = ScreenshotFixtures.screenshot(%{id: UUID.uuid4(), page_id: page.id}, @opts)
       attrs = ScreenshotFixtures.screenshot_attrs(:invalid, %{})
       assert {:error, %Ecto.Changeset{}} = Screenshots.update_screenshot(screenshot, attrs, @opts)
       db_screenshot = Screenshots.get_screenshot!(screenshot.id, @opts)
@@ -81,8 +81,8 @@ defmodule Userdocs.ScreenshotsTest do
       assert_raise Ecto.NoResultsError, fn -> Screenshots.get_screenshot!(screenshot.id, @opts) end
     end
 
-    test "change_screenshot/1 returns a screenshot changeset", %{} do
-      screenshot = ScreenshotFixtures.screenshot(%{id: UUID.uuid4()}, @opts)
+    test "change_screenshot/1 returns a screenshot changeset", %{page: page} do
+      screenshot = ScreenshotFixtures.screenshot(%{id: UUID.uuid4(), page_id: page.id}, @opts)
       assert %Ecto.Changeset{} = Screenshots.change_screenshot(screenshot)
     end
   end
