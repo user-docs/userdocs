@@ -3,6 +3,7 @@ defmodule Local.ImageMagickInstaller do
   require Logger
   alias Desktop.OS
   alias Local.Paths
+  alias Local.Downloader
 
   def download() do
     {:ok, pid} =
