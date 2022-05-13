@@ -67,7 +67,7 @@ defmodule Local do
   end
 
   def handle_continue(:download_imagemagick, state) do
-    with {:error, :enoent} <- File.stat(Paths.chromium_executable_path()) do
+    with {:error, :enoent} <- File.stat(Paths.imagemagick_executable_path()) do
       ImageMagickInstaller.download()
       {:noreply, state}
     else
