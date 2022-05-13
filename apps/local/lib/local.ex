@@ -99,7 +99,7 @@ defmodule Local do
   end
 
   def handle_info({:download_complete, %{from: :downloader, id: :imagemagick}}, state) do
-    Setups.handle_setup_result({:ok, "Chrome Downloaded"}, state, :download_chromium)
+    Setups.handle_setup_result({:ok, "ImageMagick Downloaded"}, state, :download_imagemagick)
   end
 
   def create_local_dirs() do
@@ -125,7 +125,7 @@ defmodule Local do
   def install_chrome() do
     with {:e, {:error, :enoent}} <- {:e, File.stat(Paths.chromium_executable_path())},
          {:d, {:ok, _stat}} <- {:d, File.stat(Paths.chromium_downloaded_file_path())} do
-      :ok = ChromiumInstaller.install()
+      ChromiumInstaller.install()
       {:ok, "Chrome Installed"}
     else
       {:e, {:ok, _stat}} ->

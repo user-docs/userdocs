@@ -11,7 +11,7 @@ defmodule Local.ImageMagickInstaller do
         path: Paths.imagemagick_downloaded_file_path(),
         url: imagemagick_host(),
         notify: self(),
-        id: :chrome
+        id: :imagemagick
       }
       |> Downloader.start_link()
 
