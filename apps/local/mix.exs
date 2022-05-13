@@ -26,7 +26,7 @@ defmodule Local.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:download, "~> 0.0.4"},
+      {:httpoison, "~> 1.8"},
       {:desktop, "~> 1.4.0"},
       {:userdocs, in_umbrella: :true}
     ]

@@ -8,13 +8,29 @@ defmodule Local do
   alias Userdocs.Setups
 
   @setup_status %{
-    local_dirs: %{order: 1, status: nil, next_task: :chromium, title: "Local Dirs"},
-    chromium: %{order: 2, status: nil, next_task: :imagemagick, title: "Chromium"},
-    imagemagick: %{order: 3, status: nil, next_task: :local_repo, title: "Imagemagick"},
-    local_repo: %{order: 4, status: nil, next_task: :extension, title: "Local Options"},
-    extension: %{order: 5, status: nil, next_task: :complete, title: "Extension"}
+    local_dirs: %{order: 1, status: nil, next_task: :download_chromium, title: "Local Dirs"},
+    download_chromium: %{
+      order: 2,
+      status: nil,
+      next_task: :install_chromium,
+      title: "Download Chromium"
+    },
+    install_chromium: %{
+      order: 3,
+      status: nil,
+      next_task: :download_imagemagick,
+      title: "Install Chromium"
+    },
+    download_imagemagick: %{
+      order: 4,
+      status: nil,
+      next_task: :install_imagemagick,
+      title: "Download Imagemagick"
+    },
+    install_imagemagick: %{order: 5, status: nil, next_task: :local_repo, title: "Install Imagemagick"},
+    local_repo: %{order: 6, status: nil, next_task: :extension, title: "Local Options"},
+    extension: %{order: 7, status: nil, next_task: :complete, title: "Extension"}
   }
-
 
   def start_link(_), do: GenServer.start_link(__MODULE__, %{current_user: nil}, name: __MODULE__)
   def status(), do: GenServer.call(__MODULE__, :status)
@@ -34,23 +50,57 @@ defmodule Local do
     create_local_dirs()
     |> Setups.handle_setup_result(state, :local_dirs)
   end
-  def handle_continue(:chromium, state) do
+
+  def handle_continue(:download_chromium, state) do
+    with {:error, :enoent} <- File.stat(Paths.chromium_executable_path()) do
+      ChromiumInstaller.download()
+      {:noreply, state}
+    else
+      {:ok, _stat} ->
+        Setups.handle_setup_result({:ok, "Chrome Installed"}, state, :download_chromium)
+    end
+  end
+
+  def handle_continue(:install_chromium, state) do
     install_chrome()
-    |> Setups.handle_setup_result(state, :chromium)
+    |> Setups.handle_setup_result(state, :install_chromium)
   end
-  def handle_continue(:imagemagick, state) do
+
+  def handle_continue(:download_imagemagick, state) do
+    with {:error, :enoent} <- File.stat(Paths.chromium_executable_path()) do
+      ImageMagickInstaller.download()
+      {:noreply, state}
+    else
+      {:ok, _stat} ->
+        Setups.handle_setup_result({:ok, "ImageMagick Installed"}, state, :install_imagemagick)
+    end
+  end
+
+  def handle_continue(:install_imagemagick, state) do
     install_imagemagick()
-    |> Setups.handle_setup_result(state, :imagemagick)
+    |> Setups.handle_setup_result(state, :install_imagemagick)
   end
+
   def handle_continue(:local_repo, state) do
     check_local_repo()
     |> Setups.handle_setup_result(state, :local_repo)
   end
-  def handle_continue(:extension = step, state) do
+
+  def handle_continue(:extension, state) do
     install_extension()
-    |> Setups.handle_setup_result(state, step)
+    |> Setups.handle_setup_result(state, :extension)
   end
+
   def handle_continue(:complete, state), do: {:noreply, state}
+
+  @impl true
+  def handle_info({:download_complete, %{from: :downloader, id: :chrome}}, state) do
+    Setups.handle_setup_result({:ok, "Chrome Downloaded"}, state, :download_chromium)
+  end
+
+  def handle_info({:download_complete, %{from: :downloader, id: :imagemagick}}, state) do
+    Setups.handle_setup_result({:ok, "Chrome Downloaded"}, state, :download_chromium)
+  end
 
   def create_local_dirs() do
     Logger.debug("Making local dirs at #{Desktop.OS.home()}")
@@ -73,30 +123,32 @@ defmodule Local do
   end
 
   def install_chrome() do
-    case File.stat(Paths.chromium_executable_path()) do
-      {:ok, _stat} ->
+    with {:e, {:error, :enoent}} <- {:e, File.stat(Paths.chromium_executable_path())},
+         {:d, {:ok, _stat}} <- {:d, File.stat(Paths.chromium_downloaded_file_path())} do
+      :ok = ChromiumInstaller.install()
+      {:ok, "Chrome Installed"}
+    else
+      {:e, {:ok, _stat}} ->
         {:ok, "Chrome Existed"}
 
-      {:error, :enoent} ->
-        {:ok, _path} = ChromiumInstaller.download()
-        :ok = ChromiumInstaller.install()
-        {:ok, "Chrome Installed"}
-
-      {:error, reason} ->
+      {_, {:error, reason}} ->
         Logger.error("Unhandled path error #{reason}")
         {:error, reason}
     end
   end
 
   def install_imagemagick() do
-    case File.stat(Paths.imagemagick_executable_path(Desktop.OS.type())) do
-      {:ok, _stat} ->
-        {:ok, "Image Magick Existed"}
+    with {:e, {:error, :enoent}} <- {:e, File.stat(Paths.imagemagick_executable_path())},
+         {:d, {:ok, _stat}} <- {:d, File.stat(Paths.imagemagick_downloaded_file_path())} do
+      ImageMagickInstaller.install()
+      {:ok, "ImageMagick Installed"}
+    else
+      {:e, {:ok, _stat}} ->
+        {:ok, "ImageMagick Existed"}
 
-      {:error, :enoent} ->
-        {:ok, _path} = ImageMagickInstaller.download()
-        :ok = ImageMagickInstaller.install()
-        {:ok, "ImageMagick Installed"}
+      {_, {:error, reason}} ->
+        Logger.error("Unhandled path error #{reason}")
+        {:error, reason}
     end
   end
 

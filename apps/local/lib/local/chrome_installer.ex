@@ -3,19 +3,19 @@ defmodule Local.ChromiumInstaller do
   require Logger
   alias Desktop.OS
   alias Local.Paths
+  alias Local.Downloader
 
   def download() do
-    Logger.debug("#{__MODULE__} Downloading Chromium")
-    os_type = OS.type()
-    chromium_host(os_type)
-    |> Download.from([path: Paths.chromium_downloaded_file_path()])
-    |> case do
-      {:ok, path} ->
-        Logger.debug("#{__MODULE__} Finished downloading Chromium")
-        {:ok, path}
-      {:error, :eexist} -> {:ok, Paths.chromium_downloaded_file_path()}
-      {:error, reason} -> raise("Download failed because #{reason}")
-    end
+    {:ok, pid} =
+      %{
+        path: Paths.chromium_downloaded_file_path(),
+        url: chromium_host(),
+        notify: self(),
+        id: :chrome
+      }
+      |> Downloader.start_link()
+
+    Downloader.start_download(pid)
   end
 
   def install() do
@@ -35,7 +35,7 @@ defmodule Local.ChromiumInstaller do
     case File.rename(unzipped_path, Paths.chromium_path()) do
       :ok -> nil
       {:error, :eexist} -> nil
-      {:error, :enoent} -> download()
+      {:error, :enoent} -> nil
       :bad_eocd -> raise("BADEOCED")
     end
     :ok = File.rm(Paths.chromium_downloaded_file_path())
@@ -56,6 +56,7 @@ defmodule Local.ChromiumInstaller do
     File.rm(Paths.chromium_downloaded_file_path())
   end
 
+  def chromium_host(), do: chromium_host(OS.type())
   def chromium_host(MacOS), do: "https://userdocs-vendor.s3.us-east-2.amazonaws.com/chromium-mac.zip"
   def chromium_host(Windows), do: "https://userdocs-vendor.s3.us-east-2.amazonaws.com/chromium-win.zip"
   def chromium_host(Linux), do: "https://userdocs-vendor.s3.us-east-2.amazonaws.com/chromium-linux.zip"

@@ -5,15 +5,16 @@ defmodule Local.ImageMagickInstaller do
   alias Local.Paths
 
   def download() do
-    Logger.debug("#{__MODULE__} Downloading Image Magick")
-    os_type = OS.type()
-    imagemagick_host(os_type)
-    |> Download.from([path: Paths.imagemagick_downloaded_file_path()])
-    |> case do
-      {:ok, path} -> {:ok, path}
-      {:error, :eexist} -> {:ok, Paths.imagemagick_downloaded_file_path()}
-      {:error, reason} -> raise("Download failed because #{reason}")
-    end
+    {:ok, pid} =
+      %{
+        path: Paths.imagemagick_downloaded_file_path(),
+        url: imagemagick_host(),
+        notify: self(),
+        id: :chrome
+      }
+      |> Downloader.start_link()
+
+    Downloader.start_download(pid)
   end
 
   def install() do
@@ -37,6 +38,7 @@ defmodule Local.ImageMagickInstaller do
     :ok
   end
 
+  def imagemagick_host(), do: imagemagick_host(OS.type())
   def imagemagick_host(MacOS), do: "https://userdocs-vendor.s3.us-east-2.amazonaws.com/magick-macos.zip"
   def imagemagick_host(Windows), do: "https://userdocs-vendor.s3.us-east-2.amazonaws.com/magick-win.zip"
   def imagemagick_host(Linux), do: "https://userdocs-vendor.s3.us-east-2.amazonaws.com/magick-linux.zip"
