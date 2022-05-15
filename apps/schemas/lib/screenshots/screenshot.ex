@@ -10,7 +10,6 @@ defmodule Schemas.Screenshots.Screenshot do
   alias Schemas.Steps.Step
   alias Schemas.Screenshots.PresignedURLs
 
-  @primary_key {:id, Ecto.UUID, autogenerate: false}
   @derive {Jason.Encoder, only: [
     :id, :name, :base64, :file_name, :status,
     :presigned_urls, :score, :page_id, :step_id
@@ -33,9 +32,8 @@ defmodule Schemas.Screenshots.Screenshot do
   @doc false
   def changeset(screenshot, attrs) do
     screenshot
-    |> cast(attrs, [:id, :name, :file_name, :status, :base64,
+    |> cast(attrs, [:name, :file_name, :status, :base64,
       :score, :page_id, :step_id])
-    |> validate_required([:id])
   end
 
   def api_changeset(screenshot, attrs) do

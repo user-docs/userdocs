@@ -87,13 +87,10 @@ config :phoenix, :stacktrace_depth, 20
 config :userdocs, Userdocs.Mailer,
   adapter: Bamboo.LocalAdapter
 
-config :ex_aws,
-  debug_requests: false,
+config :ex_aws, :s3,
   access_key_id: "minioadmin",
   secret_access_key: "minioadmin",
-  scheme: "http://",
   region: "local",
-  host: "localhost",
+  scheme: "http://",
   port: 9000,
-  minio_path: "data",
-  ui: true
+  host: "localhost"

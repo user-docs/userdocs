@@ -183,7 +183,7 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
     [
       {:navigate, %{url: url}},
       {:set_size, %{width: width, height: height}},
-      {:full_document_screenshot, %{width: width, screenshot_id: screenshot_id}}
+      {:full_document_screenshot, %{width: width, screenshot_id: screenshot_id, page_id: page.id}}
     ]
   end
 end

@@ -19,15 +19,17 @@ defmodule BrowserController.Browser.Commands do
     |> execute_command(page_pid)
   end
 
-
+  def prepare({command, %{screenshot_id: nil}}) when screenshot?(command), do: %{}
   def prepare({command, %{screenshot_id: screenshot_id}}) when screenshot?(command) do
     %{screenshot: Client.get_screenshot!(screenshot_id)}
   end
 
   def prepare({_command_name, _opts}), do: %{}
 
-  def finish({command, _opts} = _command, {:ok, base64}, context) when screenshot?(command) do
-    %{screenshot: screenshot} = context
+  def finish({cmd, %{page_id: page_id}}, {:ok, base64}, %{}) when screenshot?(cmd) do
+    Client.create_screenshot(%{base64: base64, page_id: page_id, status: :ok})
+  end
+  def finish({cmd, _opts}, {:ok, base64}, %{screenshot: screenshot}) when screenshot?(cmd) do
     Client.update_screenshot(screenshot, %{base64: base64})
   end
 

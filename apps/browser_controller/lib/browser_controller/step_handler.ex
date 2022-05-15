@@ -50,41 +50,6 @@ defmodule BrowserController.StepHandler do
     Map.put(step_handler, :step_instance, step_instance)
   end
 
-  def execute_step({:execute_step, %{step: step, context: %{process_instance: %ProcessInstance{} = process_instance} = context}}) do
-    {:ok, step_instance} =
-      %{
-        id: UUID.uuid4(), status: :started, error: "", warning: "",
-        step_id: step.id, process_instance_id: process_instance.id
-      }
-      |> Client.create_step_instance()
-
-    broadcast("data", "create", step_instance)
-    step = Map.put(step, :step_instance, step_instance)
-
-    step
-    #|> broadcast_step_update()
-    #|> cast_step(context)
-    #|> execute_command(page_pid)
-    #|> handle_step_result(step)
-    |> handle_process_instance_update(process_instance)
-    |> handle_return_value()
-  end
-
-  def execute_step({:execute_step, %{step: step, context: context}}) do
-    {:ok, step_instance} =
-      %{id: UUID.uuid4(), status: :started, error: "", warning: "", step_id: step.id}
-      |> StepInstances.create_step_instance()
-
-    step = Map.put(step, :step_instance, step_instance)
-
-    step
-    #|> broadcast_step_update()
-    #|> cast_step(context)
-    #|> execute_command(page_pid)
-    #|> handle_step_result(step)
-    |> handle_return_value()
-  end
-
   defp cast_step(%Step{step_type_id: "navigate", page: %{project: project} = page}, %{user: user}),
     do: {:navigate, %{url: Pages.effective_url(page, project, user)}}
 

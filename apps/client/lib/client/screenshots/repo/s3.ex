@@ -7,7 +7,7 @@ defmodule Client.Screenshots.Repo.S3 do
 
   require Logger
 
-  def prepare_screenshot(%Screenshot{presigned_urls: %{image: %{get: get_url}}}, opts \\ %{}) do
+  def prepare_screenshot(%Screenshot{presigned_urls: %{image: %{get: get_url}}}, _opts \\ %{}) do
     with {:ok, file_path} <- Briefly.create(extname: "png"),
          {:ok, binary} <- PresignedUrls.get_object(get_url),
          :ok <- File.write(file_path, binary) do
@@ -15,7 +15,7 @@ defmodule Client.Screenshots.Repo.S3 do
     end
   end
 
-  def create_screenshot(%Screenshot{id: id, presigned_urls: urls} = screenshot, _opts \\ %{}) do
+  def create_screenshot(%Screenshot{presigned_urls: urls} = screenshot, _opts \\ %{}) do
     %{presigned_urls: %{image: %{put: url}}} = screenshot
 
     with base64 <- Map.get(screenshot, :base64, FileSupport.encoded_placeholder_image()),

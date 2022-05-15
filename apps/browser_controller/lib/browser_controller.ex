@@ -129,8 +129,12 @@ defmodule BrowserController do
   end
 
   defp set_play(state) do
-    Browser.stop_extension_subscription(headed_browser())
-    Queue.play(state)
+    with {:pid, pid} when is_pid(pid) <- {:pid, headed_browser()},
+         {:ok, _} <- Browser.stop_extension_subscription(pid) do
+      Queue.play(state)
+    else
+      {:pid, nil} -> {:error, "Browser not open"}
+    end
   end
 
   defp set_execute(state) do

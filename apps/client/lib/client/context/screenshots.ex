@@ -5,8 +5,8 @@ defmodule Client.Context.Screenshots do
   def create_screenshot(attrs, state) do
     opts = local_or_remote_opts(state)
 
-    with {:ok, screenshot} <- Client.Screenshots.create_screenshot(attrs, state),
-         screenshot = Map.put(screenshot, :base64, attrs["base64"]),
+    with {:ok, screenshot} <- Client.Screenshots.create_screenshot(sendable(attrs), state),
+         screenshot = Map.put(screenshot, :base64, base64(attrs)),
          {:ok, _files} <- file_repo_impl(state).create_screenshot(screenshot, opts),
          {:ok, si} <- SI.create_screenshot_integrations(screenshot, state),
          {:ok, paths} <- file_repo_impl(state).prepare_screenshot(screenshot, opts),
@@ -19,9 +19,9 @@ defmodule Client.Context.Screenshots do
     opts = local_or_remote_opts(state)
 
     with {status, results} when status in [:ok, :warn] <-
-           file_repo_impl(state).update_screenshot(screenshot, attrs, opts),
+         file_repo_impl(state).update_screenshot(screenshot, attrs, opts),
          attrs = cast_attrs(attrs) |> Map.merge(results),
-         {:ok, screenshot} <- Client.Screenshots.update_screenshot(screenshot, attrs, state) do
+         {:ok, screenshot} <- Client.Screenshots.update_screenshot(screenshot, sendable(attrs), state) do
       {:ok, screenshot}
     end
   end
@@ -64,6 +64,14 @@ defmodule Client.Context.Screenshots do
     |> Map.put(:score, Map.get(attrs, "score", 0.0))
     |> Map.put(:page_id, Map.get(attrs, "page_id", ""))
     |> Map.put(:step_id, Map.get(attrs, "step_id", ""))
+  end
+
+  defp sendable(attrs) do
+    Map.delete(attrs, :base64)
+  end
+
+  defp base64(attrs) do
+    Map.get(attrs, :base64)
   end
 
   defp approval_attrs, do: %{score: 0.0, status: :ok}
