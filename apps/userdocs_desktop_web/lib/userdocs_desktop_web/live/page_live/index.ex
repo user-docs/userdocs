@@ -132,14 +132,12 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
     Logger.warning("#{__MODULE__} received an unsupported action #{action}")
     {:noreply, socket}
   end
-  def handle_info(%{topic: _, event: _, payload: %Page{}} = sub_data, socket) do
+  def handle_info(%{topic: t, event: _, payload: %Page{}}, socket) do
     project = Client.current_project()
-    {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
     {:noreply, assign(socket, :pages, prepare_pages(project.id))}
   end
-  def handle_info(%{topic: _, event: _, payload: %Screenshot{}} = sub_data, socket) do
+  def handle_info(%{topic: _, event: _, payload: %Screenshot{}}, socket) do
     project = Client.current_project()
-    {:noreply, socket} = RootSubscriptionHandlers.handle_info(sub_data, socket)
     {:noreply, assign(socket, :pages, prepare_pages(project.id))}
   end
   def handle_info(n, s), do: RootSubscriptionHandlers.handle_info(n, s)

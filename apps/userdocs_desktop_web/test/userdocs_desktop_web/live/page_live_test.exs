@@ -66,14 +66,16 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
   # end
 
   describe "Index" do
-      setup do
-        {data, context} = Userdocs.ClientFixtures.local_data()
-        Client.init_state()
-        Client.put_in_state(:current_user, context.user)
-        Client.put_in_state(:context, context.context)
-        Client.put_in_state(:data, data)
-        context
-      end
+    setup do
+      {data, context} = Userdocs.ClientFixtures.local_data()
+      Client.init_state()
+      Client.put_in_state(:current_user, context.user)
+      Client.put_in_state(:context, context.context)
+      Client.put_in_state(:data, data)
+      Client.connect()
+      UserdocsDesktopWeb.Endpoint.subscribe("data")
+      context
+    end
 
     setup do
       on_exit(fn -> Client.disconnect() end)
@@ -86,8 +88,7 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
       assert html =~ page.name
     end
 
-    test "saves new page", %{conn: conn, project: project} do
-      UserdocsDesktopWeb.Endpoint.subscribe("data")
+    test "saves new page", %{conn: conn, project: project, team: team} do
       {:ok, index_live, _html} = live(conn, Routes.page_index_path(conn, :index))
 
       assert index_live |> element("a", "New Page") |> render_click() =~
@@ -105,11 +106,8 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
       |> form("#page-form", page: valid_attrs)
       |> render_submit()
 
-      :timer.sleep(1000)
-      open_browser(index_live, &(System.cmd("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", [&1])))
-
       assert_receive(%{event: "create", topic: "data"}, @receive_timeout)
-      assert_patched(index_live, Routes.page_index_path(conn, :index))
+      assert_patch(index_live, Routes.page_index_path(conn, :index))
       assert render(index_live) =~ "Page created successfully"
       assert render(index_live) =~ valid_attrs.name
     end
@@ -133,7 +131,7 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
       |> render_submit()
 
       assert_receive(%{event: "update", topic: "data"})
-      assert_patched(index_live, Routes.page_index_path(conn, :index))
+      assert_patch(index_live, Routes.page_index_path(conn, :index))
       assert render(index_live) =~ "Page updated successfully"
       assert render(index_live) =~ valid_attrs.name
     end
@@ -167,50 +165,47 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
     end
   end
 
-  # describe "Show" do
-  #   setup [
-  #     :create_password,
-  #     :create_user,
-  #     :create_team,
-  #     :create_team_user,
-  #     :create_strategy,
-  #     :create_project,
-  #     :create_page,
-  #     :make_selections,
-  #     :create_session,
-  #     :load_client
-  #   ]
+  describe "Show" do
+    setup do
+      {data, context} = Userdocs.ClientFixtures.local_data()
+      Client.init_state()
+      Client.put_in_state(:current_user, context.user)
+      Client.put_in_state(:context, context.context)
+      Client.put_in_state(:data, data)
+      Client.connect()
+      UserdocsDesktopWeb.Endpoint.subscribe("data")
+      context
+    end
 
-  #   setup do
-  #     on_exit(fn -> Client.disconnect() end)
-  #   end
+    setup do
+      on_exit(fn -> Client.disconnect() end)
+    end
 
-  #   test "displays page", %{conn: conn, page: page} do
-  #     {:ok, _show_live, html} = live(conn, Routes.page_show_path(conn, :show, page.id))
+    test "displays page", %{conn: conn, page: page} do
+      {:ok, _show_live, html} = live(conn, Routes.page_show_path(conn, :show, page.id))
 
-  #     assert html =~ "Show Page"
-  #   end
+      assert html =~ "Show Page"
+    end
 
-  #   test "updates page within modal", %{conn: conn, page: page, project: project} do
-  #     {:ok, show_live, _html} = live(conn, Routes.page_show_path(conn, :show, page))
+    test "updates page within modal", %{conn: conn, page: page, project: project} do
+      {:ok, show_live, _html} = live(conn, Routes.page_show_path(conn, :show, page))
 
-  #     assert show_live |> element("a", "Edit") |> render_click() =~
-  #              "Edit Page"
+      assert show_live |> element("a", "Edit") |> render_click() =~
+               "Edit Page"
 
-  #     assert_patch(show_live, Routes.page_show_path(conn, :edit, page.id))
+      assert_patch(show_live, Routes.page_show_path(conn, :edit, page.id))
 
-  #     assert show_live
-  #            |> form("#page-form", page: %{url: "", name: ""})
-  #            |> render_change() =~ "can&#39;t be blank"
+      assert show_live
+             |> form("#page-form", page: %{url: "", name: ""})
+             |> render_change() =~ "can&#39;t be blank"
 
-  #     show_live
-  #     |> form("#page-form", page: WebFixtures.page_attrs(:valid, project.id))
-  #     |> render_submit()
+      show_live
+      |> form("#page-form", page: WebFixtures.page_attrs(:valid, project.id))
+      |> render_submit()
 
-  #     :timer.sleep(@receive_timeout)
-  #     assert_receive(%{event: "update", topic: "data"})
-  #     assert_patched(show_live, Routes.page_show_path(conn, :show, page))
-  #     assert render(show_live) =~ "Page updated successfully"
-  #   end
-  # end
+      assert_receive(%{event: "update", topic: "data"})
+      assert_patch(show_live, Routes.page_show_path(conn, :show, page))
+      assert render(show_live) =~ "Page updated successfully"
+    end
+  end
 end

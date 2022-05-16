@@ -32,7 +32,6 @@ defmodule Client.Server do
   def init(%{mode: :test}), do: {:ok, initialize(%{topic: @topic})}
   def init(_) do
     Logger.info("Initializing #{__MODULE__}")
-    Phoenix.PubSub.subscribe(Userdocs.PubSub, "data")
     state = %{setup_status: Initialize.setup_status(), topic: @topic, context: %Context{}}
     {:ok, state, {:continue, :initialize_state}}
   end
@@ -74,6 +73,14 @@ defmodule Client.Server do
     team = Teams.get_current_team(state)
     {status, channel_info} = Channel.connect(user, team, access_token)
     {:reply, status, Map.merge(state, channel_info)}
+  end
+  def handle_call(:connect, _from , state) do
+    with %Team{} = team <- Teams.get_current_team(state),
+         :ok <- Phoenix.PubSub.subscribe(Userdocs.PubSub, "team:#{team.id}") do
+      {:reply, :ok, state}
+    else
+      _ -> {:reply, :error, state}
+    end
   end
   def handle_call(:connected?, _from, %{socket: socket} = state) do
     {:reply, Socket.connected?(socket), state}
@@ -453,14 +460,6 @@ defmodule Client.Server do
 
 
   @impl true
-  def handle_info(%Message{event: "update", payload: %{"attrs" => attrs, "type" => "Schemas.Users.User"}}, state) do
-    Logger.warning("Incoming User Struct, Attrs: #{inspect attrs}, pid: #{inspect self()}")
-    Phoenix.PubSub.broadcast(Userdocs.PubSub, "data", {"update_user", attrs})
-    #UserdocsDesktopWeb.Endpoint.broadcast("data", "update_user", attrs)
-    {:ok, user} = Userdocs.Users.create_prepared_user(attrs)
-    File.write(Paths.team_css_override_file(), user.selected_team.css)
-    {:noreply, state |> Map.put(:current_user, user)}
-  end
   def handle_info(%Message{event: event, payload: %{"attrs" => attrs, "type" => type}}, state)
   when event in ["update", "create", "delete"] do
     IO.inspect("Incoming Client Data Message, Event: #{event}, Attrs: #{inspect attrs}, pid: #{inspect self()}")
@@ -472,13 +471,13 @@ defmodule Client.Server do
   end
 
   def handle_info(%{event: event, payload: %{attrs: object}}, state) do
-    Logger.info("Incoming Local Message, Event: #{event}, payload: #{inspect(object)}")
+    Logger.info("Inccoming Local Message, Event: #{event}, attrs: #{inspect(object)}")
     state = Subscription.update_state(state, event, object, Constants.state_opts())
     Subscription.broadcast(object, event)
     {:noreply, state}
   end
-  def handle_info(%{event: event, payload: payload}, state) do
-    Logger.info("Unsupported Local Message, Event: #{event}, payload: #{inspect(payload)}")
+  def handle_info(%{event: event, payload: object}, state) do
+    Logger.info("Local Message, Event: #{event}, payload: #{inspect(object)}")
     {:noreply, state}
   end
 
