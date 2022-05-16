@@ -33,28 +33,35 @@ ul.py-3.shadow-lg.bg-base-100.rounded-box.m-4
       = case page_screenshot(page) do
         - %Screenshot{status: :ok} ->
           = live_patch to: Routes.page_index_path(@socket, :review_screenshot, page), class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do 
-            = Icons.check([])
+            .tooltip data-tip="No Changes"
+              = Icons.check([])
 
         - %Screenshot{status: status} when status in [:size_difference, :difference] ->
-          = live_patch to: Routes.page_index_path(@socket, :review_screenshot, page), class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do 
-            = Icons.exclamation([])
+          .tooltip data-tip="Image Changed"
+            = live_patch to: Routes.page_index_path(@socket, :review_screenshot, page), class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do 
+              = Icons.exclamation([])
 
         - %Screenshot{status: nil} ->
           = live_patch to: Routes.page_index_path(@socket, :review_screenshot, page), class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do 
-            = Icons.x([])
+            .tooltip data-tip="Image Doesn't Exist"
+              = Icons.x([])
             
         - nil -> 
           = link to: "#", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do 
             = Icons.ban([])
 
       = link to: "#", phx_click: "screenshot", phx_value_id: page.id, id: "screenshot-page-#{page.id}", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
-        = Icons.camera([])
+        .tooltip data-tip="Take Screenshot"
+          = Icons.camera([])
       = link to: "#", phx_click: "navigate", phx_value_id: page.id, class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
-        = Icons.open([])
+        .tooltip data-tip="Navigate to Page"
+          = Icons.open([])
       = live_patch to: Routes.annotation_index_path(@socket, :index, page.id), class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
-        = Icons.dialogue([])
+        .tooltip data-tip="Annotations"
+          = Icons.dialogue([])
       = live_patch to: Routes.element_index_path(@socket, :index, page.id), class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
-        = Icons.layout([])
+        .tooltip data-tip="Elements"
+          = Icons.layout([])
       = live_patch to: Routes.page_index_path(@socket, :edit, page.id, params: %{}), id: "edit-page-#{page.id}", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do
         = Icons.edit([])
       = link to: "#", phx_click: "delete", phx_value_id: page.id, id: "delete-page-#{page.id}", class: "text-current px-5 py-2 hover_bg-base-content hover_bg-opacity-10 flex-none" do

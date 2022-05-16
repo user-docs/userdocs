@@ -22,6 +22,9 @@ css:
   - :ok -> 
     h2.card-title Screenshot
 
+  - nil -> 
+    h2.card-title Screenshot Doesn't Exist
+
 div.tabs
   = case @screenshot.status do
     - :difference ->
@@ -35,24 +38,27 @@ div.tabs
     
     - :ok -> 
       = link "Screenshot", to: "#", class: "tab tab-bordered" <> tab_active(@tab == :screenshot), phx_click: "set-tab", phx_value_tab: "screenshot", phx_target: @myself.cid
+
+    - nil ->
+      p There was a problem with the image. We can't compare it
     
 = case @tab do
   - :screenshot ->
     .flex
-      img.object-scale-down.flex-none src="#{screenshot_link(@screenshot.id)}" alt="#{@screenshot.name}" 
+      img.object-scale-down.flex-none src="#{screenshot_link(@screenshot)}" alt="#{@screenshot.name}" 
 
   - :swipe -> 
     figure#image-compare phx-hook="ImageComparison"
-      img src="#{screenshot_link(@screenshot.id)}" alt="#{@screenshot.name}" 
-      img src="#{provisional_link(@screenshot.id)}" alt="#{@screenshot.name} Provisional Screenshot" 
+      img src="#{screenshot_link(@screenshot)}" alt="#{@screenshot.name}" 
+      img src="#{provisional_link(@screenshot)}" alt="#{@screenshot.name} Provisional Screenshot" 
 
   - :side_by_side -> 
     .flex 
       .flex-auto.m-2
-        img.object-contain.outline-black src="#{screenshot_link(@screenshot.id)}" alt="#{@screenshot.name}"
+        img.object-contain.outline-black src="#{screenshot_link(@screenshot)}" alt="#{@screenshot.name}"
       .flex-auto.m-2
-        img.object-contain.outline-black src="#{provisional_link(@screenshot.id)}" alt="#{@screenshot.name} Provisional Screenshot" 
+        img.object-contain.outline-black src="#{provisional_link(@screenshot)}" alt="#{@screenshot.name} Provisional Screenshot" 
 
 
   - :diff ->
-    img src="#{diff_link(@screenshot.id)}" alt="#{@screenshot.name} Diff" 
+    img src="#{diff_link(@screenshot)}" alt="#{@screenshot.name} Diff" 

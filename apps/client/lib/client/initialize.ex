@@ -12,6 +12,9 @@ defmodule Client.Initialize do
   alias Schemas.Users.Context
   alias Schemas.Teams.Team
 
+  @remote_teams [:enterprise, :team]
+  @local_teams [:personal]
+
   def setup_status() do
     if Mix.env() == :test do
       %{}
@@ -127,13 +130,15 @@ defmodule Client.Initialize do
   end
 
   def do_connect_channel(%{context: %{team_id: nil}} = state, _), do: {state, :halt, "Team Not Selectecd"}
-  def do_connect_channel(
-        %{current_user: user, access_token: token, context: %{team_id: team_id}} = state,
-        state_opts
-      ) do
-    with %Team{} = team <- State.Teams.get_team!(team_id, state, state_opts),
-         {:ok, channel_info} <- Channel.connect(user, team, token) do
-      state = Map.merge(state, channel_info)
+  def do_connect_channel(%{context: %{team_id: team_id}} = state, state_opts) do
+    with %Team{} = team <- State.Teams.get_team!(team_id, state, state_opts) do
+      info =
+        case team do
+          %Team{type: type} when type in @remote_teams -> connect_remote_channel(state, team)
+          %Team{type: type} when type in @local_teams -> connect_local_channel(state, team)
+        end
+
+      state = Map.merge(state, info)
       {state, :ok, "Client connected"}
     else
       nil ->
@@ -143,6 +148,18 @@ defmodule Client.Initialize do
     end
   end
   def do_connect_channel(_, _), do: {:error, "Insufficient Data to Connect"}
+
+  def connect_remote_channel(%{access_token: token, current_user: user}, team) do
+    with {:ok, channel_info} <- Channel.connect(user, team, token) do
+      channel_info
+    end
+  end
+
+  def connect_local_channel(_state, team) do
+    with :ok <- Phoenix.PubSub.subscribe(Userdocs.PubSub, "team:#{team.id}") do
+      %{}
+    end
+  end
 
   def load_project(state) do
     do_load_project(state)

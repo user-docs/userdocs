@@ -69,7 +69,7 @@ defmodule Client.Screenshots.Repo.S3 do
 
   end
 
-  defp screenshot_dir(id), do: "/#{id}/"
+  # defp screenshot_dir(id), do: "/#{id}/"
 
   defp paths(%Screenshot{presigned_urls: urls}), do: %{
     image: urls.image.get,

@@ -1,5 +1,4 @@
 defmodule BrowserController.StepHandler do
-  alias Schemas.ProcessInstances.ProcessInstance
   alias Schemas.Steps.Step
   alias BrowserController.AnnotationHandler
 
@@ -100,7 +99,7 @@ defmodule BrowserController.StepHandler do
     Map.put(step_handler, :step_instance, step_instance)
   end
 
-  def update_data(%{result: {:ok, base64}, command: {command_name, _}, step: step}) when command_name in @screenshot_commands do
+  def update_data(%{result: {:ok, _base64}, command: {command_name, _}, step: _step}) when command_name in @screenshot_commands do
 
   end
   def update_data(state_handler), do: state_handler

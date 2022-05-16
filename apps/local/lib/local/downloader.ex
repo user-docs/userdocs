@@ -41,7 +41,7 @@ defmodule Local.Downloader do
     finish_download({:error, :unexpected_status_code}, state)
     {:noreply, state}
   end
-  def handle_info(%AsyncChunk{chunk: data}, %{downloaded: size, file: file, content_length: total} = state) do
+  def handle_info(%AsyncChunk{chunk: data}, %{downloaded: size, file: file} = state) do
     IO.binwrite(file, data)
     {:noreply, Map.put(state, :downloaded, size + byte_size(data))}
   end

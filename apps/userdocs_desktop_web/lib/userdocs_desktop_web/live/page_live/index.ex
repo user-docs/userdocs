@@ -91,7 +91,7 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
     Enum.reduce(socket.assigns.pages, outer_acc, fn(page, acc) ->
       acc ++ screenshot_command(page, project, nil)
     end)
-    |> BrowserController.enqueue()
+    |> BrowserController.execute()
     {:noreply, socket}
   end
   def handle_event("screenshot", %{"id" => page_id}, socket) do

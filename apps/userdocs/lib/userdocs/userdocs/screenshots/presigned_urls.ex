@@ -7,7 +7,17 @@ defmodule Userdocs.Screenshots.PresignedURLS do
   alias Schemas.Screenshots.Screenshot
 
   def put_presigned_urls(%Screenshot{page: %{project: %{team: _}}} = screenshot),
-    do: screenshot |> Map.put(:presigned_urls, presigned_urls(screenshot))
+    do: Map.put(screenshot, :presigned_urls, presigned_urls(screenshot))
+
+  def put_presigned_urls({:ok, %Screenshot{page: %Ecto.Association.NotLoaded{}} = screenshot}, repo) do
+    {
+      :ok,
+      screenshot
+      |> repo.preload([page: [project: :team]])
+      |> put_presigned_urls()
+    }
+  end
+  def put_presigned_urls({:error, changeset}, _repo), do: {:error, changeset}
 
   def put_presigned_urls(screenshot, team) do
     Map.put(screenshot, :presigned_urls, presigned_urls(screenshot, team))

@@ -76,16 +76,22 @@ defmodule Client.Subscription do
     Phoenix.PubSub.broadcast(Userdocs.PubSub, "data", %{topic: "data", event: action, payload: object})
   end
 
-  def handle_event(state, "create" = _event, payload, opts) do
-    StateHandlers.create(state, payload, opts)
+  def handle_event(state, event, attrs, type, state_opts) do
+    object = cast(attrs, type)
+    broadcast(object, event)
+    update_state(state, event, object, state_opts)
   end
-  def handle_event(state, "update" = _event, payload, opts) do
-    StateHandlers.update(state, payload, opts)
+
+  def update_state(state, "create" = _event, object, opts) do
+    StateHandlers.create(state, object, opts)
   end
-  def handle_event(state, "delete" = _event, payload, opts) do
-    StateHandlers.delete(state, payload, opts)
+  def update_state(state, "update" = _event, object, opts) do
+    StateHandlers.update(state, object, opts)
   end
-  def handle_event(state, "upsert" = _event, payload, opts) do
-    StateHandlers.upsert(state, payload, opts)
+  def update_state(state, "delete" = _event, object, opts) do
+    StateHandlers.delete(state, object, opts)
+  end
+  def update_state(state, "upsert" = _event, object, opts) do
+    StateHandlers.upsert(state, object, opts)
   end
 end

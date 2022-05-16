@@ -10,8 +10,7 @@
     .form-control
       = label form, :project_id, class: "label" 
       = select form, :project_id, @select_lists.projects,
-        class: "select select-sm select-bordered",
-        selected: @current_project.id || "" 
+        [class: "select select-sm select-bordered", selected: @current_project.id || "" ]
       = error_tag form, :project_id 
     .form-control.col-span-2
       = label form, :name, class: "label" 

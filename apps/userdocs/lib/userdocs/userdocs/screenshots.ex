@@ -5,7 +5,6 @@
 
   import Ecto.Query, warn: false
   alias Userdocs.RepoHandler
-  alias Userdocs.Teams
   alias Schemas.Screenshots.Screenshot
   alias Schemas.Screenshots.PresignedURLs
   alias Userdocs.Subscription
@@ -38,32 +37,12 @@
   end
 
   @doc "Creates a screenshot."
-  def create_screenshot(attrs, opts) do
+  def create_screenshot(attrs, %{context: %{repo: repo}} = opts) do
     %Screenshot{}
     |> Screenshot.changeset(attrs)
     |> RepoHandler.insert(opts)
+    |> Userdocs.Screenshots.PresignedURLS.put_presigned_urls(repo)
     |> Subscription.broadcast_result(opts)
-  end
-  def create_aws_files(id, base64, bucket \\ "userdocs-screenshots") do
-    source_path = Path.join([:code.priv_dir(:userdocs), "static", "images", "userdocs_placeholder.png"])
-    file_contents =
-      case base64 do
-        nil -> File.read!(source_path)
-        base64 -> Base.decode64!(base64)
-      end
-    attrs = aws_files_attrs(id)
-    ExAws.S3.put_object(bucket, attrs.aws_screenshot, file_contents) |> ExAws.request()
-    ExAws.S3.put_object(bucket, attrs.aws_provisional_screenshot, file_contents) |> ExAws.request()
-    ExAws.S3.put_object(bucket, attrs.aws_diff_screenshot, file_contents) |> ExAws.request()
-    :ok
-  end
-
-  def aws_files_attrs(id) do
-    %{
-      aws_screenshot: "screenshots/#{id}.png",
-      aws_provisional_screenshot: "screenshots/#{id}-provisional.png",
-      aws_diff_screenshot: "screenshots/#{id}-diff.png"
-    }
   end
 
   def create_screenshot_structs(attrs_list) do
@@ -86,10 +65,11 @@
   end
 
   @doc "Updates a screenshot."
-  def update_screenshot(%Screenshot{} = screenshot, attrs, opts) do
+  def update_screenshot(%Screenshot{} = screenshot, attrs, %{context: %{repo: repo}} = opts) do
     screenshot
     |> Screenshot.changeset(attrs)
     |> RepoHandler.update(opts)
+    |> Userdocs.Screenshots.PresignedURLS.put_presigned_urls(repo)
     |> Subscription.broadcast_result(opts)
   end
 

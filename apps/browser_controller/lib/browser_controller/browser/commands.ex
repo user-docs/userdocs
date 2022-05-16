@@ -310,7 +310,7 @@ defmodule BrowserController.Browser.Commands do
 
   defp evaluate_script(page_pid, script) do
     case Runtime.evaluate(page_pid, %{expression: script}) do
-      {:ok, %{"result" => %{"exceptionDetails" => %{"exception" => %{"description" => description}}}} = result} ->
+      {:ok, %{"result" => %{"exceptionDetails" => %{"exception" => %{"description" => description}}}}} ->
         {:error, description}
       {:ok, %{"result" => %{"result" => %{"description" => description}}}} ->
         {:ok, description}

@@ -5,7 +5,7 @@ defmodule Mix.Tasks.GenerateBehaviors do
   use Mix.Task
 
   @impl Mix.Task
-  def run(args) do
+  def run(_args) do
     Generate.Seeds.list()
     |> Enum.map(fn {k, v} -> {k, Generate.cast_args(v)} end)
     |> Enum.map(fn {k, v} -> {k, Generate.cast_client_calls_code(v)} end)

@@ -15,7 +15,7 @@ defmodule Client.BaseFixtures do
     :ok
   end
 
-  def connect_channel(context) do
+  def connect_channel(_context) do
     Client.connect()
     :ok
   end

@@ -201,7 +201,7 @@ defmodule BrowserController.Browser.Launcher do
     stop(server, opts)
     initialize_chrome(server, opts)
   end
-  defp handle_initializiation_error(e, server, opts) do
+  defp handle_initializiation_error(e, _server, _opts) do
     Logger.error("Initialize chrome failed becase #{inspect e}")
     {:error, "Chrome Initialization failed"}
   end

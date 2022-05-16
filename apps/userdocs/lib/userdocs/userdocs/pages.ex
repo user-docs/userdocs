@@ -8,7 +8,6 @@ defmodule Userdocs.Pages do
   alias Schemas.Projects.Project
   alias Schemas.Users.User
   alias Schemas.Teams.Team
-  alias Userdocs.Teams
   alias Userdocs.Subscription
   alias Userdocs.RepoHandler
 
@@ -47,7 +46,7 @@ defmodule Userdocs.Pages do
     %Page{}
     |> Page.changeset(attrs)
     |> RepoHandler.insert(opts)
-    |> handle_broadcast(opts)
+    |> Subscription.broadcast_result(opts)
   end
 
   def create_page_structs(attrs_list) do
@@ -68,40 +67,19 @@ defmodule Userdocs.Pages do
     page
     |> Page.changeset(attrs)
     |> RepoHandler.update(opts)
-    |> handle_broadcast(opts)
+    |> Subscription.broadcast_result(opts)
   end
 
   @doc "Deletes a page."
   def delete_page(%Page{} = page, opts) do
     RepoHandler.delete(page, opts)
-    |> handle_broadcast(opts)
+    |> Subscription.broadcast_result(opts)
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking page changes."
   def change_page(%Page{} = page, attrs \\ %{}) do
     Page.changeset(page, attrs)
   end
-
-  @doc "Broadcasts a screenshot to the team it belongs to"
-  def handle_broadcast({:error, _changeset} = response, _opts), do: response
-  def handle_broadcast({:ok, %{__meta__: %{state: :deleted}} = struct}, opts) do
-    Subscription.broadcast(channel(struct, opts), "delete", struct)
-    {:ok, struct}
-  end
-  def handle_broadcast({:ok, %{inserted_at: same_time, updated_at: same_time} = struct}, opts) do
-    Subscription.broadcast(channel(struct, opts), "create", struct)
-    {:ok, struct}
-  end
-  def handle_broadcast({:ok, struct}, opts) do
-    Subscription.broadcast(channel(struct, opts), "update", struct)
-    {:ok, struct}
-  end
-
-  def channel(%Page{project_id: project_id}, opts) do
-    team = Teams.get_project_team!(project_id, opts)
-    "team:#{team.id}"
-  end
-  def channel(_, _), do: ""
 
   def effective_url(
     %Page{url: "/" <> _ = path},

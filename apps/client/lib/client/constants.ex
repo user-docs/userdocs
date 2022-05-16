@@ -23,6 +23,5 @@ defmodule Client.Constants do
 
   def state_opts(), do: [data_type: :list, strategy: :by_type, location: :data, types: types()]
   def local_opts(), do: %{context: %{repo: Userdocs.LocalRepo}}
-
   def bucket(), do: "userdocs"
 end

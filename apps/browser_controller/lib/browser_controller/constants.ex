@@ -14,7 +14,7 @@ defmodule BrowserController.Constants do
   def chrome_startup_page(%{host_url: host_url}) do
     host_url <> "/html/browser_welcome_page.html"
   end
-  def chrome_startup_args(%{host_url: host_url} = opts) do
+  def chrome_startup_args(%{host_url: _host_url} = opts) do
     # Middle bits are the default puppeteer args, with a few mods
     headless = case Map.get(opts, :headless, false) do
       false -> ""

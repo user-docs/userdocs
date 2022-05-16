@@ -36,7 +36,7 @@ defmodule Local.ChromiumInstaller do
       :ok -> nil
       {:error, :eexist} -> nil
       {:error, :enoent} -> nil
-      :bad_eocd -> raise("BADEOCED")
+      {:error, :bad_eocd} -> raise("BADEOCED")
     end
     :ok = File.rm(Paths.chromium_downloaded_file_path())
   end

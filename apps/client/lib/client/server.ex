@@ -5,6 +5,7 @@ defmodule Client.Server do
   use GenServer
   import Client.StateSupport
 
+  alias Schemas.Teams.Team
   alias Schemas.StepInstances.StepInstance
   alias Schemas.Users.Context
 
@@ -16,10 +17,14 @@ defmodule Client.Server do
   alias Client.Initialize
   alias Local.Paths
   alias Client.Context.Projects
+  alias Client.Context.Teams
 
   alias Userdocs.Tokens
 
   @local_opts %{context: %{repo: Userdocs.LocalRepo}}
+  @remote_teams [:enterprise, :team]
+  @local_teams [:personal]
+
 
   def start_link(args), do: GenServer.start_link(__MODULE__, Enum.into(args, %{}), name: __MODULE__)
 
@@ -61,12 +66,12 @@ defmodule Client.Server do
     {:reply, {:ok, %{access_token: at.token, renewal_token: rt.token, user_id: uid.token}}, state}
   end
   def handle_call(:connect, _from, %{socket: socket, user_channel: uc, team_channel: tc, current_user: user, access_token: token} = state) do
-    team = get_current_team(state)
+    team = Teams.get_current_team(state)
     {status, channel_info} = Channel.maybe_reconnect(socket, uc, tc, user, team, token)
     {:reply, status, Map.merge(state, channel_info)}
   end
   def handle_call(:connect, _from, %{current_user: user, access_token: access_token} = state) do
-    team = get_current_team(state)
+    team = Teams.get_current_team(state)
     {status, channel_info} = Channel.connect(user, team, access_token)
     {:reply, status, Map.merge(state, channel_info)}
   end
@@ -89,7 +94,7 @@ defmodule Client.Server do
   def handle_call(:current_project, _from, state), do: {:reply, nil, state}
 
   def handle_call(:current_team, _from, state) when state.context.team_id != nil do
-    {:reply, get_current_team(state), state}
+    {:reply, Teams.get_current_team(state), state}
   end
   def handle_call(:current_team, _from, state), do: {:reply, nil, state}
 
@@ -107,11 +112,10 @@ defmodule Client.Server do
   end
   def handle_call(:disconnect, _from, state), do: {:reply, :ok, state}
 
-  def handle_call(:load, _from, %{socket: _} = state) do
+  def handle_call(:load, _from, state) do
     state = Client.Loaders.apply(state)
     {:reply, object_counts(state), state}
   end
-  def handle_call(:load, _from, state), do: {:reply, {:error, "Could not load client, current keys are: #{inspect Map.keys(state)}"}, state}
 
   def handle_call(:counts, _from, state), do: {:reply, object_counts(state), state}
 
@@ -439,6 +443,11 @@ defmodule Client.Server do
       :ok = Channel.disconnect(state.socket, state.user_channel, state.team_channel)
     end
 
+    case Client.Context.Teams.get_current_team(state) do
+      %Team{type: type} = team when type in @local_teams ->
+        Phoenix.PubSub.unsubscribe(Userdocs.PubSub, "team:#{team.id}")
+    end
+
     {:noreply, Map.put(state, :context, context), {:continue, :fetch_context}}
   end
 
@@ -452,21 +461,24 @@ defmodule Client.Server do
     File.write(Paths.team_css_override_file(), user.selected_team.css)
     {:noreply, state |> Map.put(:current_user, user)}
   end
-  def handle_info(%Message{event: event, payload: %{"attrs" => attrs, "type" => type}},
-    %{state_opts: state_opts} = state
-  ) when event in ["update", "create", "delete"] do
-    Logger.debug("Incoming Client Data Message, Event: #{event}, Attrs: #{inspect attrs}, pid: #{inspect self()}")
-    object = Subscription.cast(attrs, type)
-    Subscription.broadcast(object, event)
-    {:noreply, Subscription.handle_event(state, event, object, state_opts)}
+  def handle_info(%Message{event: event, payload: %{"attrs" => attrs, "type" => type}}, state)
+  when event in ["update", "create", "delete"] do
+    IO.inspect("Incoming Client Data Message, Event: #{event}, Attrs: #{inspect attrs}, pid: #{inspect self()}")
+    {:noreply, Subscription.handle_event(state, event, attrs, type, Constants.state_opts())}
   end
   def handle_info(%Message{event: event, payload: payload}, state) do
     Logger.info("Incoming Message, Event: #{event}, Payload: #{inspect payload}")
     {:noreply, state}
   end
 
+  def handle_info(%{event: event, payload: %{attrs: object}}, state) do
+    Logger.info("Incoming Local Message, Event: #{event}, payload: #{inspect(object)}")
+    state = Subscription.update_state(state, event, object, Constants.state_opts())
+    Subscription.broadcast(object, event)
+    {:noreply, state}
+  end
   def handle_info(%{event: event, payload: payload}, state) do
-    Logger.info("Incoming Local Message, Event: #{event}, Payload: #{inspect payload}")
+    Logger.info("Unsupported Local Message, Event: #{event}, payload: #{inspect(payload)}")
     {:noreply, state}
   end
 
@@ -496,11 +508,6 @@ defmodule Client.Server do
 
   def object_counts(%{data: data}), do:
     Enum.reduce(data, %{}, fn({k, v}, acc) -> Map.put(acc, k, Enum.count(v)) end)
-
-  def get_current_team(state) do
-    %{context: %Context{team_id: team_id}} = state
-    State.Teams.get_team!(team_id, state, Constants.state_opts())
-  end
 
   def maybe_join_team_channel(%{context: %{team_id: nil}}), do: {:ok, nil}
   def maybe_join_team_channel(%{socket: socket, context: %{team_id: team_id}}) do
