@@ -8,7 +8,7 @@ defmodule Userdocs.Repo.Migrations.CreateIntegrations do
       add :type, :string
       add :project_id, references(:projects, on_delete: :nothing, type: :uuid)
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
     create index(:integrations, [:project_id])

@@ -8,7 +8,7 @@ defmodule Userdocs.Repo.Migrations.CreateAnnotationTypes do
       add :args, {:array, :string}
       add :max_elements, :integer
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
   end

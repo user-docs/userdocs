@@ -7,7 +7,7 @@ defmodule Userdocs.Repo.Migrations.CreateContext do
       add :team_id, :uuid
       add :project_id, :uuid
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
   end
 end

@@ -12,7 +12,7 @@ defmodule Userdocs.Repo.Migrations.CreateProjects do
       add :team_id, references(:teams, on_delete: :nilify_all, type: :uuid)
       add :strategy_id, references(:strategies, on_delete: :nothing, type: :string)
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
     create index(:projects, [:strategy_id])

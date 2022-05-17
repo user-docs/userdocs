@@ -7,7 +7,7 @@ defmodule Userdocs.Repo.Migrations.CreateScreenshotIntegrations do
       add :screenshot_id, references(:screenshots, on_delete: :delete_all, type: :uuid)
       add :integration_id, references(:integrations, on_delete: :delete_all, type: :uuid)
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
     create index(:screenshot_integrations, [:screenshot_id])

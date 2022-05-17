@@ -7,7 +7,7 @@ defmodule Userdocs.Repo.Migrations.CreateStepTypes do
       add :name, :string
       add :args, {:array, :string}
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
   end

@@ -19,7 +19,7 @@ defmodule Userdocs.Repo.Migrations.CreateAnnotations do
       add :annotation_type_id, references(:annotation_types, type: :string, on_delete: :nothing)
       add :page_id, references(:pages, on_delete: :nothing, type: :uuid)
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
     create index(:annotations, [:annotation_type_id])

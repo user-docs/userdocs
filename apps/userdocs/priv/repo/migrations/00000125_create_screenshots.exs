@@ -16,7 +16,7 @@ defmodule Userdocs.Repo.Migrations.CreateScreenshots do
       add :page_id, references(:pages, on_delete: :nilify_all, type: :uuid)
       add :step_id, references(:steps, on_delete: :delete_all, type: :uuid)
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
     create index(:screenshots, [:page_id])

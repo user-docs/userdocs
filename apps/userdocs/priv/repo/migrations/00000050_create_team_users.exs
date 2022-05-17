@@ -8,7 +8,7 @@ defmodule Userdocs.Repo.Migrations.CreateTeamUsers do
       add :team_id, references(:teams, on_delete: :delete_all, type: :uuid), null: false
       add :user_id, references(:users, on_delete: :delete_all, type: :uuid), null: false
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
     create index(:team_users, [:team_id])

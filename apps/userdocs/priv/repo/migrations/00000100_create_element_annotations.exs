@@ -7,7 +7,7 @@ defmodule Userdocs.Repo.Migrations.CreateElementAnnotations do
       add :element_id, references(:elements, on_delete: :delete_all, type: :uuid), null: false
       add :annotation_id, references(:annotations, on_delete: :delete_all, type: :uuid), null: false
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
     create index(:element_annotations, [:element_id])

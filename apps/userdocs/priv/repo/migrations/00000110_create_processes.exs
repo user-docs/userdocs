@@ -8,7 +8,7 @@ defmodule Userdocs.Repo.Migrations.CreateProcesses do
       add :name, :string
       add :process_id, references(:processes, on_delete: :nilify_all, type: :uuid)
       add :project_id, references(:projects, on_delete: :nothing, type: :uuid)
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
   end
 end

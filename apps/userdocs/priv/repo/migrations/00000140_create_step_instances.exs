@@ -10,7 +10,7 @@ defmodule Userdocs.Repo.Migrations.CreateStepInstances do
       add :step_id, :uuid
       add :process_instance_id, :uuid
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
   end
 end

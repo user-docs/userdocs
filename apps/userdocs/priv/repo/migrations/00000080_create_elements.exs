@@ -12,7 +12,7 @@ defmodule Userdocs.Repo.Migrations.CreateElements do
       add :page_id, references(:pages, on_delete: :nothing, type: :uuid)
       add :strategy_id, references(:strategies, type: :string, on_delete: :nothing)
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
     create index(:elements, [:page_id])

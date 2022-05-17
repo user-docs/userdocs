@@ -23,7 +23,7 @@ defmodule Userdocs.Repo.Migrations.CreateSteps do
       add :step_type_id, references( :step_types,  on_delete: :nothing,    type: :string)
       add :process_id, references(   :processes,   on_delete: :delete_all, type: :uuid)
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
     create index(:steps, [:page_id])

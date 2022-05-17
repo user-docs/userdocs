@@ -10,7 +10,7 @@ defmodule Userdocs.Repo.Migrations.CreatePages do
       add :default_width, :integer
       add :default_height, :integer
       add :project_id, references(:projects, on_delete: :nothing, type: :uuid)
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
     create index(:pages, [:project_id])

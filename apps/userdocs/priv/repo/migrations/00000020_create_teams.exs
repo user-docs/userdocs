@@ -17,7 +17,7 @@ defmodule Userdocs.Repo.Migrations.CreateTeams do
       add :aws_secret_access_key_hash, :binary
       add :css, :text
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
 
     create unique_index(:teams, [:name])

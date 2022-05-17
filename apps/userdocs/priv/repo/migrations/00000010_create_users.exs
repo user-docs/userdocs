@@ -14,7 +14,7 @@ defmodule Userdocs.Repo.Migrations.CreateUsers do
       add :invitation_token, :string
       add :invitation_accepted_at, :utc_datetime
 
-      timestamps()
+      timestamps([type: :naive_datetime_usec])
     end
     create unique_index(:users, [:email])
     create unique_index(:users, [:email_confirmation_token])
