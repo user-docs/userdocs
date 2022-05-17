@@ -56,7 +56,7 @@ defmodule Client.Context.Screenshots do
   end
 
   defp sendable(attrs) do
-    Map.delete(attrs, :base64)
+    Map.delete(attrs, "base64")
   end
 
   defp base64(attrs) do

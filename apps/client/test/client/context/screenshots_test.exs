@@ -18,8 +18,8 @@ defmodule Client.Context.ScreenshotsTest do
       context
     end
 
-    test "creates screenshot works" do
-      attrs = ScreenshotFixtures.screenshot_attrs(:valid_string_keys, %{})
+    test "creates screenshot works", %{page: page} do
+      attrs = ScreenshotFixtures.screenshot_attrs(:valid_string_keys, %{"page_id" => page.id})
       assert {:ok, %Screenshot{} = screenshot} = Screenshots.create_screenshot(attrs, Client.state())
       screenshot.name == attrs["name"]
     end
