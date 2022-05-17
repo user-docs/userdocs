@@ -147,6 +147,7 @@ defmodule UserdocsDesktopWeb.AnnotationLive.FormComponent do
   end
   def trim_element_annotations_over_max(changeset, annotation, 1) do
     case annotation.element_annotations do
+      [] -> changeset
       [_] -> changeset
       [_ | _] ->
         [valid | invalid] = changeset.changes.element_annotations

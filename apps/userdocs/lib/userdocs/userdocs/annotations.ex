@@ -106,15 +106,18 @@ defmodule Userdocs.Annotations do
   @doc "Broadcasts a screenshot to the team it belongs to"
   def handle_broadcast({:error, _changeset} = response, _opts), do: response
   def handle_broadcast({:ok, %{__meta__: %{state: :deleted}} = struct}, opts) do
-    Subscription.broadcast(channel(struct, opts), "delete", struct)
+    payload = Subscription.payload(struct)
+    Subscription.broadcast(channel(struct, opts), "delete", payload)
     {:ok, struct}
   end
   def handle_broadcast({:ok, %{inserted_at: same_time, updated_at: same_time} = struct}, opts) do
-    Subscription.broadcast(channel(struct, opts), "create", struct)
+    payload = Subscription.payload(struct)
+    Subscription.broadcast(channel(struct, opts), "create", payload)
     {:ok, struct}
   end
   def handle_broadcast({:ok, struct}, opts) do
-    Subscription.broadcast(channel(struct, opts), "update", struct)
+    payload = Subscription.payload(struct)
+    Subscription.broadcast(channel(struct, opts), "update", payload)
     {:ok, struct}
   end
 

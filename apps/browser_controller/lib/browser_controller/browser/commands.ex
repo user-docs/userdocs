@@ -12,11 +12,21 @@ defmodule BrowserController.Browser.Commands do
   alias ChromeRemoteInterface.RPC.Input
 
   defguardp screenshot?(cmd) when cmd in [:full_screen_screenshot, :element_screenshot, :full_document_screenshot, :single_white_pixel, :single_black_pixel]
+  defguardp valid?(cmd) when cmd in [
+    :navigate, :highlight, :hide_highlight, :full_screen_screenshot, :element_screenshot,
+    :full_document_screenshot, :set_size, :fill_field, :click, :evaluate_script, :full_screen_svg,
+    :clear_annotations, :create_annotation, :remove_annotation, :update_annotation, :do_nothing,
+    :single_white_pixel, :single_black_pixel
+  ]
 
   def apply(page_pid, command) do
-    command
-    |> cast_command()
-    |> execute_command(page_pid)
+    with {cmd, opts} when valid?(cmd) <- cast_command(command),
+         {:ok, result} <- execute_command({cmd, opts}, page_pid) do
+      {:ok, result}
+    else
+      {:warn, message} -> {:warn, message}
+      {:error, message} -> {:error, message}
+    end
   end
 
   def prepare({command, %{screenshot_id: nil}}) when screenshot?(command), do: %{}
@@ -49,18 +59,24 @@ defmodule BrowserController.Browser.Commands do
   defp cast_command({:clear_annotations, opts}), do: {:clear_annotations, opts}
 
   defp cast_command({:create_annotation, %{annotation: annotation}}) do
-    body = AnnotationHandler.cast(annotation)
-    {:evaluate_script, %{script: body}}
+    with {:ok, body} <- AnnotationHandler.cast(annotation) do
+      {:evaluate_script, %{script: body}}
+    end
   end
 
-  defp cast_command({:remove_annotation, %{annotation: annotation}}),
-    do: {:evaluate_script, %{script:  AnnotationHandler.remove(annotation)}}
+  defp cast_command({:remove_annotation, %{annotation: annotation}}) do
+    with {:ok, remove_script} <- AnnotationHandler.remove(annotation) do
+      {:evaluate_script, %{script: remove_script}}
+    end
+  end
 
   defp cast_command({:update_annotation, %{annotation: annotation}}) do
-    remove = AnnotationHandler.remove(annotation)
-    create = AnnotationHandler.cast(annotation)
-    script = remove <> "\n" <> create
-    {:evaluate_script, %{script: script}}
+    with {:ok, remove} <- AnnotationHandler.remove(annotation),
+         {:ok, create} <- AnnotationHandler.cast(annotation) do
+      {:evaluate_script, %{script: remove <> "\n" <> create}}
+    else
+      {:warn, message} -> {:warn, message}
+    end
   end
 
   defp cast_command({:do_nothing, opts}), do: {:do_nothing, opts}

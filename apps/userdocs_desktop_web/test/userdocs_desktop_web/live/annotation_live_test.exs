@@ -6,39 +6,30 @@ defmodule UserdocsDesktopWeb.AnnotationLiveTest do
   @receive_timeout 250
 
   describe "Index" do
-    setup [
-      :reinitialize_state,
-      :ensure_web_started,
-      :create_password,
-      :create_user,
-      :create_remote_team,
-      :create_remote_team_user,
-      :create_remote_strategy,
-      :create_remote_project,
-      :create_remote_page,
-      :create_remote_annotation,
-      :create_remote_annotation_type,
-      :create_remote_tokens,
-      :put_access_token_in_state,
-      :create_remote_user_context,
-      :put_remote_context_data,
-      :put_user_in_state,
-      :connect_client,
-      :load_client
-    ]
+    setup do
+      {data, context} = Userdocs.ClientFixtures.local_data()
+      Client.init_state()
+      Client.put_in_state(:current_user, context.user)
+      Client.put_in_state(:context, context.context)
+      Client.put_in_state(:data, data)
+      Client.connect()
+      UserdocsDesktopWeb.Endpoint.subscribe("data")
+      context
+    end
 
     setup do
       on_exit(fn -> Client.disconnect() end)
     end
 
-    test "lists all annotation", %{conn: conn, remote_page: page} do
+    test "lists all annotation", %{conn: conn, page: page} do
       {:ok, _index_live, html} = live(conn, Routes.annotation_index_path(conn, :index, page.id))
 
       assert html =~ "Listing Annotation"
     end
 
     test "saves new annotation", context do
-      %{conn: conn, remote_page: page, remote_annotation_type: annotation_type} = context
+      %{conn: conn, page: page, annotation_types: annotation_types} = context
+      annotation_type = annotation_types |> Enum.find(& &1.id == "badge")
       {:ok, index_live, _html} = live(conn, Routes.annotation_index_path(conn, :index, page.id))
 
       assert index_live |> element("a", "New Annotation") |> render_click() =~
@@ -46,8 +37,10 @@ defmodule UserdocsDesktopWeb.AnnotationLiveTest do
 
       assert_patch(index_live, Routes.annotation_index_path(conn, :new, page.id))
 
+      attrs = %{annotation_type_id: annotation_type.id, page_id: page.id}
+
       assert index_live
-             |> form("#annotation-form", annotation: %{annotation_type_id: annotation_type.id})
+             |> form("#annotation-form", annotation: attrs)
              |> render_change() =~ "Badge"
 
       assert index_live
@@ -60,15 +53,18 @@ defmodule UserdocsDesktopWeb.AnnotationLiveTest do
       |> form("#annotation-form", annotation: valid_attrs)
       |> render_submit()
 
-      assert_patch(index_live, Routes.annotation_index_path(conn, :index, page.id))
-      assert_receive(%{event: "create", topic: "data"})
+      assert_receive(%{event: "create", topic: "data"}, @receive_timeout)
+      assert_patched(index_live, Routes.annotation_index_path(conn, :index, page.id))
       assert render(index_live) =~ "Annotation created successfully"
       assert render(index_live) =~ valid_attrs.name
     end
 
     test "updates annotation in listing", context do
-      %{conn: conn, remote_annotation: annotation, remote_page: page, remote_annotation_type: annotation_type} = context
+      %{conn: conn, annotation: annotation, page: page, annotation_types: annotation_types} = context
+      annotation_type = annotation_types |> Enum.find(& &1.id == "badge")
       {:ok, index_live, _html} = live(conn, Routes.annotation_index_path(conn, :index, page.id))
+
+      open_browser(index_live, &(System.cmd("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", [&1])))
 
       assert index_live |> element("#edit-annotation-" <> to_string(annotation.id)) |> render_click() =~
                "Edit Annotation"
@@ -95,11 +91,10 @@ defmodule UserdocsDesktopWeb.AnnotationLiveTest do
       assert render(index_live) =~ valid_attrs.name
     end
 
-    test "deletes annotation in listing", %{conn: conn, remote_annotation: annotation, remote_page: page} do
+    test "deletes annotation in listing", %{conn: conn, annotation: annotation, page: page} do
       {:ok, index_live, _html} = live(conn, Routes.annotation_index_path(conn, :index, page.id))
 
       assert index_live |> element("#delete-annotation-" <> to_string(annotation.id)) |> render_click()
-      :timer.sleep(@receive_timeout)
       assert_receive(%{event: "delete", topic: "data"})
       refute has_element?(index_live, "#delete-annotation-" <> to_string(annotation.id))
     end

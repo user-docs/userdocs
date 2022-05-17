@@ -51,19 +51,10 @@ defmodule Userdocs.ClientFixtures do
 
     element = Userdocs.WebFixtures.element_struct(page.id, "css")
 
-    badge_annotation =
-      AnnotationFixtures.annotation_struct(%{annotation_type_id: "badge", label: "1"})
-
     navigate_step = StepFixtures.step_struct(%{step_type_id: "navigate", page_id: page.id})
     click_step = StepFixtures.step_struct(%{step_type_id: "click", element_id: element.id})
     clear_step = StepFixtures.step_struct(%{step_type_id: "clear_annotations"})
     nothing_step = StepFixtures.step_struct(%{step_type_id: "do_nothing"})
-
-    badge_annotation_step =
-      StepFixtures.step_struct(%{
-        step_type_id: "apply_annotation",
-        annotation_id: badge_annotation.id
-      })
 
     set_size_step =
       StepFixtures.step_struct(%{step_type_id: "set_size_explicit", width: 600, height: 800})
@@ -85,6 +76,17 @@ defmodule Userdocs.ClientFixtures do
 
     context =
       ContextsFixtures.context(%{project_id: project.id, team_id: team.id, user_id: user.id}, @local_opts)
+
+    annotation_types = Userdocs.AnnotationTypeFixtures.all_valid_annotation_types(@local_opts)
+
+    badge_annotation =
+      AnnotationFixtures.annotation(%{annotation_type_id: "badge", label: "1", page_id: page.id}, @local_opts)
+
+    badge_annotation_step =
+      StepFixtures.step_struct(%{
+        step_type_id: "apply_annotation",
+        annotation_id: badge_annotation.id
+      })
 
     data = %{
       projects: [project],
@@ -108,7 +110,7 @@ defmodule Userdocs.ClientFixtures do
       pages: [page],
       screenshots: [screenshot],
       elements: [element],
-      annotation_types: Userdocs.AnnotationTypeFixtures.all_valid_annotation_type_structs(),
+      annotation_types: annotation_types,
       step_types: Userdocs.StepTypeFixtures.all_valid_step_type_structs(),
       integrations: [integration],
       screenshot_integrations: [screenshot_integration],
@@ -131,7 +133,9 @@ defmodule Userdocs.ClientFixtures do
       team: team,
       user: user,
       context: context,
-      page: page
+      annotation_types: annotation_types,
+      page: page,
+      annotation: badge_annotation
     }
 
     {data, context}
