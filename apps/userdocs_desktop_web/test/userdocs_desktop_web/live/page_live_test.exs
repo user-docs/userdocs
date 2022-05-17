@@ -13,57 +13,51 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
   #|> open_browser(index_live, &(System.cmd("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", [&1])))
 
 
-  # setup_all do
-  #   BrowserController.open_browser()
-  #   on_exit(fn -> BrowserController.close_browser() end)
-  #   :ok
-  # end
+  setup_all do
+    BrowserController.ensure_browser_open()
+  end
 
-  # describe "Browser Automation" do
-  #   alias Userdocs.Screenshots
+  describe "Browser Automation" do
+    alias Userdocs.Screenshots
 
-  #   setup do
-  #     {data, context} = Userdocs.ClientFixtures.local_data()
-  #     Client.init_state()
-  #     Client.put_in_state(:current_user, context.user)
-  #     Client.put_in_state(:context, context.context)
-  #     Client.put_in_state(:data, data)
-  #     context
-  #   end
+    setup do
+      {data, context} = Userdocs.ClientFixtures.local_data()
+      Client.init_state()
+      Client.put_in_state(:current_user, context.user)
+      Client.put_in_state(:context, context.context)
+      Client.put_in_state(:data, data)
+      UserdocsDesktopWeb.Endpoint.subscribe("data")
+      context
+    end
 
-  #   setup do
-  #     on_exit(fn -> Client.disconnect() end)
-  #   end
+    setup do
+      on_exit(fn -> Client.disconnect() end)
+    end
 
-  #   defp wait_for_empty_queue() do
-  #     case BrowserController.is_empty?() do
-  #       true -> true
-  #       false ->
-  #         :timer.sleep(100)
-  #         wait_for_empty_queue()
-  #     end
-  #   end
+    defp wait_for_empty_queue() do
+      case BrowserController.is_empty?() do
+        true -> true
+        false ->
+          :timer.sleep(100)
+          wait_for_empty_queue()
+      end
+    end
 
-  #   test "full screen screenshot without a screenshot", %{conn: conn, page: page} do
-  #     {:ok, index_live, _html} = live(conn, Routes.page_index_path(conn, :index))
-  #     index_live |> element("#screenshot-page-" <> to_string(page.id)) |> render_click()
-  #     wait_for_empty_queue()
-  #     screenshot = Userdocs.Screenshots.list_screenshots(@opts) |> Enum.filter(fn(s) -> s.page_id == page.id end) |> Enum.at(0)
-  #     assert screenshot.page_id == page.id
-  #   end
+    test "full screen screenshot without a screenshot", %{conn: conn, page: page} do
+      {:ok, index_live, _html} = live(conn, Routes.page_index_path(conn, :index))
+      index_live |> element("#screenshot-page-" <> to_string(page.id)) |> render_click()
+      wait_for_empty_queue()
+      screenshot = Userdocs.Screenshots.list_screenshots(@opts) |> Enum.filter(fn(s) -> s.page_id == page.id end) |> Enum.at(0)
+      assert screenshot.page_id == page.id
+    end
 
-  #   test "full screen screenshot with an existing screenshot", %{conn: conn, project: project,  page: page} do
-  #     id = Ecto.UUID.generate()
-  #     attrs = %{status: :ok, id: id, page_id: page.id, project_id: project.id} |> Map.merge(Screenshots.aws_files_attrs(id))
-  #     Screenshots.create_aws_files(id, nil)
-  #     {:ok, screenshot} = Screenshots.create_screenshot(attrs, @opts)
-  #     Client.load()
-  #     {:ok, index_live, _html} = live(conn, Routes.page_index_path(conn, :index))
-  #     index_live |> element("#screenshot-page-" <> to_string(page.id)) |> render_click()
-  #     wait_for_empty_queue()
-  #     assert Local.Paths.image_repo_path() |> Path.join(to_string(screenshot.id) <> ".png") |> File.exists?()
-  #   end
-  # end
+    test "full screen screenshot with an existing screenshot", %{conn: conn, project: project,  page: page} do
+      {:ok, index_live, _html} = live(conn, Routes.page_index_path(conn, :index))
+      index_live |> element("#screenshot-page-" <> to_string(page.id)) |> render_click()
+      wait_for_empty_queue()
+      assert_receive(%{event: "update", topic: "data"}, @receive_timeout)
+    end
+  end
 
   describe "Index" do
     setup do

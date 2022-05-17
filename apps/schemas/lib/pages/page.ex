@@ -31,7 +31,7 @@ defmodule Schemas.Pages.Page do
     |> cast(attrs, [:name, :url, :project_id])
     |> foreign_key_constraint(:project_id)
     |> foreign_key_constraint(:screenshot_id)
-    |> validate_required([:url])
+    |> validate_required([:url, :project_id])
   end
 
   def api_changeset(page, attrs) do

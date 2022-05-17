@@ -97,14 +97,16 @@ defmodule UserdocsDesktopWeb.PageLive.Index do
   def handle_event("screenshot", %{"id" => page_id}, socket) do
     project = Client.current_project()
     page = prepare_page(page_id)
+    filters = [&(&1.page_id == page.id), &(&1.step_id == nil)]
     screenshot_id =
-      case Client.list_screenshots(%{filters: [page_id: page.id, step_id: nil]}) do
+      case Client.list_screenshots([filter_functions: filters]) do
         [] -> nil
         s when is_list(s) -> s |> Enum.at(0) |> Map.get(:id)
       end
 
     screenshot_command(page, project, screenshot_id)
     |> BrowserController.execute()
+
     {:noreply, socket}
   end
   def handle_event(n, p, s), do: RootEventHandlers.handle_event(n, p, s)

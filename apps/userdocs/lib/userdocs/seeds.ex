@@ -341,7 +341,6 @@ defmodule Userdocs.Seeds do
       %User{}
       |> User.test_fixture_changeset(user_1)
       |> Repo.insert()
-      |> IO.inspect()
 
     {:ok, user_2 = %User{id: user2_id}} =
       %User{}

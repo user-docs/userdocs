@@ -19,8 +19,8 @@ defmodule Client.Context.Screenshots do
     opts = local_or_remote_opts(state)
 
     with {status, results} when status in [:ok, :warn] <-
-         file_repo_impl(state).update_screenshot(screenshot, attrs, opts),
-         attrs = cast_attrs(attrs) |> Map.merge(results),
+          file_repo_impl(state).update_screenshot(screenshot, attrs, opts),
+         attrs =  Map.merge(attrs, string_keys(results)),
          {:ok, screenshot} <- Client.Screenshots.update_screenshot(screenshot, sendable(attrs), state) do
       {:ok, screenshot}
     end
@@ -55,24 +55,15 @@ defmodule Client.Context.Screenshots do
     end
   end
 
-  defp cast_attrs(attrs) do
-    %{}
-    |> Map.put(:name, Map.get(attrs, "name", ""))
-    |> Map.put(:file_name, Map.get(attrs, "file_name", ""))
-    |> Map.put(:base64, Map.get(attrs, "base64", ""))
-    |> Map.put(:status, Map.get(attrs, "status", :ok))
-    |> Map.put(:score, Map.get(attrs, "score", 0.0))
-    |> Map.put(:page_id, Map.get(attrs, "page_id", ""))
-    |> Map.put(:step_id, Map.get(attrs, "step_id", ""))
-  end
-
   defp sendable(attrs) do
     Map.delete(attrs, :base64)
   end
 
   defp base64(attrs) do
-    Map.get(attrs, :base64)
+    Map.get(attrs, "base64")
   end
+
+  defp string_keys(attrs), do: for {key, val} <- attrs, into: %{}, do: {to_string(key), val}
 
   defp approval_attrs, do: %{score: 0.0, status: :ok}
   defp rejection_attrs, do: %{score: 0.0, status: :ok}
