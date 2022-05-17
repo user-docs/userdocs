@@ -56,8 +56,8 @@ defmodule Userdocs.ScreenshotsTest do
     end
 
     test "create_screenshot/1 with invalid data returns error changeset" do
-      attrs = ScreenshotFixtures.screenshot_attrs(:invalid, %{})
-      assert {:error, %Ecto.Changeset{}} = Screenshots.create_screenshot(attrs, @opts) # No such thing as invalid attrs atm
+      attrs = ScreenshotFixtures.screenshot_attrs(:invalid, %{page_id: nil})
+      assert {:error, %Ecto.Changeset{}} = Screenshots.create_screenshot(attrs, @opts)
     end
 
     test "update_screenshot/2 with valid data updates the screenshot", %{page: page} do
@@ -69,7 +69,7 @@ defmodule Userdocs.ScreenshotsTest do
 
     test "update_screenshot/2 with invalid data returns error changeset", %{page: page} do
       screenshot = ScreenshotFixtures.screenshot(%{id: UUID.uuid4(), page_id: page.id}, @opts)
-      attrs = ScreenshotFixtures.screenshot_attrs(:invalid, %{})
+      attrs = ScreenshotFixtures.screenshot_attrs(:invalid, %{ page_id: nil})
       assert {:error, %Ecto.Changeset{}} = Screenshots.update_screenshot(screenshot, attrs, @opts)
       db_screenshot = Screenshots.get_screenshot!(screenshot.id, @opts)
       assert screenshot.name == db_screenshot.name

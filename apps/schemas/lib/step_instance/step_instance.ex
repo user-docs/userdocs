@@ -8,7 +8,6 @@ defmodule Schemas.StepInstances.StepInstance do
   alias Schemas.Steps.Step
   alias Schemas.ProcessInstances.ProcessInstance
 
-  @primary_key {:id, Ecto.UUID, autogenerate: true}
   @derive {Jason.Encoder, only: [:id, :status, :error, :warning, :step_id, :process_instance_id]}
   schema "step_instances" do
     field :status, Ecto.Enum, values: [:not_started, :started, :succeeded, :failed, :warning]
@@ -17,6 +16,8 @@ defmodule Schemas.StepInstances.StepInstance do
 
     belongs_to :step, Step, on_replace: :nilify
     belongs_to :process_instance, ProcessInstance, on_replace: :nilify, type: :string
+
+    timestamps()
   end
 
   def changeset(step_instance, attrs) do

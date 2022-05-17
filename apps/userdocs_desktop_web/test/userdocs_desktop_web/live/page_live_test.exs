@@ -2,11 +2,9 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
   use UserdocsDesktopWeb.ConnCase
   import Phoenix.LiveViewTest
   alias Userdocs.ProjectsFixtures
-  alias Userdocs.UsersFixtures
-  alias Userdocs.TeamsFixtures
   alias Userdocs.WebFixtures
   alias Userdocs.ExtensionMessageFixtures
-  @opts %{context: %{repo: Userdocs.Repo}}
+  @opts %{context: %{repo: Userdocs.LocalRepo}}
   @test_page_path Path.join([:code.priv_dir(:userdocs_desktop_web), "static", "html", "test_page.html"])
   @receive_timeout 250
 
@@ -18,7 +16,6 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
   end
 
   describe "Browser Automation" do
-    alias Userdocs.Screenshots
 
     setup do
       {data, context} = Userdocs.ClientFixtures.local_data()
@@ -26,6 +23,7 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
       Client.put_in_state(:current_user, context.user)
       Client.put_in_state(:context, context.context)
       Client.put_in_state(:data, data)
+      Client.connect()
       UserdocsDesktopWeb.Endpoint.subscribe("data")
       context
     end
@@ -43,15 +41,23 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
       end
     end
 
-    test "full screen screenshot without a screenshot", %{conn: conn, page: page} do
+    test "full screen screenshot without a screenshot", %{conn: conn, project: project} do
+      {:ok, page} = Client.create_page(%{name: "test", url: @test_page_path, project_id: project.id})
+      assert_receive(%{event: "create", topic: "data"}, @receive_timeout)
+
       {:ok, index_live, _html} = live(conn, Routes.page_index_path(conn, :index))
       index_live |> element("#screenshot-page-" <> to_string(page.id)) |> render_click()
       wait_for_empty_queue()
-      screenshot = Userdocs.Screenshots.list_screenshots(@opts) |> Enum.filter(fn(s) -> s.page_id == page.id end) |> Enum.at(0)
+      assert_receive(%{event: "create", topic: "data"}, @receive_timeout)
+
+      [screenshot] = screenshots = Userdocs.Screenshots.list_screenshots(@opts) |> Enum.filter(fn(s) -> s.page_id == page.id end)
+      assert Enum.count(screenshots) == 1
       assert screenshot.page_id == page.id
     end
 
-    test "full screen screenshot with an existing screenshot", %{conn: conn, project: project,  page: page} do
+    test "full screen screenshot with an existing screenshot", %{conn: conn, page: page, screenshot: screenshot} do
+      screenshot = Map.put(screenshot, :base64, Userdocs.ScreenshotFixtures.single_black_pixel)
+      Client.Screenshots.Repo.LocalFile.create_screenshot(screenshot)
       {:ok, index_live, _html} = live(conn, Routes.page_index_path(conn, :index))
       index_live |> element("#screenshot-page-" <> to_string(page.id)) |> render_click()
       wait_for_empty_queue()
@@ -82,7 +88,7 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
       assert html =~ page.name
     end
 
-    test "saves new page", %{conn: conn, project: project, team: team} do
+    test "saves new page", %{conn: conn, project: project} do
       {:ok, index_live, _html} = live(conn, Routes.page_index_path(conn, :index))
 
       assert index_live |> element("a", "New Page") |> render_click() =~

@@ -34,6 +34,7 @@ defmodule Schemas.Screenshots.Screenshot do
     screenshot
     |> cast(attrs, [:name, :file_name, :status, :base64,
       :score, :page_id, :step_id])
+    |> validate_required([:page_id])
   end
 
   def api_changeset(screenshot, attrs) do
