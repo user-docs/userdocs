@@ -82,7 +82,7 @@ defmodule UserdocsWeb.ScreenshotControllerTest do
       assert result["name"] == attrs.name
     end
     test "renders errors when data is invalid", %{conn: conn, screenshot: screenshot} do
-      attrs = ScreenshotFixtures.screenshot_attrs(:invalid, %{})
+      attrs = ScreenshotFixtures.screenshot_attrs(:invalid, %{page_id: nil})
       conn = put(conn, Routes.api_screenshot_path(conn, :update, screenshot), screenshot: attrs)
       assert json_response(conn, 422)["errors"] != %{}
     end

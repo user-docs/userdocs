@@ -30,7 +30,7 @@ defmodule BrowserController.Browser.UtilitiesTest do
 
   describe "Get Attributes" do
     test "works", %{page_pid: page_pid} do
-      {_status, node_id} = Utilities.get_node_id("css", "#many_attributes_p", page_pid)
+      {:ok, node_id} = Utilities.get_node_id("css", "#many_attributes_p", page_pid)
       {:ok, result} = Utilities.get_attributes(page_pid, node_id)
       assert result == %{id: "many_attributes_p", name: "name", style: "color: green;"}
     end

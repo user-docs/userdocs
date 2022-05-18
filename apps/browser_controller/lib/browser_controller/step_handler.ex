@@ -75,8 +75,9 @@ defmodule BrowserController.StepHandler do
   end
 
   defp cast_step(%Step{step_type_id: "apply_annotation", annotation: annotation}, _context) do
-    expression = AnnotationHandler.cast(annotation)
-    {:evaluate_expression, %{expression: expression}}
+    with {:ok, expression} <- AnnotationHandler.cast(annotation) do
+      {:evaluate_expression, %{expression: expression}}
+    end
   end
   defp cast_step(%Step{step_type_id: "do_nothing"}, _context), do: {:do_nothing, %{}}
 

@@ -129,7 +129,7 @@ defmodule BrowserController.Browser.CommandsTest do
 
     test "badge creates the elements", %{headed_browser_pid: browser_pid, page_pid: page_pid} do
       annotation = AnnotationFixtures.badge_annotation_struct()
-      script = AnnotationHandler.cast(annotation)
+      {:ok, script} = AnnotationHandler.cast(annotation)
       Browser.execute(browser_pid, {:evaluate_script, %{script: script}})
       locator_id = "userdocs-annotation-#{annotation.id}-locator"
       badge_id = "userdocs-annotation-#{annotation.id}-badge"

@@ -39,7 +39,7 @@ defmodule BrowserController.BrowserControllerTest do
       assert_receive(%{event: "queue_updated", payload: %{queue: [works, _fails, works]}})
       assert_receive(%{event: "run_state_updated", payload: %{run_state: :play}})
       assert_receive(%{event: "queue_updated", payload: %{queue: [_fails, _works]}})
-      assert_receive(%{event: "execution_error", payload: %{message: "This command did nothing."}})
+      assert_receive(%{event: "execution_error", payload: %{message: %{}, command: fails}})
       assert_receive(%{event: "queue_updated", payload: %{queue: []}})
       assert_receive(%{event: "run_state_updated", payload: %{run_state: :pause}})
       assert BrowserController.run_state() == :pause

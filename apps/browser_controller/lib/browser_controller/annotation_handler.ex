@@ -73,6 +73,7 @@ defmodule BrowserController.AnnotationHandler do
         color: color,
         thickness: thickness
       )
+    {:ok, script}
   end
 
   def cast(
