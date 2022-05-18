@@ -7,7 +7,7 @@ defmodule BrowserController.Browser.UtilitiesTest do
 
   setup_all do
     result = BrowserController.ensure_browser_open()
-    BrowserController.execute({:navigate, %{url: @test_page_path}})
+    :ok = BrowserController.execute({:navigate, %{url: @test_page_path}})
     result
   end
 
