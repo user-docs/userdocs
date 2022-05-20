@@ -35,7 +35,7 @@ defmodule BrowserController.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:chrome_remote_interface, path: "D:\\Users\\johns10\\Documents\\GitHub\\chrome-remote-interface"},
+      {:chrome_remote_interface, git: "https://github.com/user-docs/chrome-remote-interface.git"},
       {:schemas, in_umbrella: true},
       {:userdocs, in_umbrella: true},
       {:client, in_umbrella: true, runtime: false},
