@@ -46,10 +46,7 @@ defmodule Userdocs.Projects do
     %Project{}
     |> Project.changeset(attrs)
     |> RepoHandler.insert(opts)
-    |> case do
-      {:ok, project} = result -> maybe_broadcast_project(result, "create", channel(project, opts[:broadcast]), opts[:broadcast])
-      result -> result
-    end
+    |> Subscription.broadcast_result(opts)
   end
 
   def create_project_structs(attrs_list) do
@@ -70,35 +67,19 @@ defmodule Userdocs.Projects do
     project
     |> Project.changeset(attrs)
     |> RepoHandler.update(opts)
-    |> maybe_broadcast_project("update", channel(project, opts[:broadcast]), opts[:broadcast])
+    |> Subscription.broadcast_result(opts)
   end
 
   @doc "Deletes a project."
   def delete_project(%Project{} = project, opts) do
-    channel = channel(project, opts[:broadcast])
     RepoHandler.delete(project, opts)
-    |> maybe_broadcast_project("delete", channel, opts[:broadcast])
+    |> Subscription.broadcast_result(opts)
   end
 
   @doc "Returns an `%Ecto.Changeset{}` for tracking project changes."
   def change_project(%Project{} = project, attrs \\ %{}) do
     Project.changeset(project, attrs)
   end
-
-  @doc "Broadcasts a project to the team it belongs to"
-  def maybe_broadcast_project({:error, _} = state, _, _, _), do: state
-  def maybe_broadcast_project({:ok, %Project{} = project}, action, channel, true) do
-    Logger.debug("#{__MODULE__} broadcasting a Project struct on #{channel}")
-    payload = %{type: "Schemas.Projects.Project", attrs: project}
-    Subscription.broadcast(channel, action, payload)
-    {:ok, project}
-  end
-  def maybe_broadcast_project(state, _, _, _), do: state
-
-  def channel(%Project{} = project, true) do
-    "team:#{project.team_id}"
-  end
-  def channel(_, _), do: ""
 
   def override_base_url(%Project{id: id, base_url: _url} = project, overrides) do
     overrides

@@ -45,4 +45,8 @@ defmodule Userdocs.Subscription do
     team = Teams.get_project_team!(project_id, opts)
     "team:#{team.id}"
   end
+  def channel(%Schemas.Projects.Project{team_id: team_id}, _opts) do
+    "team:#{team_id}"
+  end
+  def channel(_, _), do: raise("#{__MODULE__} Channel call failed")
 end

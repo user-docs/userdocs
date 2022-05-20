@@ -114,7 +114,8 @@ defmodule Userdocs.ClientFixtures do
       step_types: Userdocs.StepTypeFixtures.all_valid_step_type_structs(),
       integrations: [integration],
       screenshot_integrations: [screenshot_integration],
-      teams: [team]
+      teams: [team],
+      strategies: [strategy]
     }
 
     context = %{
@@ -135,7 +136,8 @@ defmodule Userdocs.ClientFixtures do
       context: context,
       annotation_types: annotation_types,
       page: page,
-      annotation: badge_annotation
+      annotation: badge_annotation,
+      strategy: strategy
     }
 
     {data, context}

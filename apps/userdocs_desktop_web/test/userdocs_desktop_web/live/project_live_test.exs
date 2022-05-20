@@ -4,36 +4,29 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
   alias Userdocs.ProjectsFixtures
 
   describe "Index" do
-    setup [
-      :reinitialize_state,
-      :ensure_web_started,
-      :create_password,
-      :create_user,
-      :create_remote_team,
-      :create_remote_team_user,
-      :create_remote_strategy,
-      :create_remote_project,
-      :create_remote_tokens,
-      :put_access_token_in_state,
-      :create_remote_user_context,
-      :put_remote_context_data,
-      :put_user_in_state,
-      :connect_client,
-      :load_client
-    ]
+    setup do
+      {data, context} = Userdocs.ClientFixtures.local_data()
+      Client.init_state()
+      Client.put_in_state(:current_user, context.user)
+      Client.put_in_state(:context, context.context)
+      Client.put_in_state(:data, data)
+      Client.connect()
+      UserdocsDesktopWeb.Endpoint.subscribe("data")
+      context
+    end
 
     setup do
       on_exit(fn -> Client.disconnect() end)
     end
 
-    test "lists all projects", %{conn: conn, remote_project: project} do
+    test "lists all projects", %{conn: conn, project: project} do
       {:ok, _index_live, html} = live(conn, Routes.project_index_path(conn, :index))
 
       assert html =~ "Listing Projects"
       assert html =~ project.name
     end
 
-    test "saves new project", %{conn: conn, remote_team: team, remote_strategy: strategy} do
+    test "saves new project", %{conn: conn, team: team, strategy: strategy} do
       {:ok, index_live, _html} = live(conn, Routes.project_index_path(conn, :index))
 
       assert index_live |> element("a", "New Project") |> render_click() =~ "New Project"
@@ -55,7 +48,7 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
       assert_patched(index_live, Routes.project_index_path(conn, :index, team.id))
     end
 
-    test "updates project in listing", %{conn: conn, remote_project: project, remote_team: team, remote_strategy: strategy} do
+    test "updates project in listing", %{conn: conn, project: project, team: team, strategy: strategy} do
       {:ok, index_live, _html} = live(conn, Routes.project_index_path(conn, :index))
 
       assert index_live |> element("#edit-project-" <> to_string(project.id)) |> render_click() =~
@@ -73,13 +66,13 @@ defmodule UserdocsDesktopWeb.ProjectLiveTest do
       |> form("#project-form", project: valid_attrs)
       |> render_submit()
 
-      assert_patch(index_live, Routes.project_index_path(conn, :index, team.id))
       assert_receive(%{event: "update", topic: "data"})
+      assert_patch(index_live, Routes.project_index_path(conn, :index, team.id))
       assert render(index_live) =~ "Project updated successfully"
       assert render(index_live) =~ valid_attrs[:name]
     end
 
-    test "deletes project in listing", %{conn: conn, remote_project: project} do
+    test "deletes project in listing", %{conn: conn, project: project} do
       {:ok, index_live, _html} = live(conn, Routes.project_index_path(conn, :index))
 
       assert index_live |> element("#delete-project-" <> to_string(project.id)) |> render_click()
