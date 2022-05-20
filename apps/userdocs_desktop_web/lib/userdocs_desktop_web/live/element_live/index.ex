@@ -101,7 +101,7 @@ defmodule UserdocsDesktopWeb.ElementLive.Index do
     params = ExtensionMessages.element_params(payload)
     case live_action do
       :index ->
-        element = Client.find_element(:selector, payload.generated_selector)
+        element = Client.Context.Elements.find_element(:selector, payload.generated_selector)
         current_page = Client.find_page_by_path(payload.href, %{})
         flash_message =
           ExtensionMessages.maybe_create_element_flash("", socket, element, page, params, :patch)

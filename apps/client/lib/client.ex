@@ -90,8 +90,6 @@ defmodule Client do
   def load_elements(opts \\ %{}), do: GenServer.call(__MODULE__.Server, {:load_elements, opts}, @timeout)
   def list_elements(opts \\ []), do: GenServer.call(__MODULE__.Server, {:list_elements, opts}, @timeout)
   def get_element!(id, opts \\ []), do: GenServer.call(__MODULE__.Server, {:get_element!, id, opts}, @timeout)
-  def find_element(field, value), do: GenServer.call(__MODULE__.Server, {:find_element, field, value, %{}}, @timeout)
-  def find_element(field, value, opts), do: GenServer.call(__MODULE__.Server, {:find_element, field, value, opts}, @timeout)
   def create_element(attrs), do: GenServer.call(__MODULE__.Server, {:create_element, attrs}, @timeout)
   def update_element(element, attrs), do: GenServer.call(__MODULE__.Server, {:update_element, element, attrs}, @timeout)
   def delete_element(element), do: GenServer.call(__MODULE__.Server, {:delete_element, element}, @timeout)

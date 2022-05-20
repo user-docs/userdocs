@@ -12,44 +12,17 @@ defmodule UserdocsDesktopWeb.ElementLiveTest do
 
   #open_browser(index_live, &(System.cmd("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe", [&1])))
 
-  defp create_password(_), do: %{password: UUID.uuid4()}
-  defp create_user(%{password: password}), do: %{user: UsersFixtures.confirmed_user(password)}
-  defp create_team(_), do: %{team: TeamsFixtures.team(@opts)}
-  defp create_team_user(%{user: user, team: team}), do: %{team_user: TeamsFixtures.team_user(user.id, team.id, @opts)}
-  defp create_strategy(_), do: %{strategy: WebFixtures.strategy(@opts)}
-  defp create_project(%{team: team, strategy: strategy}), do: %{project: ProjectsFixtures.project(team.id, strategy.id, @opts)}
-  defp create_page(%{project: project}), do: %{page: WebFixtures.page(project.id, @opts)}
-  defp create_element(%{page: page, strategy: strategy}), do: %{element: WebFixtures.element(page.id, strategy.id, @opts)}
-  defp create_session(%{user: user, password: password}) do
-    {:ok, _} = Client.authenticate(%{"user" => %{"email" => user.email, "password" => password}})
-    %{}
-  end
-  defp make_selections(%{user: user, team: team, project: project}) do
-    {:ok, user} = Userdocs.Users.update_user_selections(user, %{
-      selected_team_id: team.id,
-      selected_project_id: project.id
-    }, @opts)
-    %{user: user}
-  end
-  defp load_client(_) do
-    Client.connect()
-    Client.load()
-  end
-
   describe "Index" do
-    setup [
-      :create_password,
-      :create_user,
-      :create_team,
-      :create_team_user,
-      :create_strategy,
-      :create_project,
-      :create_page,
-      :create_element,
-      :make_selections,
-      :create_session,
-      :load_client
-    ]
+    setup do
+      {data, context} = Userdocs.ClientFixtures.local_data()
+      Client.init_state()
+      Client.put_in_state(:current_user, context.user)
+      Client.put_in_state(:context, context.context)
+      Client.put_in_state(:data, data)
+      Client.connect()
+      UserdocsDesktopWeb.Endpoint.subscribe("data")
+      context
+    end
 
     setup do
       on_exit(fn -> Client.disconnect() end)
@@ -80,9 +53,8 @@ defmodule UserdocsDesktopWeb.ElementLiveTest do
         |> form("#element-form", element: valid_attrs)
         |> render_submit()
 
-      :timer.sleep(@receive_timeout)
       assert_receive(%{event: "create", topic: "data"})
-      assert_patched(index_live, Routes.element_index_path(conn, :index, page.id))
+      assert_patch(index_live, Routes.element_index_path(conn, :index, page.id))
       assert render(index_live) =~ "Element created successfully"
       assert render(index_live) =~ valid_attrs.name
     end
@@ -106,9 +78,8 @@ defmodule UserdocsDesktopWeb.ElementLiveTest do
         |> form("#element-form", element: valid_attrs)
         |> render_submit()
 
-      :timer.sleep(@receive_timeout)
       assert_receive(%{event: "update", topic: "data"})
-      assert_patched(index_live, Routes.element_index_path(conn, :index, page.id))
+      assert_patch(index_live, Routes.element_index_path(conn, :index, page.id))
       assert render(index_live) =~ "Element updated successfully"
     end
 
@@ -116,7 +87,6 @@ defmodule UserdocsDesktopWeb.ElementLiveTest do
       {:ok, index_live, _html} = live(conn, Routes.element_index_path(conn, :index, page.id))
 
       assert index_live |> element("#delete-element-" <> to_string(element.id)) |> render_click()
-      :timer.sleep(@receive_timeout)
       assert_receive(%{event: "delete", topic: "data"})
       refute has_element?(index_live, "#delete-element-" <> to_string(element.id))
     end

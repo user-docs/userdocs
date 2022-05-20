@@ -16,7 +16,6 @@ defmodule UserdocsDesktopWeb.PageLiveTest do
   end
 
   describe "Browser Automation" do
-
     setup do
       {data, context} = Userdocs.ClientFixtures.local_data()
       Client.init_state()

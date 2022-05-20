@@ -49,7 +49,7 @@ defmodule Userdocs.ClientFixtures do
     LocalOptionsFixtures.local_options()
     Userdocs.Tokens.create_all_tokens("asdf", "asdf", 1, @local_opts)
 
-    element = Userdocs.WebFixtures.element_struct(page.id, "css")
+    element = Userdocs.WebFixtures.element(page.id, strategy.id, @local_opts)
 
     navigate_step = StepFixtures.step_struct(%{step_type_id: "navigate", page_id: page.id})
     click_step = StepFixtures.step_struct(%{step_type_id: "click", element_id: element.id})
@@ -137,7 +137,8 @@ defmodule Userdocs.ClientFixtures do
       annotation_types: annotation_types,
       page: page,
       annotation: badge_annotation,
-      strategy: strategy
+      strategy: strategy,
+      element: element
     }
 
     {data, context}

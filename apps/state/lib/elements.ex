@@ -19,15 +19,6 @@ defmodule State.Elements do
     |> maybe_preload(opts[:preloads], state, opts)
   end
 
-  def find_element(state, opts, field, value) do
-    list_elements(state, opts)
-    |> Enum.filter(fn(element) -> element |> Map.get(field) == value end)
-    |> case do
-      [element] -> element
-      _ -> nil
-    end
-  end
-
   defp maybe_preload(process, nil, _, _), do: process
   defp maybe_preload(process, _preloads, state, opts) do
     opts = Keyword.delete(opts, :filter)

@@ -43,10 +43,7 @@ defmodule Userdocs.Elements do
     %Element{}
     |> Element.changeset(attrs)
     |> RepoHandler.insert(opts)
-    |> case do
-      {:ok, element} = result -> maybe_broadcast_element(result, "create", element_channel(element, opts), opts[:broadcast])
-      result -> result
-    end
+    |> Subscription.broadcast_result(opts)
   end
 
   def create_element_structs(attrs_list) do
@@ -67,33 +64,16 @@ defmodule Userdocs.Elements do
     element
     |> Element.changeset(attrs)
     |> RepoHandler.update(opts)
-    |> maybe_broadcast_element("update", element_channel(element, opts), opts[:broadcast])
+    |> Subscription.broadcast_result(opts)
   end
 
   @doc "Deletes an element"
   def delete_element(%Element{} = element, opts) do
-    channel = element_channel(element, opts)
     RepoHandler.delete(element, opts)
-    |> maybe_broadcast_element("delete", channel, opts[:broadcast])
+    |> Subscription.broadcast_result(opts)
   end
 
   def change_element(%Element{} = element, attrs \\ %{}) do
     Element.changeset(element, attrs)
-  end
-
-  @doc "Broadcasts a element to the team it belongs to"
-  def maybe_broadcast_element({:error, _} = state, _, _, _), do: state
-  def maybe_broadcast_element({:ok, %Element{} = element}, action, channel, true) do
-    Logger.debug("#{__MODULE__} broadcasting a Element struct")
-    payload = %{type: "Schemas.Elements.Element", attrs: element}
-    Subscription.broadcast(channel, action, payload)
-    {:ok, element}
-  end
-  def maybe_broadcast_element(state, _, _, _), do: state
-
-  alias Userdocs.Teams
-  def element_channel(%Element{} = element, opts) do
-    team = Teams.get_element_team!(element.id, opts)
-    "team:#{team.id}"
   end
 end
